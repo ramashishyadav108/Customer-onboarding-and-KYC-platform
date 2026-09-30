@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onboardx"
+version = "0.1.0"
+description = "OnboardX customer onboarding and KYC platform (synthetic data only)"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "sqlalchemy>=2",
+  "alembic",
+  "pydantic>=2",
+  "pydantic-settings",
+  "pyjwt",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "httpx",
+  "ruff",
+  "mypy",
+  "pip-tools",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+markers = [
+  "ac(id): acceptance criterion id the test proves (e.g. AC-04)",
+  "nfr(id): non-functional requirement id the test proves (e.g. NFR-03)",
+]
+filterwarnings = ["error::DeprecationWarning:onboardx.*"]
+
+[tool.coverage.run]
+source = ["onboardx"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "if __name__ == .__main__.:"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S608"]
+"migrations/**" = ["S608"]
+"scripts/**" = ["S603", "S607"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
