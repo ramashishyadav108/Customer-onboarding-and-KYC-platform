@@ -65,5 +65,7 @@ def update_manifest(versions_dir: Path, manifest_path: Path) -> list[str]:
     files = _migration_files(versions_dir)
     for name in unregistered:
         manifest[name] = file_digest(files[name])
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return unregistered

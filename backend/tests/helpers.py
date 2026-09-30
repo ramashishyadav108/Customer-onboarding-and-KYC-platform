@@ -2,12 +2,13 @@
 
 import time
 import uuid
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import jwt
 from sqlalchemy import Connection, text
 
-JWT_SECRET = "test-secret-not-real"
+JWT_SECRET = "test-secret-not-real-0123456789-abcdefghij"
 NOW = "2026-10-01T09:30:00+00:00"
 
 
@@ -33,8 +34,7 @@ def ensure_template(conn: Connection, product: str, version: int) -> None:
     if found is None:
         conn.execute(
             text(
-                "INSERT INTO checklist_templates (product, version, created_at)"
-                " VALUES (:p, :v, :t)"
+                "INSERT INTO checklist_templates (product, version, created_at) VALUES (:p, :v, :t)"
             ),
             {"p": product, "v": version, "t": NOW},
         )
@@ -58,3 +58,16 @@ def insert_case(
         {"id": case_id, "p": product, "s": state, "v": checklist_version, "t": NOW},
     )
     return case_id
+
+
+class FakeClock:
+    """Mutable UTC clock for deterministic tests (starts at the real current time)."""
+
+    def __init__(self) -> None:
+        self._now = datetime.now(UTC).replace(microsecond=0)
+
+    def now(self) -> datetime:
+        return self._now
+
+    def advance(self, seconds: int) -> None:
+        self._now += timedelta(seconds=seconds)

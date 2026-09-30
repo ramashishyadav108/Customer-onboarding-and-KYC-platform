@@ -3,10 +3,10 @@
 from pathlib import Path
 
 import pytest
-from helpers import insert_case, sqlite_url
 from sqlalchemy import Engine, create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
 
+from helpers import insert_case, sqlite_url
 from onboardx.repositories.database import create_db_engine, is_in_memory, upgrade_to_head
 
 EXPECTED_TABLES = {

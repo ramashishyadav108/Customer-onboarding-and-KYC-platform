@@ -39,9 +39,11 @@ _OCCUPATION = re.compile(
     r"\b(?:SALARIED|SELF_EMPLOYED|BUSINESS_OWNER|STUDENT|RETIRED|CASH_INTENSIVE)\b"
 )
 
-_STANDARD_RECORD_ATTRS = frozenset(
-    logging.LogRecord("", 0, "", 0, "", None, None).__dict__
-) | {"message", "asctime", "taskName"}
+_STANDARD_RECORD_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", None, None).__dict__) | {
+    "message",
+    "asctime",
+    "taskName",
+}
 
 
 def redact_text(text: str) -> str:

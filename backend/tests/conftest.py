@@ -1,4 +1,4 @@
-"""Shared fixtures: migrated SQLite databases, app factory and token helpers."""
+"""Shared fixtures: migrated SQLite databases, app factory, services and token helpers."""
 
 import shutil
 from collections.abc import Iterator
@@ -7,12 +7,18 @@ from pathlib import Path
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from helpers import JWT_SECRET, sqlite_url
 from sqlalchemy import Engine
 
+from helpers import JWT_SECRET, FakeClock, sqlite_url
 from onboardx.config.settings import Settings
+from onboardx.controllers.dependencies.services import Services
 from onboardx.main import create_app
-from onboardx.repositories.database import create_db_engine, upgrade_to_head
+from onboardx.repositories.database import (
+    create_db_engine,
+    create_session_factory,
+    upgrade_to_head,
+)
+from onboardx.repositories.unit_of_work import UnitOfWorkFactory, make_uow_factory
 
 
 @pytest.fixture(scope="session")
@@ -43,11 +49,27 @@ def settings(db_url: str) -> Settings:
 
 
 @pytest.fixture
-def app(settings: Settings) -> FastAPI:
-    return create_app(settings)
+def clock() -> FakeClock:
+    return FakeClock()
+
+
+@pytest.fixture
+def app(settings: Settings, clock: FakeClock) -> FastAPI:
+    return create_app(settings, clock=clock)
 
 
 @pytest.fixture
 def client(app: FastAPI) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def services(app: FastAPI) -> Services:
+    services: Services = app.state.services
+    return services
+
+
+@pytest.fixture
+def uow_factory(engine: Engine) -> UnitOfWorkFactory:
+    return make_uow_factory(create_session_factory(engine))

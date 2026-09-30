@@ -1,0 +1,9 @@
+{
+  "0001_core_schema.py": "cfae60e39d48b49d542fc500fb73581ae79034ec68206f76e522f133fead47e9",
+  "0002_append_only_triggers.py": "7199c8cb306a1c6e5c73e7b57acf6af1d92a4606d06dc7105d76d0d66c398f65",
+  "0003_seed_users.py": "6be33b2444b9bc48ab2e997984d19c6e67583ed85075bf3f594393786f2c4635",
+  "0004_seed_checklists_v1.py": "cdf9ef72377fd74e742f02fd002e3a885700b6c86b838b21ecf46833b23cf32b",
+  "0005_seed_classification_rules_v1.py": "83d8161673e7e4a1143f0c04686a539aef6d593817e32b8c7e97f134c8e0e684",
+  "0006_seed_rule_set_v1.py": "1c7af292bfa073b7bb5d2b7b925a98dc68ab85fce64d31637fa65ba665505e0d",
+  "0007_seed_watchlist_v1.py": "5d527c38ab550e3b0079a05682f4985371a1fe27ff7a8cb4ba6ea7c7bd8ac1cf"
+}
