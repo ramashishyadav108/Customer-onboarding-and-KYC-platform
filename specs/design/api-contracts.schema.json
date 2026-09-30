@@ -1,0 +1,4867 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OnboardX API",
+    "version": "1.0.0",
+    "description": "Customer onboarding and KYC platform (synthetic data). Integer-only numerics. See specs/design/api-contracts.md."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "local verification mode"
+    }
+  ],
+  "tags": [
+    {
+      "name": "platform"
+    },
+    {
+      "name": "auth"
+    },
+    {
+      "name": "leads"
+    },
+    {
+      "name": "cases"
+    },
+    {
+      "name": "products"
+    },
+    {
+      "name": "review-queue"
+    },
+    {
+      "name": "admin"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Liveness",
+        "tags": [
+          "platform"
+        ],
+        "x-story": "E1-S1",
+        "x-roles": [
+          "public"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Exchange credentials for a token",
+        "tags": [
+          "auth"
+        ],
+        "x-story": "E1-S2",
+        "x-roles": [
+          "public"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials (generic)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leads": {
+      "post": {
+        "operationId": "createLead",
+        "summary": "Register a lead and receive a case-bound token",
+        "tags": [
+          "leads"
+        ],
+        "x-story": "E1-S3",
+        "x-roles": [
+          "public"
+        ],
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Idempotent replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases": {
+      "get": {
+        "operationId": "listCases",
+        "summary": "Workbench case list",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E3-S5",
+        "x-roles": [
+          "kyc-analyst",
+          "compliance-officer",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of cases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/CaseState"
+            }
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "age_desc",
+                "age_asc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}": {
+      "get": {
+        "operationId": "getCase",
+        "summary": "Case detail",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E1-S3",
+        "x-roles": [
+          "prospect(owner)",
+          "kyc-analyst",
+          "compliance-officer",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Case",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown case",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/profile": {
+      "put": {
+        "operationId": "putProfile",
+        "summary": "Store profile while INITIATED",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E1-S3",
+        "x-roles": [
+          "prospect(owner)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated case",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_LOCKED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown case",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/products/{product}/checklist": {
+      "get": {
+        "operationId": "getChecklist",
+        "summary": "Latest checklist for a product",
+        "tags": [
+          "products"
+        ],
+        "x-story": "E1-S5",
+        "x-roles": [
+          "any"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Checklist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Checklist"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/documents": {
+      "post": {
+        "operationId": "uploadDocument",
+        "summary": "Upload or re-upload a document",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E2-S1",
+        "x-roles": [
+          "prospect(owner)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Classified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CASE_LOCKED or INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "FILE_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "UNSUPPORTED_MEDIA_TYPE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "UNKNOWN_CHECKLIST_ITEM or validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown case",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUploadRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listDocuments",
+        "summary": "Current document per item",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E2-S1",
+        "x-roles": [
+          "prospect(owner)",
+          "kyc-analyst",
+          "compliance-officer",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "include_superseded",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/documents/{document_id}/reject": {
+      "post": {
+        "operationId": "rejectDocument",
+        "summary": "Analyst rejects a document",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E2-S4",
+        "x-roles": [
+          "kyc-analyst"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectDocumentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CASE_LOCKED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing or unknown reason",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectDocumentRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/submit": {
+      "post": {
+        "operationId": "submitCase",
+        "summary": "Submit documents",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E2-S2",
+        "x-roles": [
+          "prospect(owner)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submitted (or idempotent repeat)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MISSING_DOCUMENTS or MISSING_PROFILE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/screen": {
+      "post": {
+        "operationId": "screenCase",
+        "summary": "Screen name against watchlist",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E3-S1",
+        "x-roles": [
+          "kyc-analyst",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Screened",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreenResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/classify": {
+      "post": {
+        "operationId": "classifyCase",
+        "summary": "Score risk",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E3-S3",
+        "x-roles": [
+          "kyc-analyst",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Classified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassifyResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "MISSING_PROFILE_FIELD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/decide": {
+      "post": {
+        "operationId": "decideCase",
+        "summary": "Auto-approve or route to manual review",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E4-S1",
+        "x-roles": [
+          "kyc-analyst",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Decision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecideResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/advance": {
+      "post": {
+        "operationId": "advanceCase",
+        "summary": "Run screen, classify, decide",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E4-S1",
+        "x-roles": [
+          "kyc-analyst",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Final state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvanceResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Step failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/cases/{case_id}/evidence": {
+      "get": {
+        "operationId": "getEvidence",
+        "summary": "Screening, risk and documents for review",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E3-S5",
+        "x-roles": [
+          "kyc-analyst",
+          "compliance-officer",
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evidence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evidence"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/review-queue": {
+      "get": {
+        "operationId": "reviewQueue",
+        "summary": "MANUAL_REVIEW cases oldest first",
+        "tags": [
+          "review-queue"
+        ],
+        "x-story": "E4-S3",
+        "x-roles": [
+          "compliance-officer"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueue"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/override": {
+      "post": {
+        "operationId": "overrideCase",
+        "summary": "Audited override of MANUAL_REVIEW",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E4-S3",
+        "x-roles": [
+          "compliance-officer"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overridden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverrideResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing or unknown reason",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverrideRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/reclassify": {
+      "post": {
+        "operationId": "reclassifyCase",
+        "summary": "Officer risk-band reassignment",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E4-S3",
+        "x-roles": [
+          "compliance-officer"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New assessment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiskAssessment"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_STATE or CASE_LOCKED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReclassifyRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{case_id}/notifications": {
+      "get": {
+        "operationId": "listNotifications",
+        "summary": "Owner notifications newest first",
+        "tags": [
+          "cases"
+        ],
+        "x-story": "E4-S4",
+        "x-roles": [
+          "prospect(owner)"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/rule-sets": {
+      "get": {
+        "operationId": "listRuleSets",
+        "summary": "All rule-set versions",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSetList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRuleSetDraft",
+        "summary": "Create DRAFT copy of latest version",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Draft",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSet"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "DRAFT_EXISTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/rule-sets/{version}": {
+      "get": {
+        "operationId": "getRuleSet",
+        "summary": "One rule-set version",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule set",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSet"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "updateRuleSet",
+        "summary": "Edit a DRAFT",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSet"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "RULESET_IMMUTABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Floats or invalid types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleSetUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/rule-sets/{version}/publish": {
+      "post": {
+        "operationId": "publishRuleSet",
+        "summary": "Publish a DRAFT",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleSet"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "RULESET_IMMUTABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "RULESET_INVALID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/watchlist": {
+      "get": {
+        "operationId": "listWatchlist",
+        "summary": "Watchlist entries",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "addWatchlistEntry",
+        "summary": "Add entry",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchlistCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/watchlist/{entry_id}/deactivate": {
+      "post": {
+        "operationId": "deactivateWatchlistEntry",
+        "summary": "Deactivate entry (appends row)",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E3-S4",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_DEACTIVATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/tat": {
+      "get": {
+        "operationId": "report_tat",
+        "summary": "Report tat",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S1)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TatReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/funnel": {
+      "get": {
+        "operationId": "report_funnel",
+        "summary": "Report funnel",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S2)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FunnelReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/backlog": {
+      "get": {
+        "operationId": "report_backlog",
+        "summary": "Report backlog",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S2)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacklogReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/time-per-stage": {
+      "get": {
+        "operationId": "report_time_per_stage",
+        "summary": "Report time-per-stage",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S1)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimePerStageReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/rejection-reasons": {
+      "get": {
+        "operationId": "report_rejection_reasons",
+        "summary": "Report rejection-reasons",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S2)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectionReasonsReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/reports/auto-approval": {
+      "get": {
+        "operationId": "report_auto_approval",
+        "summary": "Report auto-approval",
+        "tags": [
+          "admin"
+        ],
+        "x-story": "E5-S3 (E5-S2)",
+        "x-roles": [
+          "admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApprovalReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Product": {
+        "type": "string",
+        "enum": [
+          "Savings",
+          "Current",
+          "NRE"
+        ]
+      },
+      "CaseState": {
+        "type": "string",
+        "enum": [
+          "INITIATED",
+          "DOCS_SUBMITTED",
+          "SCREENED",
+          "CLASSIFIED",
+          "APPROVED",
+          "REJECTED",
+          "MANUAL_REVIEW"
+        ]
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "prospect",
+          "kyc-analyst",
+          "compliance-officer",
+          "admin"
+        ]
+      },
+      "OccupationCategory": {
+        "type": "string",
+        "enum": [
+          "SALARIED",
+          "SELF_EMPLOYED",
+          "BUSINESS_OWNER",
+          "STUDENT",
+          "RETIRED",
+          "CASH_INTENSIVE"
+        ]
+      },
+      "ChecklistItemCode": {
+        "type": "string",
+        "enum": [
+          "ID_PROOF",
+          "ADDRESS_PROOF",
+          "PHOTOGRAPH",
+          "BUSINESS_PROOF",
+          "OVERSEAS_ADDRESS_PROOF"
+        ]
+      },
+      "DocClass": {
+        "type": "string",
+        "enum": [
+          "PAN",
+          "AADHAAR",
+          "PASSPORT",
+          "UTILITY_BILL",
+          "PHOTOGRAPH",
+          "GST_CERTIFICATE",
+          "VISA",
+          "UNRECOGNISED"
+        ]
+      },
+      "DocStatus": {
+        "type": "string",
+        "enum": [
+          "VERIFIED",
+          "FLAGGED",
+          "REJECTED"
+        ]
+      },
+      "ItemStatus": {
+        "type": "string",
+        "enum": [
+          "MISSING",
+          "VERIFIED",
+          "FLAGGED",
+          "REJECTED"
+        ]
+      },
+      "DocRejectReasonCode": {
+        "type": "string",
+        "enum": [
+          "DOC_ILLEGIBLE",
+          "DOC_EXPIRED",
+          "DOC_NAME_MISMATCH",
+          "DOC_WRONG_TYPE",
+          "DOC_OTHER"
+        ]
+      },
+      "RiskBand": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH"
+        ]
+      },
+      "ReviewReasonCode": {
+        "type": "string",
+        "enum": [
+          "AML_HIT",
+          "PEP_HIT",
+          "DOC_UNRECOGNISED",
+          "RISK_MEDIUM",
+          "RISK_HIGH"
+        ]
+      },
+      "OverrideReasonCode": {
+        "type": "string",
+        "enum": [
+          "FALSE_POSITIVE_CLEARED",
+          "RISK_ACCEPTED",
+          "DOCS_CONFIRMED",
+          "CONFIRMED_WATCHLIST_MATCH",
+          "DOCS_INSUFFICIENT",
+          "RISK_TOO_HIGH",
+          "POLICY_OTHER"
+        ]
+      },
+      "ReclassifyReasonCode": {
+        "type": "string",
+        "enum": [
+          "NEW_INFORMATION",
+          "SCORING_ERROR",
+          "MANUAL_ASSESSMENT"
+        ]
+      },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "UNAUTHENTICATED",
+          "FORBIDDEN",
+          "NOT_FOUND",
+          "INVALID_STATE",
+          "CASE_LOCKED",
+          "PROFILE_LOCKED",
+          "RULESET_IMMUTABLE",
+          "FILE_TOO_LARGE",
+          "UNSUPPORTED_MEDIA_TYPE",
+          "VALIDATION_ERROR",
+          "UNKNOWN_CHECKLIST_ITEM",
+          "MISSING_DOCUMENTS",
+          "MISSING_PROFILE",
+          "MISSING_PROFILE_FIELD",
+          "RULESET_INVALID",
+          "UNKNOWN_REASON_CODE",
+          "DRAFT_EXISTS",
+          "ALREADY_DEACTIVATED"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "$ref": "#/components/schemas/ErrorCode"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message",
+              "details"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "bearer"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "access_token",
+          "token_type",
+          "role",
+          "expires_in",
+          "case_id"
+        ]
+      },
+      "LeadRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "contact": {
+            "type": "string",
+            "description": "10-digit phone or valid email"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "contact",
+          "product"
+        ]
+      },
+      "LeadResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "INITIATED"
+            ]
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "bearer"
+            ]
+          },
+          "expires_in": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "product",
+          "access_token",
+          "token_type",
+          "expires_in"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "date_of_birth": {
+            "type": "string",
+            "format": "date"
+          },
+          "annual_income": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "occupation_category": {
+            "$ref": "#/components/schemas/OccupationCategory"
+          },
+          "country_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "date_of_birth",
+          "annual_income",
+          "occupation_category",
+          "country_code"
+        ]
+      },
+      "ChecklistItem": {
+        "type": "object",
+        "properties": {
+          "item_code": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "mandatory": {
+            "type": "boolean"
+          },
+          "accepted_classes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocClass"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "item_code",
+          "mandatory",
+          "accepted_classes"
+        ]
+      },
+      "Checklist": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "product",
+          "version",
+          "items"
+        ]
+      },
+      "CaseItemView": {
+        "type": "object",
+        "properties": {
+          "item_code": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "mandatory": {
+            "type": "boolean"
+          },
+          "accepted_classes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocClass"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/ItemStatus"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "doc_version": {
+            "type": "integer",
+            "nullable": true
+          },
+          "doc_class": {
+            "$ref": "#/components/schemas/DocClass",
+            "nullable": true
+          },
+          "reason_code": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "item_code",
+          "mandatory",
+          "accepted_classes",
+          "status",
+          "document_id",
+          "doc_version",
+          "doc_class",
+          "reason_code"
+        ]
+      },
+      "ActionRequired": {
+        "type": "object",
+        "properties": {
+          "item_code": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "MISSING",
+              "FLAGGED",
+              "REJECTED"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "item_code",
+          "status",
+          "reason_code"
+        ]
+      },
+      "CaseDetail": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "contact_masked": {
+            "type": "string"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "checklist_version": {
+            "type": "integer"
+          },
+          "checklist_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseItemView"
+            }
+          },
+          "missing_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemCode"
+            }
+          },
+          "action_required": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActionRequired"
+            }
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile",
+            "nullable": true
+          },
+          "profile_complete": {
+            "type": "boolean"
+          },
+          "account_number_masked": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "name",
+          "contact_masked",
+          "product",
+          "state",
+          "checklist_version",
+          "checklist_items",
+          "missing_items",
+          "action_required",
+          "profile",
+          "profile_complete",
+          "account_number_masked",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CaseListItem": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "age_minutes": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "product",
+          "state",
+          "age_minutes",
+          "created_at"
+        ]
+      },
+      "CaseList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseListItem"
+            }
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ]
+      },
+      "DocumentView": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checklist_item": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocStatus"
+          },
+          "doc_class": {
+            "$ref": "#/components/schemas/DocClass"
+          },
+          "reason_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence_bp": {
+            "type": "integer"
+          },
+          "rule_version": {
+            "type": "integer"
+          },
+          "superseded": {
+            "type": "boolean"
+          },
+          "size_bytes": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "checklist_item",
+          "version",
+          "status",
+          "doc_class",
+          "reason_code",
+          "confidence_bp",
+          "rule_version",
+          "superseded",
+          "size_bytes",
+          "sha256",
+          "uploaded_at"
+        ]
+      },
+      "DocumentList": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentView"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "documents"
+        ]
+      },
+      "DocumentUploadRequest": {
+        "type": "object",
+        "properties": {
+          "checklist_item": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "file": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "checklist_item",
+          "file"
+        ]
+      },
+      "DocumentUploadResponse": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checklist_item": {
+            "$ref": "#/components/schemas/ChecklistItemCode"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "doc_class": {
+            "$ref": "#/components/schemas/DocClass"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "VERIFIED",
+              "FLAGGED"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence_bp": {
+            "type": "integer"
+          },
+          "rule_version": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "checklist_item",
+          "version",
+          "doc_class",
+          "status",
+          "reason_code",
+          "confidence_bp",
+          "rule_version"
+        ]
+      },
+      "RejectDocumentRequest": {
+        "type": "object",
+        "properties": {
+          "reason_code": {
+            "$ref": "#/components/schemas/DocRejectReasonCode"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "reason_code"
+        ]
+      },
+      "RejectDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REJECTED"
+            ]
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/DocRejectReasonCode"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "status",
+          "reason_code"
+        ]
+      },
+      "SubmitResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "DOCS_SUBMITTED"
+            ]
+          },
+          "missing_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemCode"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "missing_items"
+        ]
+      },
+      "ScreeningHit": {
+        "type": "object",
+        "properties": {
+          "entry_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "list_type": {
+            "type": "string",
+            "enum": [
+              "AML",
+              "PEP"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "AML_HIT",
+              "PEP_HIT"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "entry_id",
+          "list_type",
+          "reason_code"
+        ]
+      },
+      "ScreeningResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScreeningHit"
+            }
+          },
+          "requires_manual_review": {
+            "type": "boolean"
+          },
+          "watchlist_version": {
+            "type": "integer"
+          },
+          "screened_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "case_id",
+          "hits",
+          "requires_manual_review",
+          "watchlist_version",
+          "screened_at"
+        ]
+      },
+      "ScreenResponse": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "SCREENED"
+            ]
+          },
+          "result": {
+            "$ref": "#/components/schemas/ScreeningResult"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "result"
+        ]
+      },
+      "RiskBreakdownItem": {
+        "type": "object",
+        "properties": {
+          "factor": {
+            "type": "string",
+            "enum": [
+              "age",
+              "income_band",
+              "occupation_category",
+              "geography"
+            ]
+          },
+          "value_label": {
+            "type": "string"
+          },
+          "points": {
+            "type": "integer"
+          },
+          "weight": {
+            "type": "integer"
+          },
+          "contribution": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "factor",
+          "value_label",
+          "points",
+          "weight",
+          "contribution"
+        ]
+      },
+      "RiskAssessment": {
+        "type": "object",
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "band": {
+            "$ref": "#/components/schemas/RiskBand"
+          },
+          "rule_version": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "RULE_ENGINE",
+              "OFFICER_RECLASSIFY"
+            ]
+          },
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RiskBreakdownItem"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "assessment_id",
+          "case_id",
+          "score",
+          "band",
+          "rule_version",
+          "source",
+          "breakdown",
+          "created_at"
+        ]
+      },
+      "ClassifyResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "CLASSIFIED"
+            ]
+          },
+          "assessment": {
+            "$ref": "#/components/schemas/RiskAssessment"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "assessment"
+        ]
+      },
+      "Decision": {
+        "type": "object",
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "AUTO"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "MANUAL_REVIEW"
+            ]
+          },
+          "reason_code": {
+            "type": "string",
+            "description": "AUTO_APPROVED or ReviewReasonCode"
+          },
+          "rule_version": {
+            "type": "integer"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "decision_id",
+          "case_id",
+          "type",
+          "outcome",
+          "reason_code",
+          "rule_version",
+          "actor",
+          "created_at"
+        ]
+      },
+      "DecideResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "MANUAL_REVIEW"
+            ]
+          },
+          "decision": {
+            "$ref": "#/components/schemas/Decision"
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^(SAV|CUR|NRE)[0-9]{12}$",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "decision",
+          "account_number"
+        ]
+      },
+      "AdvanceResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "steps_run": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "screen",
+                "classify",
+                "decide"
+              ]
+            }
+          },
+          "decision": {
+            "$ref": "#/components/schemas/Decision",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "steps_run",
+          "decision"
+        ]
+      },
+      "OverrideView": {
+        "type": "object",
+        "properties": {
+          "override_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "previous_state": {
+            "type": "string",
+            "enum": [
+              "MANUAL_REVIEW"
+            ]
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/OverrideReasonCode"
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "rule_version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "override_id",
+          "case_id",
+          "actor",
+          "previous_state",
+          "decision",
+          "reason_code",
+          "comment",
+          "rule_version",
+          "created_at"
+        ]
+      },
+      "Evidence": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentView"
+            }
+          },
+          "screening": {
+            "$ref": "#/components/schemas/ScreeningResult",
+            "nullable": true
+          },
+          "risk_assessment": {
+            "$ref": "#/components/schemas/RiskAssessment",
+            "nullable": true
+          },
+          "decision": {
+            "$ref": "#/components/schemas/Decision",
+            "nullable": true
+          },
+          "override": {
+            "$ref": "#/components/schemas/OverrideView",
+            "nullable": true
+          },
+          "review_reason_code": {
+            "$ref": "#/components/schemas/ReviewReasonCode",
+            "nullable": true
+          },
+          "account_number_masked": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "product",
+          "documents",
+          "screening",
+          "risk_assessment",
+          "decision",
+          "override",
+          "review_reason_code",
+          "account_number_masked"
+        ]
+      },
+      "ReviewQueueItem": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "product": {
+            "$ref": "#/components/schemas/Product"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/ReviewReasonCode"
+          },
+          "age_minutes": {
+            "type": "integer"
+          },
+          "entered_review_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "product",
+          "reason_code",
+          "age_minutes",
+          "entered_review_at"
+        ]
+      },
+      "ReviewQueue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewQueueItem"
+            }
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "OverrideRequest": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/OverrideReasonCode"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "decision",
+          "reason_code"
+        ]
+      },
+      "OverrideResponse": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "override": {
+            "$ref": "#/components/schemas/OverrideView"
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^(SAV|CUR|NRE)[0-9]{12}$",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "state",
+          "override",
+          "account_number"
+        ]
+      },
+      "ReclassifyRequest": {
+        "type": "object",
+        "properties": {
+          "band": {
+            "$ref": "#/components/schemas/RiskBand"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/ReclassifyReasonCode"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "band",
+          "reason_code"
+        ]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "notification_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "INITIATED",
+              "DOCS_SUBMITTED",
+              "SCREENED",
+              "CLASSIFIED",
+              "APPROVED",
+              "REJECTED",
+              "MANUAL_REVIEW",
+              "DOC_REJECTED"
+            ]
+          },
+          "template": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "notification_id",
+          "case_id",
+          "event",
+          "template",
+          "text",
+          "details",
+          "created_at"
+        ]
+      },
+      "NotificationList": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "case_id",
+          "notifications"
+        ]
+      },
+      "RuleSet": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED"
+            ]
+          },
+          "weights": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "income_band": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "occupation_category": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "geography": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "age",
+              "income_band",
+              "occupation_category",
+              "geography"
+            ]
+          },
+          "points": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "min_years": {
+                      "type": "integer"
+                    },
+                    "max_years": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "points": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "label",
+                    "min_years",
+                    "max_years",
+                    "points"
+                  ]
+                }
+              },
+              "income_band": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "min_inr": {
+                      "type": "integer"
+                    },
+                    "max_inr": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "points": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "code",
+                    "min_inr",
+                    "max_inr",
+                    "points"
+                  ]
+                }
+              },
+              "occupation_category": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "geography": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "age",
+              "income_band",
+              "occupation_category",
+              "geography"
+            ]
+          },
+          "geography_map": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "geography_default": {
+            "type": "string"
+          },
+          "thresholds": {
+            "type": "object",
+            "properties": {
+              "low_max": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99
+              },
+              "medium_max": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 99
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "low_max",
+              "medium_max"
+            ]
+          },
+          "author": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "status",
+          "weights",
+          "points",
+          "geography_map",
+          "geography_default",
+          "thresholds",
+          "author",
+          "created_at",
+          "published_at"
+        ]
+      },
+      "RuleSetUpdate": {
+        "type": "object",
+        "properties": {
+          "weights": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "income_band": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "occupation_category": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "geography": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "age",
+              "income_band",
+              "occupation_category",
+              "geography"
+            ]
+          },
+          "points": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "min_years": {
+                      "type": "integer"
+                    },
+                    "max_years": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "points": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "label",
+                    "min_years",
+                    "max_years",
+                    "points"
+                  ]
+                }
+              },
+              "income_band": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "min_inr": {
+                      "type": "integer"
+                    },
+                    "max_inr": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "points": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "code",
+                    "min_inr",
+                    "max_inr",
+                    "points"
+                  ]
+                }
+              },
+              "occupation_category": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "geography": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "age",
+              "income_band",
+              "occupation_category",
+              "geography"
+            ]
+          },
+          "geography_map": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "geography_default": {
+            "type": "string"
+          },
+          "thresholds": {
+            "type": "object",
+            "properties": {
+              "low_max": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99
+              },
+              "medium_max": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 99
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "low_max",
+              "medium_max"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RuleSetSummary": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED"
+            ]
+          },
+          "author": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "status",
+          "author",
+          "created_at",
+          "published_at"
+        ]
+      },
+      "RuleSetList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleSetSummary"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ]
+      },
+      "WatchlistEntry": {
+        "type": "object",
+        "properties": {
+          "entry_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "list_type": {
+            "type": "string",
+            "enum": [
+              "AML",
+              "PEP"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "added_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deactivated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "entry_id",
+          "name",
+          "aliases",
+          "list_type",
+          "active",
+          "added_at",
+          "deactivated_at"
+        ]
+      },
+      "WatchlistList": {
+        "type": "object",
+        "properties": {
+          "watchlist_version": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WatchlistEntry"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "watchlist_version",
+          "items"
+        ]
+      },
+      "WatchlistCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 10
+          },
+          "list_type": {
+            "type": "string",
+            "enum": [
+              "AML",
+              "PEP"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "list_type"
+        ]
+      },
+      "ReportFilters": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "$ref": "#/components/schemas/Product",
+            "nullable": true
+          },
+          "from": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "product",
+          "from",
+          "to"
+        ]
+      },
+      "TatReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "product": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "avg_seconds": {
+                  "type": "integer"
+                },
+                "min_seconds": {
+                  "type": "integer"
+                },
+                "max_seconds": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "product",
+                "count",
+                "avg_seconds",
+                "min_seconds",
+                "max_seconds"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "items"
+        ]
+      },
+      "FunnelReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string",
+                  "enum": [
+                    "INITIATED",
+                    "DOCS_SUBMITTED",
+                    "SCREENED",
+                    "CLASSIFIED",
+                    "MANUAL_REVIEW",
+                    "APPROVED",
+                    "REJECTED"
+                  ]
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "conversion_bp": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "stage",
+                "count",
+                "conversion_bp"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "stages"
+        ]
+      },
+      "BacklogReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "oldest_age_minutes": {
+            "type": "integer"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "under_60",
+                    "60_to_1440",
+                    "over_1440"
+                  ]
+                },
+                "min_minutes": {
+                  "type": "integer"
+                },
+                "max_minutes": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "label",
+                "min_minutes",
+                "max_minutes",
+                "count"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "count",
+          "oldest_age_minutes",
+          "buckets"
+        ]
+      },
+      "TimePerStageReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from_state": {
+                  "$ref": "#/components/schemas/CaseState"
+                },
+                "to_state": {
+                  "$ref": "#/components/schemas/CaseState"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "avg_seconds": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "from_state",
+                "to_state",
+                "count",
+                "avg_seconds"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "stages"
+        ]
+      },
+      "RejectionReasonsReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "properties": {
+                "reason_code": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "reason_code",
+                "count"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "items"
+        ]
+      },
+      "AutoApprovalReport": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/ReportFilters"
+          },
+          "auto_approved": {
+            "type": "integer"
+          },
+          "decided": {
+            "type": "integer"
+          },
+          "rate_bp": {
+            "type": "integer"
+          },
+          "target_bp": {
+            "type": "integer",
+            "enum": [
+              6000
+            ]
+          },
+          "met": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "filters",
+          "auto_approved",
+          "decided",
+          "rate_bp",
+          "target_bp",
+          "met"
+        ]
+      }
+    }
+  }
+}

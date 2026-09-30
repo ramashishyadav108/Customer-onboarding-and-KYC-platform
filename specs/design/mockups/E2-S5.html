@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E2-S5 Prospect portal - OnboardX</title>
+<!-- Mockup E2-S5. Fields follow specs/design/api-contracts.md. Schema gaps: none. Unsure: "Uploaded" chip is client-only transient (contract 1.2). -->
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f4f6fa;color:#141a26;line-height:1.5;font-size:16px;overflow-wrap:anywhere}
+a{color:#0b3d91}
+:focus-visible{outline:3px solid #0b5fff;outline-offset:2px}
+header.top{background:#1d3a6e;color:#fff;padding:12px 16px}
+header.top h1{margin:0;font-size:1.25rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:#e8ecf4;padding:8px 16px;font-size:.9rem}
+.bar label{font-weight:600}
+nav.tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 16px;background:#fff;border-bottom:1px solid #c5cbd9}
+nav.tabs a{padding:8px 12px;border-radius:6px;text-decoration:none;color:#1d3a6e;font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+nav.tabs a[aria-current=page]{background:#1d3a6e;color:#fff}
+main{max-width:720px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1px solid #c5cbd9;border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 8px;font-size:1.3rem}
+.api{display:inline-block;font:12px/1.4 Consolas,monospace;background:#e8ecf4;color:#2b3550;border:1px solid #9aa5c0;border-radius:4px;padding:1px 6px;margin:2px 0}
+label.f{display:block;font-weight:600;margin-top:12px}
+input,select{width:100%;min-height:44px;padding:8px;border:2px solid #5b6680;border-radius:6px;font:inherit;background:#fff;color:#141a26}
+input[aria-invalid=true]{border-color:#a4161a}
+.err{color:#a4161a;font-weight:600;margin:4px 0 0;font-size:.9rem}
+.hint{color:#46506a;font-size:.9rem;margin:2px 0 0}
+button{min-height:44px;padding:8px 16px;border-radius:6px;border:2px solid #1d3a6e;background:#1d3a6e;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+button.sec{background:#fff;color:#1d3a6e}
+button:disabled{background:#d9dce4;color:#4a5165;border-color:#8b92a6;cursor:not-allowed}
+.banner{padding:10px 12px;border-radius:6px;margin-bottom:12px;border:2px solid}
+.banner.e{background:#f8d7da;color:#58151b;border-color:#a4161a}
+.banner.ok{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.banner.i{background:#e7efff;color:#0a2a66;border-color:#0b3d91}
+ul.items{list-style:none;padding:0;margin:0}
+ul.items li{border-top:1px solid #d5d9e4;padding:12px 0;display:grid;gap:6px}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:.85rem;border:1px solid}
+.chip.MISSING{background:#e2e3e5;color:#2b2f33;border-color:#41464b}
+.chip.UPLOADED{background:#cfe2ff;color:#052c65;border-color:#084298}
+.chip.VERIFIED{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.chip.FLAGGED{background:#fff3cd;color:#523e02;border-color:#664d03}
+.chip.REJECTED{background:#f8d7da;color:#58151b;border-color:#842029}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.meta{color:#46506a;font-size:.9rem}
+.sr{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><h1>OnboardX - Open your account</h1></header>
+<div class="bar" role="region" aria-label="Mockup controls">
+  <label for="mock">Mock state:</label>
+  <select id="mock" style="width:auto"><option value="normal">normal</option><option value="empty">empty (no documents)</option><option value="error">error (API failures)</option></select>
+  <span class="meta">Mockup only; no network calls.</span>
+</div>
+<nav class="tabs" aria-label="Portal pages">
+  <a href="#lead">1 Register</a><a href="#profile">2 Profile</a><a href="#upload">3 Documents</a><a href="#status">4 Status</a>
+</nav>
+<main id="main" tabindex="-1"></main>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+
+<script>
+const CASE_ID="3f0c2c9e-7a54-4b7e-9d3e-5b1f6a2e9c10";
+const PRODUCT="Savings";
+// GET /api/v1/products/Savings/checklist
+const CHECKLIST=[
+ {item_code:"ID_PROOF",mandatory:true,accepted_classes:["PAN","AADHAAR","PASSPORT"]},
+ {item_code:"ADDRESS_PROOF",mandatory:true,accepted_classes:["UTILITY_BILL","AADHAAR","PASSPORT"]},
+ {item_code:"PHOTOGRAPH",mandatory:true,accepted_classes:["PHOTOGRAPH"]}];
+let items=[],caseState="INITIATED",leadCreated=false;
+const $=s=>document.querySelector(s);
+const mock=()=>$("#mock").value;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api=t=>`<span class="api" data-api="${esc(t)}">${esc(t)}</span>`;
+const live=m=>{$("#live").textContent=m};
+function seed(){
+  caseState="INITIATED";
+  const mk=(c,st,dc,rc)=>({...c,status:st,document_id:st==="MISSING"?null:"9d1c"+Math.floor(Math.random()*9000+1000),doc_version:st==="MISSING"?null:1,doc_class:dc,reason_code:rc});
+  if(mock()==="empty") items=CHECKLIST.map(c=>mk(c,"MISSING",null,null));
+  else items=[mk(CHECKLIST[0],"VERIFIED","PAN",null),mk(CHECKLIST[1],"REJECTED","UTILITY_BILL","DOC_ILLEGIBLE"),mk(CHECKLIST[2],"FLAGGED","UNRECOGNISED","DOC_UNRECOGNISED")];
+}
+const chip=s=>{const ic={MISSING:"○",UPLOADED:"↑",VERIFIED:"✓",FLAGGED:"⚑",REJECTED:"✕"}[s];return `<span class="chip ${s}"><span aria-hidden="true">${ic} </span>${s==="UPLOADED"?"Uploaded":s[0]+s.slice(1).toLowerCase()}</span>`};
+const canSubmit=()=>items.filter(i=>i.mandatory).every(i=>i.status==="VERIFIED"||i.status==="FLAGGED");
+
+function uploadItem(code,file){
+  const it=items.find(i=>i.item_code===code);
+  if(mock()==="error"){
+    const big=file&&file.size>5242880;
+    return {err:big?"FILE_TOO_LARGE: file is over 5 MB (max_bytes 5242880).":"UNSUPPORTED_MEDIA_TYPE: allowed types are pdf, jpg, png."};
+  }
+  it.status="UPLOADED";
+  setTimeout(()=>{ // classification response (stub)
+    const unk=/unknown|blur/i.test(file?file.name:"");
+    it.status=unk?"FLAGGED":"VERIFIED";it.doc_class=unk?"UNRECOGNISED":it.accepted_classes[0];
+    it.reason_code=unk?"DOC_UNRECOGNISED":null;it.doc_version=(it.doc_version||0)+1;it.document_id=it.document_id||"9d1c7777";
+    live(code+" is now "+it.status);render(true);
+  },600);
+  return {ok:true};
+}
+function fileInput(code,label){
+  return `<button type="button" class="sec" data-pick="${code}">${label} <span class="sr">${code}</span></button>
+  <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png" data-file="${code}" aria-label="File for ${code}">`;
+}
+function bindUploads(scope){
+  scope.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>scope.querySelector(`[data-file="${b.dataset.pick}"]`).click());
+  scope.querySelectorAll("[data-file]").forEach(inp=>inp.onchange=()=>{
+    const f=inp.files[0]||{name:"scan.pdf",size:1000};
+    const r=uploadItem(inp.dataset.file,f);
+    const box=scope.querySelector("#uperr");
+    if(r.err){box.hidden=false;box.textContent=r.err;box.focus()}else{if(box)box.hidden=true;render(true)}
+  });
+}
+
+const pages={
+lead(){
+  return `<section class="card" aria-labelledby="h">
+  <h2 id="h">Register your interest</h2>${api("POST /api/v1/leads")}
+  <div id="leadout" tabindex="-1"></div>
+  <form id="lf" novalidate>
+   <label class="f" for="name">Full name</label>
+   <input id="name" name="name" autocomplete="name" aria-describedby="name-h name-e" value="" required>
+   <p class="hint" id="name-h">1 to 100 characters.</p><p class="err" id="name-e" hidden></p>
+   <label class="f" for="contact">Mobile number or email</label>
+   <input id="contact" name="contact" autocomplete="off" aria-describedby="contact-h contact-e" required>
+   <p class="hint" id="contact-h">10-digit phone number or a valid email.</p><p class="err" id="contact-e" hidden></p>
+   <label class="f" for="product">Product</label>
+   <select id="product" name="product" aria-describedby="product-e" required><option value="">Choose a product</option><option>Savings</option><option>Current</option><option>NRE</option></select>
+   <p class="err" id="product-e" hidden></p>
+   <p><button type="submit">Start application</button></p>
+  </form></section>`;
+},
+profile(){
+  return `<section class="card" aria-labelledby="h">
+  <h2 id="h">Your profile</h2>${api("PUT /api/v1/cases/{case_id}/profile")}
+  <p class="meta">Case <code>${CASE_ID}</code></p>
+  <div id="pout" tabindex="-1"></div>
+  <form id="pf" novalidate>
+   <label class="f" for="date_of_birth">Date of birth</label>
+   <input id="date_of_birth" type="date" aria-describedby="dob-e" value="1990-04-12"><p class="err" id="dob-e" hidden></p>
+   <label class="f" for="annual_income">Annual income (INR, whole rupees)</label>
+   <input id="annual_income" inputmode="numeric" aria-describedby="inc-h inc-e" value="3000000"><p class="hint" id="inc-h">Whole number only.</p><p class="err" id="inc-e" hidden></p>
+   <label class="f" for="occupation_category">Occupation</label>
+   <select id="occupation_category"><option>SALARIED</option><option selected>SELF_EMPLOYED</option><option>BUSINESS_OWNER</option><option>STUDENT</option><option>RETIRED</option><option>CASH_INTENSIVE</option></select>
+   <label class="f" for="country_code">Country code</label>
+   <input id="country_code" value="IN" maxlength="2" aria-describedby="cc-e"><p class="err" id="cc-e" hidden></p>
+   <p><button type="submit">Save profile</button></p>
+  </form></section>`;
+},
+upload(){
+  const ok=canSubmit(), sub=caseState!=="INITIATED";
+  return `<section class="card" aria-labelledby="h">
+  <h2 id="h">Upload your documents</h2>
+  <p>${api("GET /api/v1/products/"+PRODUCT+"/checklist")} ${api("GET /api/v1/cases/{case_id}")} Checklist version 1, product ${PRODUCT}.</p>
+  <div id="uperr" class="banner e" role="alert" tabindex="-1" hidden></div>
+  ${sub?`<div class="banner ok" role="status">Documents submitted. Case state: ${caseState}.</div>`:""}
+  ${mock()==="empty"?`<div class="banner i">No documents uploaded yet. Upload each required item below.</div>`:""}
+  <ul class="items">${items.map(i=>`<li data-item="${i.item_code}">
+    <div class="row"><strong>${i.item_code}</strong>${i.mandatory?'<span class="meta">(required)</span>':""}${chip(i.status)}</div>
+    <div class="meta">Accepted: ${i.accepted_classes.join(", ")}${i.doc_class?` | Detected: ${i.doc_class}`:""}${i.reason_code?` | Reason: ${i.reason_code}`:""}</div>
+    <div class="row">${fileInput(i.item_code,i.status==="MISSING"?"Upload":"Replace")} ${api("POST /api/v1/cases/{case_id}/documents")}</div></li>`).join("")}</ul>
+  <div class="row" style="margin-top:12px"><button id="submit" ${ok&&!sub?"":"disabled"} aria-describedby="sub-h">Submit for review</button> ${api("POST /api/v1/cases/{case_id}/submit")}</div>
+  <p class="hint" id="sub-h">${ok?"All required items have a document.":"Submit is enabled once every required item has a document (Verified or Flagged)."}</p>
+  <div id="suberr" class="banner e" role="alert" hidden></div>
+  </section>`;
+},
+status(){
+  const act=items.filter(i=>i.status==="MISSING"||i.status==="FLAGGED"||i.status==="REJECTED");
+  return `<section class="card" aria-labelledby="h">
+  <h2 id="h">Application status</h2>${api("GET /api/v1/cases/{case_id}")}
+  <p>Current state: <strong id="cs">${caseState}</strong> | Product: ${PRODUCT} | Contact: <code>********21</code></p>
+  <h3>Action required</h3>
+  <div id="uperr" class="banner e" role="alert" tabindex="-1" hidden></div>
+  ${act.length?`<ul class="items">${act.map(i=>`<li><div class="row"><strong>${i.item_code}</strong>${chip(i.status)}</div>
+   <div class="meta">status ${i.status}${i.reason_code?`, reason_code ${i.reason_code}`:", reason_code null"}</div>
+   <div class="row">${fileInput(i.item_code,"Re-upload")} ${api("POST /api/v1/cases/{case_id}/documents")}</div></li>`).join("")}</ul>`
+   :`<div class="banner ok" role="status">Nothing needs your attention.</div>`}
+  </section>
+  <section class="card" aria-labelledby="nh"><h3 id="nh">Notifications</h3>${api("GET /api/v1/cases/{case_id}/notifications")}
+   <p class="meta">Placeholder: the notification history list is delivered in story E4-S5.</p></section>`;
+}};
+
+function render(keepFocus){
+  const p=(location.hash||"#lead").slice(1);
+  const page=pages[p]?p:"lead";
+  document.querySelectorAll("nav.tabs a").forEach(a=>a.toggleAttribute("aria-current",a.getAttribute("href")==="#"+page)||a.removeAttribute("aria-current"));
+  document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.getAttribute("href")==="#"+page)a.setAttribute("aria-current","page")});
+  const main=$("#main");
+  const focusId=document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.pick;
+  main.innerHTML=pages[page]();
+  document.title=page[0].toUpperCase()+page.slice(1)+" - E2-S5 OnboardX";
+  bindUploads(main);
+  if(focusId){const b=main.querySelector(`[data-pick="${focusId}"]`);b&&b.focus()}
+  if(page==="lead")bindLead();
+  if(page==="profile")bindProfile();
+  if(page==="upload")$("#submit").onclick=doSubmit;
+}
+function setErr(id,msg,inputId){
+  const e=$("#"+id),i=$("#"+inputId);
+  e.hidden=!msg;e.textContent=msg||"";
+  if(msg)i.setAttribute("aria-invalid","true");else i.removeAttribute("aria-invalid");
+  return !!msg;
+}
+function bindLead(){
+  $("#lf").onsubmit=ev=>{
+    ev.preventDefault();
+    const n=$("#name").value.trim(),c=$("#contact").value.trim(),p=$("#product").value;
+    const bad=[setErr("name-e",!n?"Enter your name.":n.length>100?"Name must be 100 characters or fewer.":"","name"),
+      setErr("contact-e",!(/^\d{10}$/.test(c)||/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c))?"Enter a 10-digit phone number or a valid email.":"","contact"),
+      setErr("product-e",!p?"Choose a product.":"","product")];
+    const out=$("#leadout");
+    if(bad.some(Boolean)){document.querySelector("[aria-invalid=true]").focus();out.innerHTML="";return}
+    if(mock()==="error"){out.innerHTML=`<div class="banner e" role="alert">VALIDATION_ERROR (422): fields[0].field = contact. No case was created.</div>`;out.focus();return}
+    leadCreated=true;
+    out.innerHTML=`<div class="banner ok" role="status">Application started. Your case_id is <strong>${CASE_ID}</strong> (state INITIATED, product ${esc(p)}). <a href="#profile">Continue to profile</a></div>`;out.focus();
+  };
+}
+function bindProfile(){
+  $("#pf").onsubmit=ev=>{
+    ev.preventDefault();
+    const inc=$("#annual_income").value.trim(),cc=$("#country_code").value.trim(),d=$("#date_of_birth").value;
+    const bad=[setErr("dob-e",!d?"Enter your date of birth.":"","date_of_birth"),
+      setErr("inc-e",!/^\d+$/.test(inc)?"Enter a whole number with no decimals.":"","annual_income"),
+      setErr("cc-e",!/^[A-Z]{2}$/.test(cc)?"Use two uppercase letters, for example IN.":"","country_code")];
+    const out=$("#pout");
+    if(bad.some(Boolean)){document.querySelector("[aria-invalid=true]").focus();out.innerHTML="";return}
+    if(mock()==="error"){out.innerHTML=`<div class="banner e" role="alert">PROFILE_LOCKED (409): the profile can no longer be changed because the documents were submitted.</div>`;out.focus();return}
+    out.innerHTML=`<div class="banner ok" role="status">Profile saved (profile_complete true). <a href="#upload">Continue to documents</a></div>`;out.focus();
+  };
+}
+function doSubmit(){
+  if(!canSubmit())return;
+  if(mock()==="error"){const e=$("#suberr");e.hidden=false;e.textContent="MISSING_DOCUMENTS (422): missing_items [ADDRESS_PROOF]. State stays INITIATED.";return}
+  caseState="DOCS_SUBMITTED";live("Submitted. State DOCS_SUBMITTED");render();
+}
+$("#mock").onchange=()=>{seed();render()};
+window.addEventListener("hashchange",()=>{render();$("#main").focus()});
+seed();render();
+</script>
+</body>
+</html>

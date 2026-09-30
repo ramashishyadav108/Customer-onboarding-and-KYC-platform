@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E3-S5 Staff workbench and admin rules - OnboardX</title>
+<!-- Mockup E3-S5 (desktop-first, 1280px). Fields follow specs/design/api-contracts.md. Contact shown only as contact_masked (no reveal API exists). -->
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f3f4f7;color:#141a26;font-size:15px;line-height:1.5}
+:focus-visible{outline:3px solid #0b5fff;outline-offset:2px}
+a{color:#0b3d91}
+header{background:#14213d;color:#fff;padding:10px 24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+header h1{font-size:1.1rem;margin:0}
+.bar{background:#e3e7ef;padding:8px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+nav{background:#fff;border-bottom:1px solid #b9c0d0;padding:0 24px;display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:12px 14px;text-decoration:none;font-weight:600;color:#14213d;border-bottom:4px solid transparent}
+nav a[aria-current=page]{border-bottom-color:#14213d;background:#eef1f8}
+main{max-width:1240px;margin:0 auto;padding:20px 24px}
+h2{margin:0 0 6px;font-size:1.4rem}h3{margin:16px 0 6px;font-size:1.1rem}
+.card{background:#fff;border:1px solid #b9c0d0;border-radius:6px;padding:16px;margin-bottom:16px}
+.api{display:inline-block;font:12px/1.4 Consolas,monospace;background:#e3e7ef;color:#27314a;border:1px solid #8d97b0;border-radius:3px;padding:1px 6px;margin:2px 2px 2px 0}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid #d3d8e4;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#eef1f8}
+th button{all:unset;cursor:pointer;font-weight:700;text-decoration:underline}
+th button:focus-visible{outline:3px solid #0b5fff}
+input,select,textarea{min-height:36px;padding:4px 8px;border:2px solid #56617d;border-radius:4px;font:inherit;background:#fff;color:#141a26}
+input:disabled{background:#e6e8ee;color:#3d4559;border-color:#8b93a8}
+button.b{min-height:36px;padding:4px 14px;border:2px solid #14213d;background:#14213d;color:#fff;border-radius:4px;font:inherit;font-weight:600;cursor:pointer}
+button.b.sec{background:#fff;color:#14213d}
+button.b:disabled{background:#d9dce4;color:#444b5e;border-color:#8b93a8;cursor:not-allowed}
+.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin:8px 0 12px}
+.filters label{display:block;font-weight:600}
+.banner{padding:8px 12px;border:2px solid;border-radius:4px;margin:8px 0}
+.banner.e{background:#f8d7da;color:#58151b;border-color:#a4161a}
+.banner.ok{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.banner.i{background:#e7efff;color:#0a2a66;border-color:#0b3d91}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid;font-weight:700;font-size:.8rem}
+.tag.VERIFIED,.tag.LOW,.tag.PUBLISHED{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.tag.FLAGGED,.tag.MEDIUM,.tag.DRAFT{background:#fff3cd;color:#523e02;border-color:#664d03}
+.tag.REJECTED,.tag.HIGH{background:#f8d7da;color:#58151b;border-color:#842029}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid div label{display:block;font-weight:600}
+.grid input{width:100%}
+.meta{color:#444d63;font-size:.9rem}
+.sr{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><h1>OnboardX Staff Console</h1><span>Signed in as analyst1 / admin1 (mock)</span></header>
+<div class="bar" role="region" aria-label="Mockup controls">
+  <label for="mock"><strong>Mock state:</strong></label>
+  <select id="mock"><option value="normal">normal</option><option value="empty">empty</option><option value="error">error</option></select>
+  <span class="meta">Contact values are masked by default. No network calls.</span>
+</div>
+<nav aria-label="Staff pages">
+  <a href="#workbench">Analyst workbench</a><a href="#case">Case detail</a><a href="#rules">Admin: rule sets</a><a href="#watchlist">Admin: watchlist</a>
+</nav>
+<main id="main" tabindex="-1"></main>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api=t=>`<span class="api" data-api="${esc(t)}">${esc(t)}</span>`;
+const mock=()=>$("#mock").value;
+const live=m=>$("#live").textContent=m;
+const tag=s=>`<span class="tag ${s}">${s}</span>`;
+
+const CASES=[
+ ["3f0c2c9e-7a54-4b7e-9d3e-5b1f6a2e9c10","Savings","DOCS_SUBMITTED",2880],
+ ["a81b44d2-19c0-4a5e-8f2b-0c7d9e1a3b22","Current","SCREENED",1510],
+ ["c5d9e3f1-6b2a-4c77-9a10-2e8f4b6d7a33","NRE","MANUAL_REVIEW",940],
+ ["0e7a1b29-3c4d-45e6-b7f8-9a0b1c2d3e44","Savings","CLASSIFIED",320],
+ ["7b2c9d0e-8f1a-4b3c-a5d6-e7f8091a2b55","Savings","MANUAL_REVIEW",75],
+ ["d4e5f607-1a2b-4c3d-8e9f-0a1b2c3d4e66","Current","INITIATED",42],
+ ["91a2b3c4-d5e6-4f70-8192-a3b4c5d6e777","NRE","APPROVED",15]
+].map(([case_id,product,state,age_minutes])=>({case_id,product,state,age_minutes,created_at:"2026-10-01T09:30:00Z"}));
+let sort="age_desc",selected=CASES[0].case_id,lastMsg="";
+let docs=[
+ {document_id:"9d1c0001",checklist_item:"ID_PROOF",version:1,doc_class:"PAN",status:"VERIFIED",reason_code:null},
+ {document_id:"9d1c0002",checklist_item:"ADDRESS_PROOF",version:1,doc_class:"UTILITY_BILL",status:"VERIFIED",reason_code:null},
+ {document_id:"9d1c0003",checklist_item:"PHOTOGRAPH",version:2,doc_class:"UNRECOGNISED",status:"FLAGGED",reason_code:"DOC_UNRECOGNISED"}];
+const REJ=["DOC_ILLEGIBLE","DOC_EXPIRED","DOC_NAME_MISMATCH","DOC_WRONG_TYPE","DOC_OTHER"];
+let rules=[
+ {version:1,status:"PUBLISHED",author:"admin",created_at:"2026-10-01T00:00:00Z",published_at:"2026-10-01T00:00:00Z",weights:{age:20,income_band:25,occupation_category:30,geography:25},thresholds:{low_max:29,medium_max:59},occ:{SALARIED:0,RETIRED:10,STUDENT:10,SELF_EMPLOYED:30,BUSINESS_OWNER:50,CASH_INTENSIVE:80}},
+ {version:2,status:"DRAFT",author:"admin",created_at:"2026-10-01T08:00:00Z",published_at:null,weights:{age:20,income_band:25,occupation_category:30,geography:25},thresholds:{low_max:29,medium_max:59},occ:{SALARIED:0,RETIRED:10,STUDENT:10,SELF_EMPLOYED:30,BUSINESS_OWNER:50,CASH_INTENSIVE:80}}];
+let rsel=1;
+let wl=[
+ {entry_id:"b1000000-0000-4000-8000-000000000001",name:"Test Person Nine",aliases:["T. Person Nine"],list_type:"AML",active:true,added_at:"2026-09-01T00:00:00Z",deactivated_at:null},
+ {entry_id:"b1000000-0000-4000-8000-000000000002",name:"Test Person Ten",aliases:[],list_type:"PEP",active:true,added_at:"2026-09-02T00:00:00Z",deactivated_at:null}];
+
+const P={
+workbench(){
+  const st=$("#fs")?$("#fs").value:"",pr=$("#fp")?$("#fp").value:"";
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Analyst workbench</h2>
+  <p>${api("GET /api/v1/cases?state=&product=&sort="+sort)}</p>
+  <form class="filters" id="ff" onsubmit="return false">
+   <div><label for="fs">State</label><select id="fs"><option value="">All</option>${["INITIATED","DOCS_SUBMITTED","SCREENED","CLASSIFIED","APPROVED","REJECTED","MANUAL_REVIEW"].map(s=>`<option ${s===st?"selected":""}>${s}</option>`).join("")}</select></div>
+   <div><label for="fp">Product</label><select id="fp"><option value="">All</option>${["Savings","Current","NRE"].map(s=>`<option ${s===pr?"selected":""}>${s}</option>`).join("")}</select></div>
+  </form>
+  <div id="wbout"></div></section>`;
+},
+case(){
+  const c=CASES.find(x=>x.case_id===selected)||CASES[0];
+  const empty=mock()==="empty";
+  const d=empty?[]:docs;
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Case detail</h2>
+  <p>${api("GET /api/v1/cases/{case_id}")} ${api("GET /api/v1/cases/{case_id}/evidence")}</p>
+  <p><a href="#workbench">Back to workbench</a></p>
+  <dl class="grid"><div><dt class="meta">case_id</dt><dd style="margin:0;word-break:break-all">${c.case_id}</dd></div><div><dt class="meta">name</dt><dd style="margin:0">Test Person One</dd></div>
+  <div><dt class="meta">contact_masked</dt><dd style="margin:0"><code>********21</code></dd></div><div><dt class="meta">product / state</dt><dd style="margin:0">${c.product} / ${c.state}</dd></div></dl>
+  <h3>Documents</h3><div id="dmsg" role="alert" tabindex="-1"></div>
+  ${d.length?`<table><caption class="sr">Documents for this case</caption><thead><tr><th>checklist_item</th><th>version</th><th>doc_class</th><th>status</th><th>reason_code</th><th>Reject with reason ${api("POST .../documents/{document_id}/reject")}</th></tr></thead><tbody>
+  ${d.map((x,i)=>`<tr><td>${x.checklist_item}</td><td>${x.version}</td><td>${x.doc_class}</td><td>${tag(x.status)}</td><td>${x.reason_code||"none"}</td>
+   <td>${x.status==="REJECTED"?"Rejected":`<label class="sr" for="rs${i}">Reason code for ${x.checklist_item}</label><select id="rs${i}" data-i="${i}"><option value="">Choose reason</option>${REJ.map(r=>`<option>${r}</option>`).join("")}</select>
+   <button class="b" data-rej="${i}" disabled>Reject<span class="sr"> ${x.checklist_item}</span></button>`}</td></tr>`).join("")}</tbody></table>`
+  :`<div class="banner i">No documents have been uploaded for this case.</div>`}
+  <h3>Screening result</h3>${api("evidence.screening")}
+  ${empty?`<div class="banner i">Not screened yet (screening is null).</div>`:`<p class="meta">watchlist_version 3, requires_manual_review true</p>
+  <table><caption class="sr">Screening hits</caption><thead><tr><th>entry_id</th><th>list_type</th><th>reason_code</th></tr></thead><tbody><tr><td>b1000000-0000-4000-8000-000000000001</td><td>AML</td><td>AML_HIT</td></tr></tbody></table>`}
+  <h3>Risk assessment</h3>${api("evidence.risk_assessment")}
+  ${empty?`<div class="banner i">Not classified yet (risk_assessment is null).</div>`:`<p><strong>score 16</strong> ${tag("LOW")} band LOW, rule_version 1</p>
+  <table><caption class="sr">Risk breakdown</caption><thead><tr><th>factor</th><th>value_label</th><th>points</th><th>weight</th><th>contribution</th></tr></thead><tbody>
+  <tr><td>age</td><td>25-60</td><td>0</td><td>20</td><td>0</td></tr><tr><td>income_band</td><td>B3</td><td>30</td><td>25</td><td>750</td></tr>
+  <tr><td>occupation_category</td><td>band O3</td><td>30</td><td>30</td><td>900</td></tr><tr><td>geography</td><td>DOMESTIC</td><td>0</td><td>25</td><td>0</td></tr></tbody></table>
+  <p class="meta">Sum of contribution is 1650; score = 1650 // 100 = 16.</p>`}
+  </section>`;
+},
+rules(){
+  const r=rules.find(x=>x.version===rsel)||rules[0];
+  const ro=r.status==="PUBLISHED";
+  const hasDraft=rules.some(x=>x.status==="DRAFT");
+  const inp=(id,v,l)=>`<div><label for="${id}">${l}</label><input id="${id}" inputmode="numeric" value="${v}" ${ro?"disabled":""} data-k="${id}"></div>`;
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Admin: rule sets</h2>
+  <p>${api("GET /api/v1/admin/rule-sets")} ${api("GET /api/v1/admin/rule-sets/{version}")}</p>
+  <table><caption class="sr">Rule set versions</caption><thead><tr><th>version</th><th>status</th><th>author</th><th>created_at</th><th>published_at</th><th>Open</th></tr></thead><tbody>
+  ${rules.map(x=>`<tr><td>${x.version}</td><td>${tag(x.status)}</td><td>${x.author}</td><td>${x.created_at}</td><td>${x.published_at||"null"}</td><td><button class="b sec" data-open="${x.version}" ${x.version===rsel?'aria-pressed="true"':""}>View v${x.version}</button></td></tr>`).join("")}</tbody></table>
+  ${hasDraft?"":`<div class="banner i">No draft exists. <button class="b" id="mk">Create draft</button> ${api("POST /api/v1/admin/rule-sets")}</div>`}
+  <h3>Version ${r.version} ${tag(r.status)}</h3>
+  ${ro?`<div class="banner i">Published versions are immutable. All inputs are disabled (RULESET_IMMUTABLE on edit).</div>`:""}
+  <div id="rmsg" role="alert" tabindex="-1"></div>
+  <form id="rf" novalidate><fieldset><legend>weights (must sum to 100)</legend><div class="grid">${Object.entries(r.weights).map(([k,v])=>inp("w_"+k,v,k)).join("")}</div></fieldset>
+  <fieldset><legend>thresholds (low_max &lt; medium_max &lt; 100)</legend><div class="grid">${inp("t_low_max",r.thresholds.low_max,"low_max")}${inp("t_medium_max",r.thresholds.medium_max,"medium_max")}</div></fieldset>
+  <fieldset><legend>points.occupation_category</legend><div class="grid">${Object.entries(r.occ).map(([k,v])=>inp("o_"+k,v,k)).join("")}</div></fieldset>
+  ${ro?"":`<p><button class="b sec" type="submit" id="sv">Save draft</button> ${api("PUT /api/v1/admin/rule-sets/"+r.version)} <button class="b" type="button" id="pub">Publish</button> ${api("POST /api/v1/admin/rule-sets/"+r.version+"/publish")}</p>`}
+  </form></section>`;
+},
+watchlist(){
+  const items=mock()==="empty"?[]:wl;
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Admin: watchlist</h2>
+  <p>${api("GET /api/v1/admin/watchlist")} <span class="meta">watchlist_version 3</span></p>
+  <h3>Add entry</h3>${api("POST /api/v1/admin/watchlist")}
+  <div id="wmsg" role="alert" tabindex="-1"></div>
+  <form id="wf" novalidate class="filters">
+   <div><label for="wn">name</label><input id="wn" aria-describedby="wn-e"><div id="wn-e" class="meta" style="color:#a4161a;font-weight:600" hidden></div></div>
+   <div><label for="wa">aliases (comma separated, max 10)</label><input id="wa"></div>
+   <div><label for="wt">list_type</label><select id="wt"><option>AML</option><option>PEP</option></select></div>
+   <button class="b" type="submit">Add entry</button></form>
+  <h3>Entries</h3>
+  ${items.length?`<table><caption class="sr">Watchlist entries</caption><thead><tr><th>name</th><th>aliases</th><th>list_type</th><th>active</th><th>added_at</th><th>Action</th></tr></thead><tbody>
+  ${items.map((e,i)=>`<tr><td>${esc(e.name)}</td><td>${esc(e.aliases.join(", "))||"none"}</td><td>${e.list_type}</td><td>${e.active?"true":"false"}</td><td>${e.added_at}</td>
+  <td>${e.active?`<button class="b sec" data-deact="${i}">Deactivate<span class="sr"> ${esc(e.name)}</span></button> ${api("POST .../{entry_id}/deactivate")}`:"Deactivated"}</td></tr>`).join("")}</tbody></table>`
+  :`<div class="banner i">The watchlist has no entries yet. Add the first entry above.</div>`}
+  </section>`;
+}};
+
+function wb(){
+  const out=$("#wbout");
+  if(mock()==="error"){out.innerHTML=`<div class="banner e" role="alert">Could not load cases: VALIDATION_ERROR (422) invalid filter. Adjust the filters and retry.</div>`;return}
+  const st=$("#fs").value,pr=$("#fp").value;
+  let rows=mock()==="empty"?[]:CASES.filter(c=>(!st||c.state===st)&&(!pr||c.product===pr));
+  rows=rows.slice().sort((a,b)=>sort==="age_desc"?b.age_minutes-a.age_minutes:a.age_minutes-b.age_minutes);
+  out.innerHTML=rows.length?`<table><caption class="sr">Cases, total ${rows.length}</caption><thead><tr><th scope="col">case_id</th><th scope="col">product</th><th scope="col">state</th>
+  <th scope="col" aria-sort="${sort==="age_desc"?"descending":"ascending"}"><button id="sb">age_minutes ${sort==="age_desc"?"(oldest first)":"(newest first)"}</button></th></tr></thead><tbody>
+  ${rows.map(c=>`<tr><td><a href="#case" data-c="${c.case_id}">${c.case_id}</a></td><td>${c.product}</td><td>${c.state}</td><td>${c.age_minutes}</td></tr>`).join("")}</tbody></table><p class="meta">total ${rows.length}, page 1, page_size 25</p>`
+  :`<div class="banner i">No cases match the current filters.</div>`;
+  const sb=$("#sb");if(sb)sb.onclick=()=>{sort=sort==="age_desc"?"age_asc":"age_desc";wb();$("#sb").focus()};
+  out.querySelectorAll("[data-c]").forEach(a=>a.onclick=()=>{selected=a.dataset.c});
+}
+function msg(id,cls,t){const e=$(id);e.innerHTML=`<div class="banner ${cls}">${t}</div>`;e.focus()}
+function render(){
+  const h=(location.hash||"#workbench").slice(1),pg=P[h]?h:"workbench";
+  document.querySelectorAll("nav a").forEach(a=>a.getAttribute("href")==="#"+pg?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+  $("#main").innerHTML=P[pg]();document.title=pg+" - E3-S5 OnboardX";
+  if(pg==="workbench"){wb();$("#ff").addEventListener("change",wb)}
+  if(pg==="case"){
+    const m=$("#main");
+    m.querySelectorAll("select[data-i]").forEach(s=>s.onchange=()=>{m.querySelector(`[data-rej="${s.dataset.i}"]`).disabled=!s.value});
+    m.querySelectorAll("[data-rej]").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.rej,rc=m.querySelector(`#rs${i}`).value;
+      if(!rc)return;
+      if(mock()==="error"){msg("#dmsg","e","CASE_LOCKED (409): case is APPROVED or REJECTED; documents cannot be rejected.");return}
+      docs[i].status="REJECTED";docs[i].reason_code=rc;render();live(docs[i].checklist_item+" now REJECTED");
+      msg("#dmsg","ok","Document "+docs[i].checklist_item+" is now REJECTED with reason_code "+rc+".");
+    });
+  }
+  if(pg==="rules"){
+    const m=$("#main");
+    m.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{rsel=+b.dataset.open;render()});
+    const mk=$("#mk");if(mk)mk.onclick=()=>{const b=rules[0];rules.push({...JSON.parse(JSON.stringify(b)),version:rules.length+1,status:"DRAFT",published_at:null,created_at:"2026-10-01T10:00:00Z"});rsel=rules.length;render();msg("#rmsg","ok","Draft version "+rsel+" created.")};
+    const r=rules.find(x=>x.version===rsel),rf=$("#rf");
+    const read=()=>{const ints=[...rf.querySelectorAll("input")].map(i=>i.value.trim());if(ints.some(v=>!/^\d+$/.test(v)))return null;
+      rf.querySelectorAll("input").forEach(i=>{const k=i.dataset.k;const v=+i.value;if(k.startsWith("w_"))r.weights[k.slice(2)]=v;else if(k==="t_low_max")r.thresholds.low_max=v;else if(k==="t_medium_max")r.thresholds.medium_max=v;else r.occ[k.slice(2)]=v});return r};
+    if(r.status==="DRAFT"){
+      rf.onsubmit=e=>{e.preventDefault();
+        if(mock()==="error"||!read()){msg("#rmsg","e","VALIDATION_ERROR (422): fields must be whole integers, no decimals.");return}
+        msg("#rmsg","ok","Draft saved.")};
+      $("#pub").onclick=()=>{
+        if(mock()==="error"){msg("#rmsg","e","RULESET_INVALID (422): reasons [WEIGHTS_SUM, THRESHOLDS_ORDER].");return}
+        if(!read()){msg("#rmsg","e","VALIDATION_ERROR (422): fields must be whole integers.");return}
+        const sum=Object.values(r.weights).reduce((a,b)=>a+b,0),t=r.thresholds,reasons=[];
+        if(sum!==100)reasons.push("WEIGHTS_SUM");if(!(t.low_max<t.medium_max&&t.medium_max<100))reasons.push("THRESHOLDS_ORDER");
+        if(reasons.length){msg("#rmsg","e","RULESET_INVALID (422): reasons ["+reasons.join(", ")+"].");return}
+        r.status="PUBLISHED";r.published_at="2026-10-01T10:05:00Z";render();msg("#rmsg","ok","Version "+r.version+" published. It is now read-only.");live("Published")};
+    }
+  }
+  if(pg==="watchlist"){
+    $("#wf").onsubmit=e=>{e.preventDefault();
+      const n=$("#wn").value.trim(),er=$("#wn-e");
+      er.hidden=!!n&&n.length<=100;er.textContent=n?"":"Enter a name (1 to 100 characters).";
+      if(!n||n.length>100){$("#wn").setAttribute("aria-invalid","true");$("#wn").focus();return}
+      $("#wn").removeAttribute("aria-invalid");
+      if(mock()==="error"){msg("#wmsg","e","VALIDATION_ERROR (422): fields[0].field list_type.");return}
+      const al=$("#wa").value.split(",").map(s=>s.trim()).filter(Boolean);
+      if(mock()==="empty")mock_empty_fix();
+      wl.push({entry_id:"b1000000-0000-4000-8000-00000000"+String(wl.length+1).padStart(4,"0"),name:n,aliases:al,list_type:$("#wt").value,active:true,added_at:"2026-10-01T10:10:00Z",deactivated_at:null});
+      render();msg("#wmsg","ok","Entry added and listed below.");
+    };
+    $("#main").querySelectorAll("[data-deact]").forEach(b=>b.onclick=()=>{wl[+b.dataset.deact].active=false;render()});
+  }
+}
+function mock_empty_fix(){ /* in empty mode the list starts blank; switch to normal view of added entry */ wl=[];$("#mock").value="normal"}
+$("#mock").onchange=render;
+window.addEventListener("hashchange",()=>{render();$("#main").focus()});
+render();
+</script>
+</body>
+</html>

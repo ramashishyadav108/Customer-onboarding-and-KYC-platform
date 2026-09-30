@@ -1,0 +1,2819 @@
+[
+  {
+    "id": "F001",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "GET /health returns 200 with status ok once the app has started",
+    "steps": [
+      "Start the backend process",
+      "Poll GET /health until first response",
+      "Assert status is 200 and body status equals ok"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F002",
+    "category": "performance",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "GET /health first succeeds within 1000 ms of process start",
+    "steps": [
+      "Record process start time",
+      "Poll GET /health every 50 ms",
+      "Assert first 200 arrives at or under 1000 ms after start"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F003",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Log lines are single-line JSON containing timestamp, level, correlation_id and message",
+    "steps": [
+      "Capture log output while calling GET /health",
+      "Parse each line with json.loads",
+      "Assert the four keys are present on every line"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F004",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Supplied X-Correlation-ID is propagated to logs and response header, and generated when absent",
+    "steps": [
+      "Call GET /health with X-Correlation-ID abc-123",
+      "Assert response header equals abc-123 and log lines carry abc-123",
+      "Call without header and assert a UUID4 is generated and echoed"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F005",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Case-scoped requests log case_id",
+    "steps": [
+      "Call a case-scoped endpoint with a known case_id",
+      "Capture logs",
+      "Assert at least one log line contains the same case_id"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F006",
+    "category": "security",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Log redaction filter removes PAN, Aadhaar, contact, income and occupation values from output",
+    "steps": [
+      "Log a message and extra fields containing synthetic PAN ABCDE1234F, Aadhaar 123412341234, phone, email, income and occupation",
+      "Capture the formatted output",
+      "Assert none of the plaintext values appear and a redaction marker is present"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F007",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Missing DATABASE_URL aborts startup with an error naming the variable",
+    "steps": [
+      "Unset DATABASE_URL",
+      "Start the app or instantiate Settings",
+      "Assert a startup error is raised and its message contains DATABASE_URL"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F008",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Migration guard fails when an existing migration is modified or removed",
+    "steps": [
+      "Run guard on clean tree and assert pass",
+      "Modify an existing migration in a temp copy and assert guard fails",
+      "Delete one and assert guard fails"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F009",
+    "category": "functional",
+    "story": "E1-S1",
+    "group": "A",
+    "description": "Migration guard passes when a new migration file is appended",
+    "steps": [
+      "Copy migrations to temp dir",
+      "Add a new migration and update manifest with the new entry only",
+      "Assert guard passes"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F010",
+    "category": "functional",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Login with valid seeded credentials returns a bearer token and role",
+    "steps": [
+      "POST /api/v1/auth/login with seeded analyst credentials",
+      "Assert 200",
+      "Assert access_token non-empty, token_type is bearer and role is kyc-analyst"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F011",
+    "category": "security",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Login with wrong password returns generic 401",
+    "steps": [
+      "POST login with valid username and wrong password",
+      "Assert 401",
+      "Assert error body does not state whether username or password was wrong"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F012",
+    "category": "functional",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Seed data contains one synthetic user per role",
+    "steps": [
+      "Apply migrations to a fresh test DB",
+      "Query users table",
+      "Assert four users exist with the four distinct roles"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F013",
+    "category": "security",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Stored passwords are hashed and never logged",
+    "steps": [
+      "Read password column of seeded users",
+      "Assert value is not equal to the plaintext password and has a hash prefix",
+      "Perform login and assert captured logs do not contain the plaintext"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F014",
+    "category": "security",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Missing token returns 401 and wrong role returns 403 on a protected endpoint",
+    "steps": [
+      "Call GET /api/v1/review-queue with no token and assert 401",
+      "Call it with prospect token and assert 403",
+      "Call it with compliance-officer token and assert 200"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F015",
+    "category": "security",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Authorization is enforced only in controller layer",
+    "steps": [
+      "Statically scan service and repository packages for imports of the auth dependency module",
+      "Assert zero matches"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F016",
+    "category": "functional",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Expired token is rejected with 401",
+    "steps": [
+      "Configure TTL to 1 second",
+      "Login and obtain token",
+      "Wait 2 seconds and call a protected endpoint",
+      "Assert 401"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F017",
+    "category": "security",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Prospect cannot read another prospect's case",
+    "steps": [
+      "Create two cases with two prospect tokens",
+      "GET case B using token A",
+      "Assert 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F018",
+    "category": "functional",
+    "story": "E1-S2",
+    "group": "B",
+    "description": "Staff role can read any case",
+    "steps": [
+      "GET case A using kyc-analyst token",
+      "Assert 200"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F019",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Valid lead returns 201 with case_id and state INITIATED",
+    "steps": [
+      "POST /api/v1/leads with name, phone and product Savings",
+      "Assert 201",
+      "Assert case_id is a UUID and state equals INITIATED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F020",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Each of the three products is accepted",
+    "steps": [
+      "POST leads for Savings, Current and NRE",
+      "Assert each returns 201 and echoes the product"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F021",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Invalid lead payloads return 422 and create nothing",
+    "steps": [
+      "POST leads omitting name, then with contact 12345, then with product Loan",
+      "Assert each returns 422 with errors naming the offending field",
+      "Assert case count in DB is unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F022",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Lead creation writes audit entry and initial history row",
+    "steps": [
+      "POST a valid lead",
+      "Query audit log and state history for the case_id",
+      "Assert LEAD_CREATED and INITIATED rows exist with UTC timestamps"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F023",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Case read returns state, product and checklist",
+    "steps": [
+      "Create a Current lead",
+      "GET the case as owning prospect",
+      "Assert state INITIATED, product Current and checklist includes BUSINESS_PROOF"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F024",
+    "category": "security",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Case read masks contact",
+    "steps": [
+      "Create lead with phone 9000000012",
+      "GET the case",
+      "Assert contact equals ********12 and raw number does not appear in body"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F025",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Profile can be saved while INITIATED",
+    "steps": [
+      "Create lead",
+      "PUT profile with dob, annual_income 3000000, occupation SELF_EMPLOYED, country IN",
+      "Assert 200 and GET returns the stored profile to staff"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F026",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Profile is locked after submission and rejects non-integer income",
+    "steps": [
+      "PUT profile with annual_income 3000000.5 and assert 422",
+      "Move case to DOCS_SUBMITTED",
+      "PUT profile and assert 409"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F027",
+    "category": "functional",
+    "story": "E1-S3",
+    "group": "C",
+    "description": "Repeated lead POST with same Idempotency-Key does not create a second case",
+    "steps": [
+      "POST lead with Idempotency-Key k1",
+      "POST same payload with k1",
+      "Assert second response carries the same case_id",
+      "Assert one case row exists"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F028",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Each permitted edge succeeds",
+    "steps": [
+      "For each of the 8 permitted edges create a case in the from-state",
+      "Request the transition",
+      "Assert new state equals the to-state"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F029",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Every non-permitted state pair is rejected",
+    "steps": [
+      "Enumerate all 7x7 state pairs minus the 8 permitted edges",
+      "Request each transition",
+      "Assert each raises InvalidOnboardingStateException"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F030",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Invalid transition raises the typed exception with context",
+    "steps": [
+      "Attempt INITIATED->APPROVED in service layer",
+      "Assert InvalidOnboardingStateException with case_id, from_state INITIATED and to_state APPROVED",
+      "Assert stored state still INITIATED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F031",
+    "category": "integration",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "API maps the exception to 409 INVALID_STATE",
+    "steps": [
+      "Call an endpoint that triggers an invalid transition",
+      "Assert HTTP 409",
+      "Assert body error code is INVALID_STATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F032",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Transition writes state and history atomically",
+    "steps": [
+      "Transition a case",
+      "Assert case state and one new history row exist",
+      "Inject failure after state update and assert neither persisted"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F033",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Terminal states permit no outgoing transition",
+    "steps": [
+      "Put a case in APPROVED then attempt each other state",
+      "Assert exception each time",
+      "Repeat for REJECTED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F034",
+    "category": "security",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "History and audit tables reject UPDATE and DELETE",
+    "steps": [
+      "Insert a history row and an audit row",
+      "Execute raw UPDATE and DELETE on each",
+      "Assert the database raises an error",
+      "Assert repository classes define no update or delete method"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F035",
+    "category": "functional",
+    "story": "E1-S4",
+    "group": "A",
+    "description": "Duplicate transition request is idempotent",
+    "steps": [
+      "Request DOCS_SUBMITTED transition with key t1",
+      "Repeat with key t1",
+      "Assert one history row and unchanged state"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F036",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Savings checklist has the three mandatory items with accepted classes",
+    "steps": [
+      "Load Savings checklist",
+      "Assert items ID_PROOF, ADDRESS_PROOF, PHOTOGRAPH are all mandatory",
+      "Assert accepted classes match the specification"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F037",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Current checklist adds BUSINESS_PROOF",
+    "steps": [
+      "Load Current checklist",
+      "Assert it contains the three Savings items",
+      "Assert BUSINESS_PROOF is mandatory and accepts GST_CERTIFICATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F038",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "NRE checklist restricts ID to passport and adds overseas proof",
+    "steps": [
+      "Load NRE checklist",
+      "Assert ID_PROOF accepts only PASSPORT",
+      "Assert OVERSEAS_ADDRESS_PROOF is mandatory and accepts VISA"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F039",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Checklist endpoint returns items and version",
+    "steps": [
+      "GET /api/v1/products/NRE/checklist with prospect token",
+      "Assert 200",
+      "Assert body has version and items array"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F040",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Unknown product returns 404",
+    "steps": [
+      "GET /api/v1/products/Loan/checklist",
+      "Assert 404"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F041",
+    "category": "functional",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Case keeps the checklist version it was created under",
+    "steps": [
+      "Create a case under checklist v1",
+      "Seed v2 via new migration",
+      "GET the case",
+      "Assert checklist version is still 1"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F042",
+    "category": "security",
+    "story": "E1-S5",
+    "group": "A",
+    "description": "Checklist migration guard blocks edits of older checklist migrations",
+    "steps": [
+      "Modify the checklist v1 migration in a temp copy",
+      "Run the migration guard",
+      "Assert failure"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F043",
+    "category": "functional",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Upload returns document id and classification result",
+    "steps": [
+      "Create a Savings case",
+      "POST pan_valid.pdf for ID_PROOF",
+      "Assert 201",
+      "Assert document_id, version 1, doc_class PAN and status VERIFIED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F044",
+    "category": "functional",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Disallowed type and oversize files are rejected",
+    "steps": [
+      "Upload an .exe file and assert 415",
+      "Upload a 5 MB + 1 byte PDF and assert 413",
+      "Assert document count unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F045",
+    "category": "functional",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Item outside product checklist is rejected",
+    "steps": [
+      "Create a Savings case",
+      "Upload with checklist_item BUSINESS_PROOF",
+      "Assert 422 and code UNKNOWN_CHECKLIST_ITEM"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F046",
+    "category": "functional",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Document list shows current version per item",
+    "steps": [
+      "Upload two documents",
+      "GET documents",
+      "Assert one entry per item with status, doc_class and reason code fields"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F047",
+    "category": "security",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Path traversal file name is sanitised",
+    "steps": [
+      "Upload a file named ../../etc/passwd.pdf",
+      "Assert stored name has no path separators",
+      "Assert no file written outside the upload directory"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F048",
+    "category": "security",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Checksum recorded and content not logged",
+    "steps": [
+      "Upload a file with known bytes",
+      "Assert stored checksum equals SHA-256 of bytes",
+      "Assert captured logs contain neither content nor original filename"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F049",
+    "category": "security",
+    "story": "E2-S1",
+    "group": "D",
+    "description": "Upload is restricted to the owning prospect",
+    "steps": [
+      "Upload to another prospect's case and assert 403",
+      "Upload as kyc-analyst and assert 403",
+      "List as kyc-analyst and assert 200"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F050",
+    "category": "functional",
+    "story": "E2-S2",
+    "group": "E",
+    "description": "Complete case submits to DOCS_SUBMITTED",
+    "steps": [
+      "Create Savings case with profile",
+      "Upload all three mandatory documents",
+      "POST submit",
+      "Assert 200 and state DOCS_SUBMITTED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F051",
+    "category": "functional",
+    "story": "E2-S2",
+    "group": "E",
+    "description": "Missing documents block submission and are listed",
+    "steps": [
+      "Upload only ID_PROOF for a Savings case",
+      "POST submit",
+      "Assert 422 MISSING_DOCUMENTS",
+      "Assert missing_items equals [ADDRESS_PROOF, PHOTOGRAPH]",
+      "Assert state INITIATED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F052",
+    "category": "functional",
+    "story": "E2-S2",
+    "group": "E",
+    "description": "Incomplete profile blocks submission",
+    "steps": [
+      "Upload all documents but save no profile",
+      "POST submit",
+      "Assert 422 MISSING_PROFILE listing date_of_birth, annual_income, occupation_category, country_code"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F053",
+    "category": "functional",
+    "story": "E2-S2",
+    "group": "E",
+    "description": "Repeat submit is idempotent and later-state submit is rejected",
+    "steps": [
+      "Submit a complete case twice and assert one DOCS_SUBMITTED history row",
+      "Move case to SCREENED",
+      "Submit again and assert 409 INVALID_STATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F054",
+    "category": "functional",
+    "story": "E2-S2",
+    "group": "E",
+    "description": "Submission is audited and status shows no missing items",
+    "steps": [
+      "Submit a complete case",
+      "Query audit log",
+      "Assert DOCUMENTS_SUBMITTED entry lists the document ids",
+      "GET case and assert missing_items is empty"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F055",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Known fixture names return canned class and VERIFIED",
+    "steps": [
+      "Classify pan_valid.pdf, aadhaar_valid.jpg, passport_valid.png, utility-bill_valid.pdf",
+      "Assert classes PAN, AADHAAR, PASSPORT, UTILITY_BILL",
+      "Assert each status VERIFIED and confidence_bp 9500"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F056",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Extra fixture classes photograph, GST certificate and visa are recognised",
+    "steps": [
+      "Classify photograph_01.jpg, gst-certificate_01.pdf, visa_01.pdf",
+      "Assert PHOTOGRAPH, GST_CERTIFICATE, VISA and VERIFIED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F057",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Unrecognised file is flagged",
+    "steps": [
+      "Classify random_scan.pdf",
+      "Assert doc_class UNRECOGNISED, status FLAGGED and reason_code DOC_UNRECOGNISED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F058",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Class not accepted by checklist item is flagged as mismatch",
+    "steps": [
+      "Classify utility-bill_1.pdf for item ID_PROOF",
+      "Assert FLAGGED with reason_code DOC_CLASS_MISMATCH"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F059",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Classification is deterministic with integer confidence",
+    "steps": [
+      "Classify pan_valid.pdf twice",
+      "Assert results are equal",
+      "Assert confidence_bp is of type int"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F060",
+    "category": "security",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Classification results are append-only",
+    "steps": [
+      "Classify a document",
+      "Attempt UPDATE and DELETE on the classification table",
+      "Assert database rejects both"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F061",
+    "category": "functional",
+    "story": "E2-S3",
+    "group": "B",
+    "description": "Classification rules are seeded from a migration and versioned",
+    "steps": [
+      "Apply migrations",
+      "Query classification_rules table",
+      "Assert rules for the seven classes exist with a rule_version"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F062",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Analyst can reject a document with a reason",
+    "steps": [
+      "POST reject with reason_code ILLEGIBLE as kyc-analyst",
+      "Assert 200 and document status REJECTED",
+      "Assert audit entry DOCUMENT_REJECTED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F063",
+    "category": "security",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Only kyc-analyst can reject documents",
+    "steps": [
+      "POST reject as prospect and assert 403",
+      "POST reject as admin and assert 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F064",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Re-upload creates a new version and retains the old one",
+    "steps": [
+      "Upload pan_valid.pdf for ID_PROOF",
+      "Re-upload aadhaar_valid.pdf for ID_PROOF",
+      "Assert version 2 is current and version 1 still stored as superseded"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F065",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Re-upload does not restart or change state",
+    "steps": [
+      "Record case_id, state and history count",
+      "Re-upload a document",
+      "Assert all three are unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F066",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Re-upload on a closed case is rejected",
+    "steps": [
+      "Move case to APPROVED",
+      "Re-upload a document",
+      "Assert 409 CASE_LOCKED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F067",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Replacement is re-classified and clears action required",
+    "steps": [
+      "Upload random_scan.pdf (FLAGGED)",
+      "Re-upload pan_valid.pdf",
+      "Assert new version VERIFIED",
+      "Assert item no longer in action_required"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F068",
+    "category": "functional",
+    "story": "E2-S4",
+    "group": "E",
+    "description": "Case status lists items needing prospect action",
+    "steps": [
+      "Upload one FLAGGED document and leave one item empty",
+      "GET case",
+      "Assert action_required contains both with status MISSING and FLAGGED and reason codes"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F069",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Lead form shows accessible inline errors and the case_id on success",
+    "steps": [
+      "Open the lead page",
+      "Submit empty form and assert inline errors linked via aria-describedby",
+      "Submit valid data and assert case_id is displayed"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F070",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Checklist shows status chips and gates the Submit button",
+    "steps": [
+      "Open upload page for a Savings case",
+      "Assert three items show Missing and Submit is disabled",
+      "Upload all three and assert chips update and Submit is enabled"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F071",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Status page supports in-place re-upload",
+    "steps": [
+      "Open status page for a case with a FLAGGED item",
+      "Use Re-upload with pan_valid.pdf",
+      "Assert chip becomes Verified and case_id and state text are unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F072",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Portal is responsive at 360 px and 1280 px",
+    "steps": [
+      "Set viewport to 360x800",
+      "Visit each prospect page and assert document scrollWidth <= innerWidth",
+      "Repeat at 1280x800"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F073",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Prospect pages pass axe-core with no serious or critical violations",
+    "steps": [
+      "Run axe-core on lead, upload and status pages",
+      "Assert zero serious and critical violations"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F074",
+    "category": "ui",
+    "story": "E2-S5",
+    "group": "F",
+    "description": "Prospect flow is fully keyboard operable",
+    "steps": [
+      "Complete lead registration and upload using only Tab, Enter and Space",
+      "Assert the flow completes"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F075",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Screening a DOCS_SUBMITTED case stores a result and moves to SCREENED",
+    "steps": [
+      "Create and submit a case",
+      "POST screen as kyc-analyst",
+      "Assert state SCREENED",
+      "Assert a ScreeningResult row with watchlist_version exists"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F076",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Name normalisation matches variants of a watchlist name",
+    "steps": [
+      "Screen cases named 'test person-one' and 'One, Test Person' against entry Test Person One",
+      "Assert both hit"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F077",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Non-matching name produces no hit",
+    "steps": [
+      "Screen a case named Alice Example",
+      "Assert hits is empty"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F078",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "AML hit records entry, list type and reason code",
+    "steps": [
+      "Screen a case whose name equals a seeded AML entry",
+      "Assert hits has entry_id, list_type AML and reason_code AML_HIT",
+      "Assert requires_manual_review true"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F079",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "PEP hit records PEP_HIT",
+    "steps": [
+      "Screen a case whose name equals a seeded PEP entry",
+      "Assert list_type PEP and reason_code PEP_HIT"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F080",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Clean screening result is explicit",
+    "steps": [
+      "Screen a clean-name case",
+      "Assert hits [] and requires_manual_review false and state SCREENED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F081",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Watchlist seed has 5 AML and 5 PEP synthetic entries",
+    "steps": [
+      "Apply migrations",
+      "Count watchlist entries by list_type",
+      "Assert at least 5 AML and 5 PEP"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F082",
+    "category": "security",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Screening results are append-only",
+    "steps": [
+      "Screen a case twice",
+      "Assert two rows exist",
+      "Attempt UPDATE and DELETE on the table and assert rejection"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F083",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Screening from a wrong state is rejected",
+    "steps": [
+      "Call screen on an INITIATED case",
+      "Assert 409 INVALID_STATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F084",
+    "category": "functional",
+    "story": "E3-S1",
+    "group": "F",
+    "description": "Repeat screening on SCREENED is idempotent",
+    "steps": [
+      "Screen a case twice with unchanged watchlist",
+      "Assert one SCREENED history row and same result id"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F085",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "RuleSet model carries versioned integer weights, points and thresholds",
+    "steps": [
+      "Create a RuleSet draft with all four factors",
+      "Persist and reload",
+      "Assert version is int and every weight, point and threshold is int"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F086",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Float weights are rejected by validation",
+    "steps": [
+      "Build a RuleSet with weight 0.25",
+      "Assert ValidationError"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F087",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Risk modules contain no float usage",
+    "steps": [
+      "AST-scan risk engine and rule modules",
+      "Assert zero float literals, float() calls and float annotations"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F088",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Published rule set cannot be modified at service level",
+    "steps": [
+      "Publish a draft",
+      "Attempt to change a weight and to delete",
+      "Assert PublishedRuleSetImmutableError both times"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F089",
+    "category": "security",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Database trigger blocks raw UPDATE and DELETE of published rule sets",
+    "steps": [
+      "Publish a draft",
+      "Execute raw UPDATE and DELETE on its row",
+      "Assert database error"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F090",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "New draft copies latest with next version number",
+    "steps": [
+      "Create draft from v1",
+      "Assert version 2 and identical values",
+      "Assert v1 unchanged and retrievable"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F091",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Publish validates weight sum and threshold order",
+    "steps": [
+      "Draft with weights summing to 99 and publish: assert RULESET_INVALID",
+      "Draft with low_max 60 and medium_max 59: assert RULESET_INVALID"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F092",
+    "category": "functional",
+    "story": "E3-S2",
+    "group": "A",
+    "description": "Seeded v1 rule set matches the proposed values",
+    "steps": [
+      "Apply migrations",
+      "Load published v1",
+      "Assert weights 20/25/30/25 and thresholds 29/59"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F093",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Worked example profiles classify to 16 LOW, 45 MEDIUM and 72 HIGH",
+    "steps": [
+      "Evaluate the three profiles against v1",
+      "Assert scores 16, 45 and 72",
+      "Assert bands LOW, MEDIUM and HIGH"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F094",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Score boundaries map to the right band",
+    "steps": [
+      "Call band function for 29, 30, 59, 60",
+      "Assert LOW, MEDIUM, MEDIUM, HIGH"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F095",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Score is always an integer in 0..100",
+    "steps": [
+      "Generate 1000 random valid profiles",
+      "Evaluate each",
+      "Assert type int and 0 <= score <= 100"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F096",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Assessment stores version and breakdown and survives new versions",
+    "steps": [
+      "Classify a case under v1",
+      "Publish v2 with different weights",
+      "Read the stored assessment",
+      "Assert it still shows rule_version 1 and original score"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F097",
+    "category": "integration",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Classify endpoint moves SCREENED to CLASSIFIED",
+    "steps": [
+      "Screen a case",
+      "POST classify as kyc-analyst",
+      "Assert 200 band present and state CLASSIFIED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F098",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Classify on wrong state returns 409",
+    "steps": [
+      "POST classify on an INITIATED case",
+      "Assert 409 INVALID_STATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F099",
+    "category": "functional",
+    "story": "E3-S3",
+    "group": "G",
+    "description": "Missing profile field blocks classification",
+    "steps": [
+      "Create a SCREENED case lacking occupation_category",
+      "POST classify",
+      "Assert 422 MISSING_PROFILE_FIELD",
+      "Assert state SCREENED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F100",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Admin can draft, edit and publish a rule set",
+    "steps": [
+      "POST rule-sets as admin and assert DRAFT version 2",
+      "PUT a weight change and assert 200",
+      "POST publish and assert status PUBLISHED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F101",
+    "category": "security",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Non-admin cannot manage rule sets",
+    "steps": [
+      "Call the three endpoints as compliance-officer",
+      "Assert 403 each time"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F102",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Editing a published rule set is refused",
+    "steps": [
+      "PUT change to v1",
+      "Assert 409 RULESET_IMMUTABLE",
+      "GET v1 and assert values unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F103",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Fractional numbers in rule payload are rejected",
+    "steps": [
+      "PUT draft with weight 0.25",
+      "Assert 422",
+      "Assert draft unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F104",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Added watchlist entry is used by later screening",
+    "steps": [
+      "POST new entry named Zed Synthetic",
+      "Screen a case with that name",
+      "Assert hit"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F105",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Deactivated entry no longer hits and history is kept",
+    "steps": [
+      "Deactivate the entry",
+      "Screen a new case with that name",
+      "Assert no hit",
+      "Assert the original entry row and deactivation row both exist"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F106",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Rule set list shows version, status and publish time",
+    "steps": [
+      "GET rule-sets as admin",
+      "Assert each item has version, status, published_at"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F107",
+    "category": "functional",
+    "story": "E3-S4",
+    "group": "G",
+    "description": "Admin changes are audited",
+    "steps": [
+      "Perform draft, publish and watchlist add",
+      "Query audit log",
+      "Assert entries with actor admin for each event"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F108",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Workbench lists and filters cases",
+    "steps": [
+      "Seed cases in different states and products",
+      "Open workbench as kyc-analyst",
+      "Filter by state SCREENED and product NRE",
+      "Assert only matching rows"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F109",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Case detail shows documents, screening and risk evidence",
+    "steps": [
+      "Open a classified case",
+      "Assert document rows with status",
+      "Assert screening section shows hits or none",
+      "Assert score, band and rule version are displayed"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F110",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Reject-document action requires a reason",
+    "steps": [
+      "Open case detail",
+      "Assert Reject disabled",
+      "Choose ILLEGIBLE and click Reject",
+      "Assert row status REJECTED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F111",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Published rule versions are read-only in the UI",
+    "steps": [
+      "Open rules page as admin",
+      "Assert v1 inputs are disabled",
+      "Create draft and assert inputs are enabled"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F112",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Admin can add a watchlist entry in the UI",
+    "steps": [
+      "Open watchlist page",
+      "Add entry",
+      "Assert it appears in the list"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F113",
+    "category": "ui",
+    "story": "E3-S5",
+    "group": "H",
+    "description": "Staff pages pass axe-core and keep contact masked",
+    "steps": [
+      "Run axe-core on workbench, case detail, rules and watchlist pages",
+      "Assert zero serious and critical violations",
+      "Assert displayed contact shows only its last 2 characters"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F114",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Clean LOW case is auto-approved with an account",
+    "steps": [
+      "Drive a clean Savings case to CLASSIFIED with LOW",
+      "POST decide",
+      "Assert state APPROVED",
+      "Assert decision AUTO with AUTO_APPROVED",
+      "Assert an account number exists"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F115",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Screening hit routes to MANUAL_REVIEW with AML_HIT",
+    "steps": [
+      "Drive a case with an AML watchlist name to CLASSIFIED",
+      "POST decide",
+      "Assert MANUAL_REVIEW reason AML_HIT",
+      "Assert no account"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F116",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "MEDIUM, HIGH and unverified-document cases route to MANUAL_REVIEW with their codes",
+    "steps": [
+      "Decide a MEDIUM case and assert RISK_MEDIUM",
+      "Decide a HIGH case and assert RISK_HIGH",
+      "Decide a case with a FLAGGED document and assert DOC_UNRECOGNISED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F117",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Reason code precedence is hit, then documents, then risk",
+    "steps": [
+      "Decide a HIGH-risk case that also has a PEP hit",
+      "Assert reason code PEP_HIT"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F118",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Approved case is unmodifiable",
+    "steps": [
+      "Approve a case",
+      "Attempt upload, profile PUT, reclassify and transition",
+      "Assert 409 CASE_LOCKED each time and stored data unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F119",
+    "category": "security",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Decision rows are append-only",
+    "steps": [
+      "Make a decision",
+      "Attempt UPDATE and DELETE on decisions",
+      "Assert database rejects both"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F120",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Repeated decide is idempotent",
+    "steps": [
+      "POST decide twice on the same case",
+      "Assert identical response and one decision row"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F121",
+    "category": "integration",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Advance drives a submitted clean case to APPROVED",
+    "steps": [
+      "Submit a clean Savings case",
+      "POST advance",
+      "Assert final state APPROVED and history shows SCREENED, CLASSIFIED, APPROVED in order"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F122",
+    "category": "functional",
+    "story": "E4-S1",
+    "group": "H",
+    "description": "Advance is idempotent",
+    "steps": [
+      "POST advance twice",
+      "Assert history row count is unchanged after the second call"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F123",
+    "category": "functional",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account number format follows product prefix and 12 digits",
+    "steps": [
+      "Create account for a Savings, a Current and an NRE approved case",
+      "Assert prefixes SAV, CUR, NRE",
+      "Assert suffix is 12 digits",
+      "Assert same case_id yields same number"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F124",
+    "category": "functional",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account cannot be created for a non-approved case",
+    "steps": [
+      "Call create_account for a MANUAL_REVIEW case",
+      "Assert InvalidOnboardingStateException",
+      "Assert no account row"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F125",
+    "category": "functional",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account creation is idempotent",
+    "steps": [
+      "Call create_account twice for an approved case",
+      "Assert equal numbers and one row"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F126",
+    "category": "security",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account rows are append-only",
+    "steps": [
+      "Create an account",
+      "Attempt UPDATE and DELETE",
+      "Assert database rejects both"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F127",
+    "category": "functional",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account stub performs no network I/O",
+    "steps": [
+      "Disable sockets in test",
+      "Create an account",
+      "Assert success"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F128",
+    "category": "functional",
+    "story": "E4-S2",
+    "group": "B",
+    "description": "Account creation is audited with masked number",
+    "steps": [
+      "Create an account",
+      "Query audit",
+      "Assert ACCOUNT_CREATED entry has case_id and a masked number showing only the last 4 digits"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F129",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Review queue lists manual-review cases oldest first",
+    "steps": [
+      "Create three MANUAL_REVIEW cases at different times",
+      "GET queue as compliance-officer",
+      "Assert order oldest first with reason_code and age_minutes"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F130",
+    "category": "security",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Review queue is restricted to compliance officers",
+    "steps": [
+      "GET queue as kyc-analyst, prospect and admin",
+      "Assert 403 each time"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F131",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Override with valid reason changes the state",
+    "steps": [
+      "POST override APPROVE with reason FALSE_POSITIVE_CLEARED",
+      "Assert state APPROVED",
+      "POST override REJECT with reason CONFIRMED_WATCHLIST_MATCH on another case and assert REJECTED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F132",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Override without a valid reason is refused",
+    "steps": [
+      "POST override without reason_code and with reason_code BOGUS",
+      "Assert 422",
+      "Assert case still MANUAL_REVIEW"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F133",
+    "category": "security",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Non-officer roles cannot override",
+    "steps": [
+      "POST override as kyc-analyst, admin and prospect",
+      "Assert 403 each time"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F134",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Override on a non-manual-review case is refused",
+    "steps": [
+      "POST override on a CLASSIFIED case",
+      "Assert 409 INVALID_STATE"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F135",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Override writes override and audit records",
+    "steps": [
+      "Apply an override",
+      "Query overrides and audit",
+      "Assert both rows with actor, reason_code and rule_version"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F136",
+    "category": "security",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Override rows are append-only",
+    "steps": [
+      "Attempt UPDATE and DELETE on overrides",
+      "Assert database rejects both"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F137",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "APPROVE override creates an account and REJECT does not",
+    "steps": [
+      "Override APPROVE and assert account number in response",
+      "Override REJECT on another case and assert no account row"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F138",
+    "category": "functional",
+    "story": "E4-S3",
+    "group": "I",
+    "description": "Band reassignment requires an override audit record",
+    "steps": [
+      "POST reclassify to LOW with reason RISK_ACCEPTED",
+      "Assert new assessment and audit entry exist",
+      "POST reclassify without reason and assert 422 and unchanged band"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F139",
+    "category": "functional",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Each transition records one notification",
+    "steps": [
+      "Run a case through the happy path",
+      "Query notifications",
+      "Assert one per state entered with correct event name"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F140",
+    "category": "functional",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Document rejection notifies the prospect",
+    "steps": [
+      "Reject a document",
+      "Query notifications",
+      "Assert DOC_REJECTED with item code and reason code"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F141",
+    "category": "functional",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Prospect reads own notifications newest first",
+    "steps": [
+      "GET notifications as owner",
+      "Assert newest first ordering"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F142",
+    "category": "security",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Other prospects cannot read notifications",
+    "steps": [
+      "GET notifications as another prospect",
+      "Assert 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F143",
+    "category": "security",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Notifications contain no plaintext contact",
+    "steps": [
+      "Create a lead with a known phone and email",
+      "Transition the case",
+      "Inspect notification rows and logs",
+      "Assert the plaintext contact is absent"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F144",
+    "category": "functional",
+    "story": "E4-S4",
+    "group": "F",
+    "description": "Notification failure does not roll back the transition",
+    "steps": [
+      "Configure stub to raise",
+      "Transition a case",
+      "Assert the new state persisted",
+      "Assert error log line has correlation_id and case_id"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F145",
+    "category": "ui",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Review queue page lists cases oldest first",
+    "steps": [
+      "Log in as compliance-officer",
+      "Open review queue",
+      "Assert rows ordered oldest first with reason code, product and age"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F146",
+    "category": "security",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Other roles cannot open the review queue route",
+    "steps": [
+      "Log in as kyc-analyst and open the route",
+      "Assert redirect to a forbidden page"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F147",
+    "category": "ui",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Decision buttons require a reason code",
+    "steps": [
+      "Open a case in the panel",
+      "Assert Approve and Reject disabled",
+      "Select a reason and assert both enabled"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F148",
+    "category": "ui",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Override removes the case and confirms account number",
+    "steps": [
+      "Approve a case from the panel",
+      "Assert success message shows account number",
+      "Assert case no longer listed"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F149",
+    "category": "ui",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Portal shows notification history",
+    "steps": [
+      "Drive a case through two transitions",
+      "Open the prospect status page",
+      "Assert notifications listed newest first"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F150",
+    "category": "ui",
+    "story": "E4-S5",
+    "group": "J",
+    "description": "Review UI meets accessibility checks",
+    "steps": [
+      "Open the decision dialog and assert focus moves into it",
+      "Press Escape and assert focus returns to the trigger",
+      "Run axe-core and assert zero serious and critical violations"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F151",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "TAT by product is computed from history",
+    "steps": [
+      "Seed 3 closed Savings cases with known durations 60, 120, 180 seconds",
+      "Call tat_by_product",
+      "Assert count 3, average 120, min 60, max 180"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F152",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "Average time per stage uses consecutive transitions",
+    "steps": [
+      "Seed cases with known per-stage gaps",
+      "Call avg_time_per_stage",
+      "Assert values per stage equal the hand-computed means"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F153",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "Open cases are excluded from TAT",
+    "steps": [
+      "Seed one open and two closed cases",
+      "Call tat_by_product",
+      "Assert count 2"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F154",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "Filters apply and empty results return zeros",
+    "steps": [
+      "Query with a product filter and a date range that includes only one case",
+      "Assert count 1",
+      "Query a range with no cases",
+      "Assert zeros and no error"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F155",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "50-case fixture produces exact expected metrics",
+    "steps": [
+      "Load the 50-case fixture",
+      "Compute all metrics",
+      "Assert equality with the expected JSON"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F156",
+    "category": "functional",
+    "story": "E5-S1",
+    "group": "B",
+    "description": "Metrics module contains no float usage",
+    "steps": [
+      "AST-scan the metrics module",
+      "Assert zero float literals or float() calls"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F157",
+    "category": "functional",
+    "story": "E5-S2",
+    "group": "J",
+    "description": "Funnel counts and conversion are correct",
+    "steps": [
+      "Seed cases that stop at different stages",
+      "Call funnel",
+      "Assert per-stage counts and conversion_bp equal hand-computed values"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F158",
+    "category": "functional",
+    "story": "E5-S2",
+    "group": "J",
+    "description": "Backlog count, oldest age and buckets are correct",
+    "steps": [
+      "Seed MANUAL_REVIEW cases aged 30, 120 and 2000 minutes",
+      "Call backlog",
+      "Assert count 3, oldest 2000 and buckets 1/1/1"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F159",
+    "category": "functional",
+    "story": "E5-S2",
+    "group": "J",
+    "description": "Top rejection reasons are ranked with deterministic tie-break",
+    "steps": [
+      "Seed rejections with reasons A x3, B x3, C x1",
+      "Call top_rejection_reasons",
+      "Assert order A, B, C with counts 3, 3, 1",
+      "Seed 7 distinct reasons and assert only 5 returned"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F160",
+    "category": "functional",
+    "story": "E5-S2",
+    "group": "J",
+    "description": "Auto-approval rate is reported against the target",
+    "steps": [
+      "Seed 6 auto-approved and 4 other decided cases",
+      "Call auto_approval_rate",
+      "Assert rate_bp 6000, target_bp 6000 and met true"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F161",
+    "category": "functional",
+    "story": "E5-S2",
+    "group": "J",
+    "description": "Filters apply to funnel, backlog and rejection reasons",
+    "steps": [
+      "Seed Savings and NRE cases",
+      "Call each metric with product NRE",
+      "Assert only NRE cases counted"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F162",
+    "category": "functional",
+    "story": "E5-S3",
+    "group": "K",
+    "description": "All six report endpoints return data for admin",
+    "steps": [
+      "Call each of the six endpoints as admin",
+      "Assert 200 and JSON bodies with the documented keys"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F163",
+    "category": "security",
+    "story": "E5-S3",
+    "group": "K",
+    "description": "Report endpoints are admin-only",
+    "steps": [
+      "Call each endpoint with no token and assert 401",
+      "Call with each non-admin role and assert 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F164",
+    "category": "functional",
+    "story": "E5-S3",
+    "group": "K",
+    "description": "Invalid report filters return 422",
+    "steps": [
+      "Call tat with product=Loan",
+      "Assert 422 naming product",
+      "Call with from=2026-13-01 and assert 422 naming from"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F165",
+    "category": "performance",
+    "story": "E5-S3",
+    "group": "K",
+    "description": "Reports meet p95 latency under 500 ms on 1,000 cases",
+    "steps": [
+      "Seed 1000 synthetic cases",
+      "Call each endpoint 50 times",
+      "Assert p95 latency below 500 ms"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F166",
+    "category": "security",
+    "story": "E5-S3",
+    "group": "K",
+    "description": "Report payloads are free of PII",
+    "steps": [
+      "Seed cases with known names and contacts",
+      "Call each endpoint",
+      "Assert no name or contact substring occurs in any body"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F167",
+    "category": "ui",
+    "story": "E5-S4",
+    "group": "L",
+    "description": "Dashboard shows all five report panels with API values",
+    "steps": [
+      "Seed data and open dashboard as admin",
+      "Assert five panels are present",
+      "Assert displayed values equal the API responses"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F168",
+    "category": "ui",
+    "story": "E5-S4",
+    "group": "L",
+    "description": "Filters update all panels",
+    "steps": [
+      "Select product NRE and a date range",
+      "Assert each panel's request includes both filters and values refresh"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F169",
+    "category": "ui",
+    "story": "E5-S4",
+    "group": "L",
+    "description": "Charts have table and text alternatives",
+    "steps": [
+      "Inspect each panel",
+      "Assert a data table and summary text exist",
+      "Assert series are distinguishable by label or pattern"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F170",
+    "category": "ui",
+    "story": "E5-S4",
+    "group": "L",
+    "description": "Empty state is shown when no data exists",
+    "steps": [
+      "Open dashboard on an empty database",
+      "Assert each panel shows an empty-state message"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F171",
+    "category": "ui",
+    "story": "E5-S4",
+    "group": "L",
+    "description": "Dashboard is accessible and admin-only",
+    "steps": [
+      "Run axe-core at 1280 px and assert zero serious and critical",
+      "Tab through all controls",
+      "Open the route as kyc-analyst and assert redirect to forbidden"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F172",
+    "category": "functional",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "Architecture test enforces published-rule immutability",
+    "steps": [
+      "Publish a rule set",
+      "Attempt update and delete via service, repository and raw SQL",
+      "Assert each fails"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F173",
+    "category": "functional",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "Architecture test enforces approved-case immutability",
+    "steps": [
+      "Approve a case",
+      "Invoke every mutating service function",
+      "Assert CaseLockedError from each"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F174",
+    "category": "functional",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "Architecture test enforces override audit for band reassignment",
+    "steps": [
+      "Call reassign_band without a reason",
+      "Assert failure",
+      "Call with override reason",
+      "Assert success and audit row"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F175",
+    "category": "functional",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "Layering test finds no upward imports",
+    "steps": [
+      "AST-scan all backend modules",
+      "Assert no module imports from a higher layer"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F176",
+    "category": "security",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "All append-only tables reject UPDATE and DELETE",
+    "steps": [
+      "For each listed table insert a row",
+      "Attempt raw UPDATE and DELETE",
+      "Assert database error each time"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F177",
+    "category": "security",
+    "story": "E5-S5",
+    "group": "J",
+    "description": "End-to-end logs contain no plaintext PII",
+    "steps": [
+      "Run happy path and manual-review path with known synthetic PAN, Aadhaar, contact, income and occupation",
+      "Capture all log output",
+      "Assert none of those values appear"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  }
+]
