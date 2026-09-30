@@ -79,7 +79,7 @@ Machine codes are stable; `message` is human text and never contains PII.
 
 **ActionRequired** `{ item_code, status: "MISSING"|"FLAGGED"|"REJECTED", reason_code: string|null }` (MISSING carries `null`)
 
-**Profile** `{ date_of_birth: "YYYY-MM-DD", annual_income: int, occupation_category, country_code: "IN" }`
+**Profile** `{ date_of_birth: "YYYY-MM-DD", annual_income: int, occupation_category, country_code: "IN", state_code: "PB" }` (`state_code`: two uppercase letters, required when `country_code` is `IN`, omitted otherwise, DD-14)
 
 **CaseDetail**
 ```json
@@ -94,7 +94,7 @@ Machine codes are stable; `message` is human text and never contains PII.
                          "status": "VERIFIED", "document_id": "9d1c...", "doc_version": 1, "doc_class": "PAN", "reason_code": null } ],
   "missing_items": ["ADDRESS_PROOF", "PHOTOGRAPH"],
   "action_required": [ { "item_code": "ADDRESS_PROOF", "status": "MISSING", "reason_code": null } ],
-  "profile": { "date_of_birth": "1990-04-12", "annual_income": 3000000, "occupation_category": "SELF_EMPLOYED", "country_code": "IN" },
+  "profile": { "date_of_birth": "1990-04-12", "annual_income": 3000000, "occupation_category": "SELF_EMPLOYED", "country_code": "IN", "state_code": "MH" },
   "profile_complete": true,
   "account_number_masked": null,
   "created_at": "2026-10-01T09:30:00Z",
@@ -132,6 +132,7 @@ Machine codes are stable; `message` is human text and never contains PII.
   },
   "geography_map": { "IN": "DOMESTIC", "GB": "FOREIGN_STANDARD", "US": "FOREIGN_STANDARD", "AE": "FOREIGN_STANDARD", "KP": "FOREIGN_HIGH_RISK", "IR": "FOREIGN_HIGH_RISK" },
   "geography_default": "FOREIGN_STANDARD",
+  "border_states": [ "JK", "PB", "AS" ],
   "thresholds": { "low_max": 29, "medium_max": 59 },
   "author": "admin", "created_at": "2026-10-01T00:00:00Z", "published_at": "2026-10-01T00:00:00Z"
 }

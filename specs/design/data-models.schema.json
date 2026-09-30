@@ -150,6 +150,14 @@
         "updated_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "state_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-2 subdivision suffix (DD-14). Required by the profile API when country_code is IN."
         }
       },
       "required": [
@@ -957,6 +965,14 @@
               "type": "null"
             }
           ]
+        },
+        "border_states": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "description": "State codes treated as DOMESTIC_BORDER when country_code is IN (DD-14). Seeded v1: JK, PB, AS."
         }
       },
       "required": [
@@ -970,7 +986,8 @@
         "medium_max",
         "author",
         "created_at",
-        "published_at"
+        "published_at",
+        "border_states"
       ],
       "additionalProperties": false
     },
