@@ -1,0 +1,32 @@
+{
+  "name": "onboardx-substrate",
+  "version": "1.0.0",
+  "description": "OnboardX customer onboarding and KYC substrate: domain skills, commands, hooks and agents layered on the Claude Harness Engine.",
+  "author": { "name": "OnboardX capstone" },
+  "requires": ["claude-harness-engine"],
+  "skills": [
+    ".claude/skills/risk-classifier",
+    ".claude/skills/watchlist-matcher",
+    ".claude/skills/state-machine-validator",
+    ".claude/skills/audit-tracer",
+    ".claude/skills/archtest-author"
+  ],
+  "commands": [
+    ".claude/commands/ac-trace.md",
+    ".claude/commands/pii-scan.md",
+    ".claude/commands/sprint-report.md"
+  ],
+  "agents": [
+    ".claude/agents/kyc-orchestrator-agent.md",
+    ".claude/agents/screening-agent.md",
+    ".claude/agents/classifier-agent.md",
+    ".claude/agents/compliance-review-agent.md",
+    ".claude/agents/archtest-author-agent.md"
+  ],
+  "hooks": [
+    ".claude/hooks/pii-redaction-check.js",
+    ".claude/hooks/rules-immutability-check.js",
+    ".claude/hooks/role-boundary-check.js"
+  ],
+  "mcp": ".mcp.json"
+}

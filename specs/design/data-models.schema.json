@@ -1,0 +1,1597 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://onboardx.local/schemas/data-models.schema.json",
+  "title": "OnboardX data models",
+  "description": "One definition per persisted entity. Integer-only numerics. x-append-only marks tables guarded by UPDATE/DELETE triggers.",
+  "definitions": {
+    "User": {
+      "type": "object",
+      "description": "Seeded synthetic user.",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1
+        },
+        "password_hash": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "prospect",
+            "kyc-analyst",
+            "compliance-officer",
+            "admin"
+          ]
+        },
+        "case_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "user_id",
+        "username",
+        "password_hash",
+        "role",
+        "case_id",
+        "created_at"
+      ],
+      "additionalProperties": false
+    },
+    "Case": {
+      "type": "object",
+      "description": "Onboarding case. state changes only via the transition service.",
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "contact": {
+          "type": "string",
+          "minLength": 5
+        },
+        "product": {
+          "type": "string",
+          "enum": [
+            "Savings",
+            "Current",
+            "NRE"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "INITIATED",
+            "DOCS_SUBMITTED",
+            "SCREENED",
+            "CLASSIFIED",
+            "APPROVED",
+            "REJECTED",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "checklist_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "case_id",
+        "name",
+        "contact",
+        "product",
+        "state",
+        "checklist_version",
+        "created_at",
+        "updated_at"
+      ],
+      "additionalProperties": false
+    },
+    "CaseProfile": {
+      "type": "object",
+      "description": "Profile inputs for risk rules; mutable only while case INITIATED.",
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "format": "date"
+        },
+        "annual_income": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "occupation_category": {
+          "type": "string",
+          "enum": [
+            "SALARIED",
+            "SELF_EMPLOYED",
+            "BUSINESS_OWNER",
+            "STUDENT",
+            "RETIRED",
+            "CASH_INTENSIVE"
+          ]
+        },
+        "country_code": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "case_id",
+        "date_of_birth",
+        "annual_income",
+        "occupation_category",
+        "country_code",
+        "updated_at"
+      ],
+      "additionalProperties": false
+    },
+    "ChecklistTemplate": {
+      "type": "object",
+      "description": "Versioned checklist header. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "product": {
+          "type": "string",
+          "enum": [
+            "Savings",
+            "Current",
+            "NRE"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "product",
+        "version",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "ChecklistItem": {
+      "type": "object",
+      "description": "Checklist line. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "product": {
+          "type": "string",
+          "enum": [
+            "Savings",
+            "Current",
+            "NRE"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "item_code": {
+          "type": "string",
+          "enum": [
+            "ID_PROOF",
+            "ADDRESS_PROOF",
+            "PHOTOGRAPH",
+            "BUSINESS_PROOF",
+            "OVERSEAS_ADDRESS_PROOF"
+          ]
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "accepted_classes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "PAN",
+              "AADHAAR",
+              "PASSPORT",
+              "UTILITY_BILL",
+              "PHOTOGRAPH",
+              "GST_CERTIFICATE",
+              "VISA",
+              "UNRECOGNISED"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "product",
+        "version",
+        "item_code",
+        "mandatory",
+        "accepted_classes"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "Document": {
+      "type": "object",
+      "description": "One uploaded file version. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "checklist_item": {
+          "type": "string",
+          "enum": [
+            "ID_PROOF",
+            "ADDRESS_PROOF",
+            "PHOTOGRAPH",
+            "BUSINESS_PROOF",
+            "OVERSEAS_ADDRESS_PROOF"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storage_path": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "content_type": {
+          "type": "string",
+          "enum": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png"
+          ]
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5242880
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "uploaded_by": {
+          "type": "string"
+        },
+        "uploaded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "document_id",
+        "seq",
+        "case_id",
+        "checklist_item",
+        "version",
+        "storage_path",
+        "display_name",
+        "content_type",
+        "size_bytes",
+        "sha256",
+        "uploaded_by",
+        "uploaded_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "DocumentRejection": {
+      "type": "object",
+      "description": "Analyst rejection of a document. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "rejection_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "DOC_ILLEGIBLE",
+            "DOC_EXPIRED",
+            "DOC_NAME_MISMATCH",
+            "DOC_WRONG_TYPE",
+            "DOC_OTHER"
+          ]
+        },
+        "comment": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actor": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "rejection_id",
+        "seq",
+        "document_id",
+        "case_id",
+        "reason_code",
+        "actor",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "ClassificationRule": {
+      "type": "object",
+      "description": "Migration-seeded filename-prefix rule. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "rule_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prefix": {
+          "type": "string",
+          "pattern": "^[a-z-]+_$"
+        },
+        "doc_class": {
+          "type": "string",
+          "enum": [
+            "PAN",
+            "AADHAAR",
+            "PASSPORT",
+            "UTILITY_BILL",
+            "PHOTOGRAPH",
+            "GST_CERTIFICATE",
+            "VISA",
+            "UNRECOGNISED"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "VERIFIED",
+            "FLAGGED"
+          ]
+        },
+        "confidence_bp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "priority": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "rule_version",
+        "prefix",
+        "doc_class",
+        "status",
+        "confidence_bp",
+        "priority"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "ClassificationResult": {
+      "type": "object",
+      "description": "Classifier output for a document. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "result_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "document_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "doc_class": {
+          "type": "string",
+          "enum": [
+            "PAN",
+            "AADHAAR",
+            "PASSPORT",
+            "UTILITY_BILL",
+            "PHOTOGRAPH",
+            "GST_CERTIFICATE",
+            "VISA",
+            "UNRECOGNISED"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "VERIFIED",
+            "FLAGGED"
+          ]
+        },
+        "reason_code": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "DOC_UNRECOGNISED",
+                "DOC_CLASS_MISMATCH"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence_bp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "rule_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "classified_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "result_id",
+        "seq",
+        "document_id",
+        "doc_class",
+        "status",
+        "reason_code",
+        "confidence_bp",
+        "rule_version",
+        "classified_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "ScreeningHit": {
+      "type": "object",
+      "description": "Screening hit (element of ScreeningResult.hits).",
+      "properties": {
+        "entry_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "list_type": {
+          "type": "string",
+          "enum": [
+            "AML",
+            "PEP"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "AML_HIT",
+            "PEP_HIT"
+          ]
+        }
+      },
+      "required": [
+        "entry_id",
+        "list_type",
+        "reason_code"
+      ],
+      "additionalProperties": false
+    },
+    "ScreeningResult": {
+      "type": "object",
+      "description": "Screening outcome. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "hits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ScreeningHit"
+          }
+        },
+        "requires_manual_review": {
+          "type": "boolean"
+        },
+        "watchlist_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "screened_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "seq",
+        "case_id",
+        "hits",
+        "requires_manual_review",
+        "watchlist_version",
+        "screened_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "WatchlistEntry": {
+      "type": "object",
+      "description": "Synthetic watchlist entry. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "entry_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxItems": 10
+        },
+        "list_type": {
+          "type": "string",
+          "enum": [
+            "AML",
+            "PEP"
+          ]
+        },
+        "name_tokens": {
+          "type": "string"
+        },
+        "alias_tokens": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "added_by": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "entry_id",
+        "seq",
+        "name",
+        "aliases",
+        "list_type",
+        "name_tokens",
+        "alias_tokens",
+        "added_by",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "WatchlistDeactivation": {
+      "type": "object",
+      "description": "Deactivation of a watchlist entry. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entry_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deactivated_by": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "seq",
+        "entry_id",
+        "deactivated_by",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "RuleWeights": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "income_band": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "occupation_category": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "geography": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "age",
+        "income_band",
+        "occupation_category",
+        "geography"
+      ],
+      "additionalProperties": false
+    },
+    "RulePoints": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "min_years": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_years": {
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "points": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "label",
+              "min_years",
+              "max_years",
+              "points"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "income_band": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "min_inr": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_inr": {
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "points": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "code",
+              "min_inr",
+              "max_inr",
+              "points"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "occupation_category": {
+          "type": "object",
+          "properties": {
+            "SALARIED": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "RETIRED": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "STUDENT": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "SELF_EMPLOYED": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "BUSINESS_OWNER": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "CASH_INTENSIVE": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "SALARIED",
+            "RETIRED",
+            "STUDENT",
+            "SELF_EMPLOYED",
+            "BUSINESS_OWNER",
+            "CASH_INTENSIVE"
+          ],
+          "additionalProperties": false
+        },
+        "geography": {
+          "type": "object",
+          "properties": {
+            "DOMESTIC": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "FOREIGN_STANDARD": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "DOMESTIC_BORDER": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "FOREIGN_HIGH_RISK": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "DOMESTIC",
+            "FOREIGN_STANDARD",
+            "DOMESTIC_BORDER",
+            "FOREIGN_HIGH_RISK"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "age",
+        "income_band",
+        "occupation_category",
+        "geography"
+      ],
+      "additionalProperties": false
+    },
+    "RiskRuleSet": {
+      "type": "object",
+      "description": "Versioned rule set; immutable once PUBLISHED. All numbers are integers (NFR-01).",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "PUBLISHED"
+          ]
+        },
+        "weights": {
+          "$ref": "#/definitions/RuleWeights"
+        },
+        "points": {
+          "$ref": "#/definitions/RulePoints"
+        },
+        "geography_map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "DOMESTIC",
+              "FOREIGN_STANDARD",
+              "DOMESTIC_BORDER",
+              "FOREIGN_HIGH_RISK"
+            ]
+          }
+        },
+        "geography_default": {
+          "type": "string",
+          "enum": [
+            "DOMESTIC",
+            "FOREIGN_STANDARD",
+            "DOMESTIC_BORDER",
+            "FOREIGN_HIGH_RISK"
+          ]
+        },
+        "low_max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        },
+        "medium_max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        },
+        "author": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "published_at": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "version",
+        "status",
+        "weights",
+        "points",
+        "geography_map",
+        "geography_default",
+        "low_max",
+        "medium_max",
+        "author",
+        "created_at",
+        "published_at"
+      ],
+      "additionalProperties": false
+    },
+    "RiskBreakdownItem": {
+      "type": "object",
+      "description": "Per-factor contribution (element of RiskAssessment.breakdown).",
+      "properties": {
+        "factor": {
+          "type": "string",
+          "enum": [
+            "age",
+            "income_band",
+            "occupation_category",
+            "geography"
+          ]
+        },
+        "value_label": {
+          "type": "string"
+        },
+        "points": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "contribution": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "factor",
+        "value_label",
+        "points",
+        "weight",
+        "contribution"
+      ],
+      "additionalProperties": false
+    },
+    "RiskAssessment": {
+      "type": "object",
+      "description": "Score and band for a case. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "assessment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "band": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+        "rule_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "RULE_ENGINE",
+            "OFFICER_RECLASSIFY"
+          ]
+        },
+        "breakdown": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RiskBreakdownItem"
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "assessment_id",
+        "seq",
+        "case_id",
+        "score",
+        "band",
+        "rule_version",
+        "source",
+        "breakdown",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "Decision": {
+      "type": "object",
+      "description": "Automatic decision (one per case). Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "decision_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "AUTO"
+          ]
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "APPROVED",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "AUTO_APPROVED",
+            "AML_HIT",
+            "PEP_HIT",
+            "DOC_UNRECOGNISED",
+            "RISK_MEDIUM",
+            "RISK_HIGH"
+          ]
+        },
+        "rule_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "actor": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "decision_id",
+        "seq",
+        "case_id",
+        "type",
+        "outcome",
+        "reason_code",
+        "rule_version",
+        "actor",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "Override": {
+      "type": "object",
+      "description": "Compliance-officer override (one per case). Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "override_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "previous_state": {
+          "type": "string",
+          "enum": [
+            "MANUAL_REVIEW"
+          ]
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "APPROVE",
+            "REJECT"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "FALSE_POSITIVE_CLEARED",
+            "RISK_ACCEPTED",
+            "DOCS_CONFIRMED",
+            "CONFIRMED_WATCHLIST_MATCH",
+            "DOCS_INSUFFICIENT",
+            "RISK_TOO_HIGH",
+            "POLICY_OTHER"
+          ]
+        },
+        "comment": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rule_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "override_id",
+        "seq",
+        "case_id",
+        "actor",
+        "previous_state",
+        "decision",
+        "reason_code",
+        "rule_version",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "Account": {
+      "type": "object",
+      "description": "Stub account (one per approved case). Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "account_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "product": {
+          "type": "string",
+          "enum": [
+            "Savings",
+            "Current",
+            "NRE"
+          ]
+        },
+        "account_number": {
+          "type": "string",
+          "pattern": "^(SAV|CUR|NRE)[0-9]{12}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "account_id",
+        "case_id",
+        "product",
+        "account_number",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "Notification": {
+      "type": "object",
+      "description": "Stubbed notification. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "notification_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "event": {
+          "type": "string",
+          "enum": [
+            "INITIATED",
+            "DOCS_SUBMITTED",
+            "SCREENED",
+            "CLASSIFIED",
+            "APPROVED",
+            "REJECTED",
+            "MANUAL_REVIEW",
+            "DOC_REJECTED"
+          ]
+        },
+        "template": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "item_code": {
+              "type": "string",
+              "enum": [
+                "ID_PROOF",
+                "ADDRESS_PROOF",
+                "PHOTOGRAPH",
+                "BUSINESS_PROOF",
+                "OVERSEAS_ADDRESS_PROOF"
+              ]
+            },
+            "reason_code": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "contact_masked": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "notification_id",
+        "seq",
+        "case_id",
+        "event",
+        "template",
+        "text",
+        "details",
+        "contact_masked",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "StateHistory": {
+      "type": "object",
+      "description": "Lifecycle transition row. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "history_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "from_state": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "INITIATED",
+                "DOCS_SUBMITTED",
+                "SCREENED",
+                "CLASSIFIED",
+                "APPROVED",
+                "REJECTED",
+                "MANUAL_REVIEW"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "to_state": {
+          "type": "string",
+          "enum": [
+            "INITIATED",
+            "DOCS_SUBMITTED",
+            "SCREENED",
+            "CLASSIFIED",
+            "APPROVED",
+            "REJECTED",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "actor": {
+          "type": "string"
+        },
+        "reason_code": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "idempotency_key": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "history_id",
+        "seq",
+        "case_id",
+        "from_state",
+        "to_state",
+        "actor",
+        "reason_code",
+        "idempotency_key",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "AuditLog": {
+      "type": "object",
+      "description": "Audit entry; payload is PII-free. Append-only (UPDATE and DELETE rejected by trigger).",
+      "properties": {
+        "audit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "event": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "correlation_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "audit_id",
+        "seq",
+        "case_id",
+        "event",
+        "actor",
+        "role",
+        "payload",
+        "correlation_id",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "x-append-only": true
+    },
+    "IdempotencyKey": {
+      "type": "object",
+      "description": "Stored response for replay.",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string"
+        },
+        "request_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "response": {
+          "type": "object"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "key",
+        "scope",
+        "request_hash",
+        "response",
+        "created_at"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/definitions/User"
+    },
+    {
+      "$ref": "#/definitions/Case"
+    },
+    {
+      "$ref": "#/definitions/CaseProfile"
+    },
+    {
+      "$ref": "#/definitions/ChecklistTemplate"
+    },
+    {
+      "$ref": "#/definitions/ChecklistItem"
+    },
+    {
+      "$ref": "#/definitions/Document"
+    },
+    {
+      "$ref": "#/definitions/DocumentRejection"
+    },
+    {
+      "$ref": "#/definitions/ClassificationRule"
+    },
+    {
+      "$ref": "#/definitions/ClassificationResult"
+    },
+    {
+      "$ref": "#/definitions/ScreeningHit"
+    },
+    {
+      "$ref": "#/definitions/ScreeningResult"
+    },
+    {
+      "$ref": "#/definitions/WatchlistEntry"
+    },
+    {
+      "$ref": "#/definitions/WatchlistDeactivation"
+    },
+    {
+      "$ref": "#/definitions/RuleWeights"
+    },
+    {
+      "$ref": "#/definitions/RulePoints"
+    },
+    {
+      "$ref": "#/definitions/RiskRuleSet"
+    },
+    {
+      "$ref": "#/definitions/RiskBreakdownItem"
+    },
+    {
+      "$ref": "#/definitions/RiskAssessment"
+    },
+    {
+      "$ref": "#/definitions/Decision"
+    },
+    {
+      "$ref": "#/definitions/Override"
+    },
+    {
+      "$ref": "#/definitions/Account"
+    },
+    {
+      "$ref": "#/definitions/Notification"
+    },
+    {
+      "$ref": "#/definitions/StateHistory"
+    },
+    {
+      "$ref": "#/definitions/AuditLog"
+    },
+    {
+      "$ref": "#/definitions/IdempotencyKey"
+    }
+  ]
+}

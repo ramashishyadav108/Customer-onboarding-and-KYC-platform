@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E5-S4 Admin dashboard - OnboardX</title>
+<!-- Mockup E5-S4 (desktop-first, 1280px). Fields follow api-contracts.md section 2.8. All numbers integers. -->
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f3f4f7;color:#141a26;font-size:15px;line-height:1.5}
+:focus-visible{outline:3px solid #0b5fff;outline-offset:2px}
+a{color:#0b3d91}
+header{background:#14213d;color:#fff;padding:10px 24px}
+header h1{font-size:1.1rem;margin:0}
+.bar{background:#e3e7ef;padding:8px 24px;display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap}
+nav{background:#fff;border-bottom:1px solid #b9c0d0;padding:0 24px;display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:12px 14px;text-decoration:none;font-weight:600;color:#14213d;border-bottom:4px solid transparent}
+nav a[aria-current=page]{border-bottom-color:#14213d;background:#eef1f8}
+main{max-width:1280px;margin:0 auto;padding:20px 24px}
+h2{margin:0 0 8px;font-size:1.4rem}h3{margin:0 0 4px;font-size:1.1rem}h4{margin:12px 0 4px;font-size:.95rem}
+.panels{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.panel{background:#fff;border:1px solid #b9c0d0;border-radius:6px;padding:16px;min-width:0}
+.panel.wide{grid-column:1/-1}
+.api{display:inline-block;font:12px/1.4 Consolas,monospace;background:#e3e7ef;color:#27314a;border:1px solid #8d97b0;border-radius:3px;padding:1px 6px;margin:2px 2px 2px 0}
+.fl{background:#fff;border:1px solid #b9c0d0;border-radius:6px;padding:12px 16px;margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:end}
+.fl label{display:block;font-weight:600}
+input,select{min-height:40px;padding:4px 8px;border:2px solid #56617d;border-radius:4px;font:inherit;background:#fff;color:#141a26}
+button{min-height:40px;padding:4px 16px;border:2px solid #14213d;background:#14213d;color:#fff;border-radius:4px;font:inherit;font-weight:600;cursor:pointer}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border-bottom:1px solid #d3d8e4;padding:5px 8px;text-align:left}
+th{background:#eef1f8}
+.banner{padding:8px 12px;border:2px solid;border-radius:4px;margin:8px 0}
+.banner.e{background:#f8d7da;color:#58151b;border-color:#a4161a}
+.banner.i{background:#e7efff;color:#0a2a66;border-color:#0b3d91}
+.meta{color:#444d63;font-size:.85rem}
+.bars{display:grid;grid-template-columns:minmax(90px,30%) 1fr;gap:6px 8px;align-items:center;margin:8px 0}
+.bars .l{font-weight:600;font-size:.9rem}
+.track{background:#eef1f8;border:1px solid #8d97b0;height:26px;position:relative}
+.fill{height:100%;border-right:2px solid #0b1220;display:flex;align-items:center;padding-left:6px;font-weight:700;font-size:.8rem;color:#0b1220;white-space:nowrap}
+.fill span{background:#fff;padding:0 4px;border-radius:2px}
+.p0{background:#7d97c9}
+.p1{background:repeating-linear-gradient(45deg,#e6a64a,#e6a64a 6px,#fff 6px,#fff 9px)}
+.p2{background:repeating-linear-gradient(90deg,#5fb08a,#5fb08a 5px,#fff 5px,#fff 8px)}
+.p3{background:repeating-linear-gradient(135deg,#c86b7c,#c86b7c 6px,#fff 6px,#fff 9px)}
+.p4{background:radial-gradient(circle,#0b1220 1.5px,#b9a7dd 2px);background-size:8px 8px}
+.sr{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header><h1>OnboardX Admin Console</h1></header>
+<div class="bar" role="region" aria-label="Mockup controls">
+  <label for="mock"><strong>Mock state:</strong></label>
+  <select id="mock"><option value="normal">normal</option><option value="empty">empty</option><option value="error">error</option></select>
+  <label for="role"><strong>Mock role:</strong></label>
+  <select id="role"><option value="admin">admin</option><option value="kyc-analyst">kyc-analyst (non-admin)</option></select>
+  <span class="meta">Non-admin roles are redirected to #forbidden. No network calls.</span>
+</div>
+<nav aria-label="Admin navigation">
+  <a href="#dashboard">Dashboard</a>
+  <a href="E3-S5.html#rules">Rule sets</a>
+  <a href="E3-S5.html#watchlist">Watchlist</a>
+</nav>
+<main id="main" tabindex="-1"></main>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api=t=>`<span class="api" data-api="${esc(t)}">${esc(t)}</span>`;
+const mock=()=>$("#mock").value;
+let F={product:"",from:"2026-09-01",to:"2026-10-01"};
+
+const SHARE={Savings:[60,130],Current:[35,130],NRE:[15,130]};
+const sc=(n,p)=>p?Math.floor(n*SHARE[p][0]/SHARE[p][1]):n;
+const dur=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}h ${m}m`:m?`${m}m ${s%60}s`:`${s}s`};
+const pct=bp=>Math.floor(bp/100)+"."+String(bp%100).padStart(2,"0")+"%";
+function data(){
+  if(mock()==="empty"||F.from>"2026-10-01")return null;
+  const p=F.product;
+  const tat=[{product:"Savings",count:60,avg_seconds:5400,min_seconds:1200,max_seconds:28800},{product:"Current",count:35,avg_seconds:7200,min_seconds:1800,max_seconds:43200},{product:"NRE",count:15,avg_seconds:9600,min_seconds:2400,max_seconds:57600}].filter(r=>!p||r.product===p);
+  const raw=[["INITIATED",130,0],["DOCS_SUBMITTED",117,0],["SCREENED",112,0],["CLASSIFIED",110,0],["MANUAL_REVIEW",34,3],["APPROVED",70,3],["REJECTED",6,3]].map(([s,c])=>[s,sc(c,p)]);
+  const prev={DOCS_SUBMITTED:0,SCREENED:1,CLASSIFIED:2,MANUAL_REVIEW:3,APPROVED:3,REJECTED:3};
+  const stages=raw.map(([stage,count],i)=>({stage,count,conversion_bp:i===0?(count>0?10000:0):(raw[prev[stage]][1]?Math.floor(count*10000/raw[prev[stage]][1]):0)}));
+  const backlog={count:sc(9,p),oldest_age_minutes:2310,buckets:[{label:"under_60",min_minutes:0,max_minutes:59,count:sc(2,p)},{label:"60_to_1440",min_minutes:60,max_minutes:1440,count:sc(5,p)},{label:"over_1440",min_minutes:1441,max_minutes:null,count:sc(2,p)}]};
+  const tps=[["INITIATED","DOCS_SUBMITTED",117,3600],["DOCS_SUBMITTED","SCREENED",112,40],["SCREENED","CLASSIFIED",110,12],["CLASSIFIED","APPROVED",70,8],["CLASSIFIED","MANUAL_REVIEW",34,9]].map(([from_state,to_state,c,avg_seconds])=>({from_state,to_state,count:sc(c,p),avg_seconds}));
+  const rej=[["DOCS_INSUFFICIENT",3],["CONFIRMED_WATCHLIST_MATCH",2],["RISK_TOO_HIGH",1]].map(([reason_code,c])=>({reason_code,count:sc(c,p)})).filter(r=>r.count>0);
+  return {tat,stages,backlog,tps,rej};
+}
+function bars(rows){ // rows: [label,value,text]
+  const max=Math.max(1,...rows.map(r=>r[1]));
+  return `<div class="bars" aria-hidden="true">${rows.map((r,i)=>`<div class="l">${esc(r[0])}</div><div class="track"><div class="fill p${i%5}" style="width:${Math.max(3,Math.floor(r[1]*100/max))}%"><span>${esc(r[2])}</span></div></div>`).join("")}</div>`;
+}
+function table(cap,heads,rows){
+  return `<h4>Data table</h4><table><caption class="sr">${cap}</caption><thead><tr>${heads.map(h=>`<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>i?`<td>${c}</td>`:`<th scope="row">${c}</th>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+function panel(id,title,apiPath,state,d,fn,wide){
+  const fl=`filters {product: ${F.product||"all"}, from: ${F.from}, to: ${F.to}}`;
+  let body;
+  if(state.err)body=`<div class="banner e" role="alert">${state.err} <button type="button" data-retry>Retry</button></div>`;
+  else if(!d||!fn.has(d))body=`<div class="banner i" role="status">No data for this filter. Nothing to chart yet.</div>`;
+  else body=fn.render(d);
+  return `<section class="panel ${wide?"wide":""}" aria-labelledby="${id}-h"><h3 id="${id}-h">${title}</h3>${api("GET "+apiPath)}<div class="meta" data-filters>${fl}</div>${body}</section>`;
+}
+const PANELS=[
+ ["tat","Turnaround time by product","/api/v1/admin/reports/tat",{has:d=>d.tat.length,render:d=>{
+   const s=d.tat.map(r=>`${r.product} ${dur(r.avg_seconds)} (${r.count} cases)`).join("; ");
+   return `<p><strong>Summary:</strong> Average time to close by product: ${s}.</p>`+bars(d.tat.map(r=>[r.product,r.avg_seconds,dur(r.avg_seconds)]))+
+   table("TAT by product",["product","count","avg_seconds","min_seconds","max_seconds"],d.tat.map(r=>[r.product,r.count,r.avg_seconds,r.min_seconds,r.max_seconds]))}}],
+ ["fun","Approval funnel","/api/v1/admin/reports/funnel",{has:d=>d.stages[0].count>0,render:d=>{
+   const a=d.stages.find(s=>s.stage==="APPROVED"),i=d.stages[0];
+   return `<p><strong>Summary:</strong> ${i.count} cases initiated, ${a.count} approved (${pct(a.conversion_bp)} of classified), ${d.stages.find(s=>s.stage==="MANUAL_REVIEW").count} routed to manual review.</p>`+bars(d.stages.map(s=>[s.stage,s.count,s.count+" cases"]))+
+   table("Approval funnel",["stage","count","conversion_bp","conversion"],d.stages.map(s=>[s.stage,s.count,s.conversion_bp,pct(s.conversion_bp)]))}}],
+ ["bl","Manual-review backlog","/api/v1/admin/reports/backlog",{has:d=>d.backlog.count>0,render:d=>{
+   const b=d.backlog;
+   return `<p><strong>Summary:</strong> ${b.count} cases waiting; the oldest has waited ${b.oldest_age_minutes} minutes.</p>`+bars(b.buckets.map(x=>[x.label,x.count,x.count+" cases"]))+
+   table("Backlog by age",["label","min_minutes","max_minutes","count"],b.buckets.map(x=>[x.label,x.min_minutes,x.max_minutes??"none",x.count]))}}],
+ ["tps","Average time per stage","/api/v1/admin/reports/time-per-stage",{has:d=>d.tps.some(x=>x.count),render:d=>
+   `<p><strong>Summary:</strong> The slowest stage is ${d.tps[0].from_state} to ${d.tps[0].to_state} at ${dur(d.tps[0].avg_seconds)}; system stages take under a minute.</p>`+bars(d.tps.map(x=>[x.from_state+" to "+x.to_state,x.avg_seconds,dur(x.avg_seconds)]))+
+   table("Average time per stage",["from_state","to_state","count","avg_seconds"],d.tps.map(x=>[x.from_state,x.to_state,x.count,x.avg_seconds]))}],
+ ["rr","Top rejection reasons","/api/v1/admin/reports/rejection-reasons",{has:d=>d.rej.length,render:d=>
+   `<p><strong>Summary:</strong> ${d.rej[0].reason_code} is the most common rejection reason with ${d.rej[0].count} cases (max 5 reasons shown).</p>`+bars(d.rej.map(x=>[x.reason_code,x.count,x.count+" cases"]))+
+   table("Top rejection reasons",["reason_code","count"],d.rej.map(x=>[x.reason_code,x.count]))}]
+];
+function dash(){
+  const d=data();
+  const bad=F.from>F.to;
+  const errs={};
+  if(bad)PANELS.forEach(p=>errs[p[0]]="VALIDATION_ERROR (422): fields[0].field = from (from must be on or before to).");
+  else if(mock()==="error"){errs.bl="Could not load backlog (500). Try again.";errs.rr="Could not load rejection reasons (500). Try again."}
+  $("#main").innerHTML=`<h1 style="font-size:1.4rem;margin:0 0 12px">Operational reports</h1>
+  <form class="fl" id="ff" aria-label="Report filters" novalidate>
+   <div><label for="fp">Product</label><select id="fp"><option value="">All products</option>${["Savings","Current","NRE"].map(p=>`<option ${F.product===p?"selected":""}>${p}</option>`).join("")}</select></div>
+   <div><label for="ffrom">From</label><input id="ffrom" type="date" value="${F.from}"></div>
+   <div><label for="fto">To</label><input id="fto" type="date" value="${F.to}"></div>
+   <button type="submit">Apply filters</button>
+   <span class="meta">Query: ?product=${F.product||""}&amp;from=${F.from}&amp;to=${F.to} applied to all five panels.</span></form>
+  <div class="panels">${PANELS.map((p,i)=>panel(p[0],p[1],p[2],{err:errs[p[0]]},d,p[3],i===0||i===1)).join("")}</div>`;
+  $("#ff").onsubmit=e=>{e.preventDefault();F={product:$("#fp").value,from:$("#ffrom").value,to:$("#fto").value};dash();$("#live").textContent="All five panels refreshed with the new filters.";$("#fp").focus()};
+  $("#main").querySelectorAll("[data-retry]").forEach(b=>b.onclick=()=>{$("#mock").value="normal";dash()});
+}
+function forbidden(){
+  $("#main").innerHTML=`<section class="panel" aria-labelledby="h"><h2 id="h">403 Forbidden</h2>
+  <div class="banner e" role="alert">FORBIDDEN: required_roles ["admin"]. Your role (${esc($("#role").value)}) cannot open the admin console.</div>
+  <p>${api("GET /api/v1/admin/reports/*")} returned 403. You were redirected from the dashboard.</p><p><a href="#dashboard" id="retry">Try the dashboard again</a> (as a non-admin this returns here).</p></section>`;
+}
+function render(){
+  let h=(location.hash||"#dashboard").slice(1);
+  if(h==="dashboard"&&$("#role").value!=="admin"){location.hash="#forbidden";return}
+  if(h==="forbidden"&&$("#role").value==="admin"&&false){}
+  document.querySelectorAll("nav a").forEach(a=>a.getAttribute("href")==="#"+h?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+  document.title=(h==="forbidden"?"Forbidden":"Dashboard")+" - E5-S4 OnboardX";
+  h==="forbidden"?forbidden():dash();
+}
+$("#mock").onchange=render;$("#role").onchange=()=>{location.hash="#dashboard";render()};
+window.addEventListener("hashchange",()=>{render();$("#main").focus()});
+render();
+</script>
+</body>
+</html>

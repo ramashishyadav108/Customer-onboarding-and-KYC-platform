@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E4-S5 Review queue and notifications - OnboardX</title>
+<!-- Mockup E4-S5. Staff pages desktop-first; prospect page (#prospect) responsive at 360px and 1280px. Fields follow api-contracts.md. -->
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f3f4f7;color:#141a26;font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+:focus-visible{outline:3px solid #0b5fff;outline-offset:2px}
+a{color:#0b3d91}
+header{background:#14213d;color:#fff;padding:10px 16px}
+header h1{font-size:1.1rem;margin:0}
+.bar{background:#e3e7ef;padding:8px 16px;display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap}
+nav{background:#fff;border-bottom:1px solid #b9c0d0;padding:0 12px;display:flex;flex-wrap:wrap;gap:4px}
+nav a{padding:12px 14px;text-decoration:none;font-weight:600;color:#14213d;border-bottom:4px solid transparent;min-height:44px}
+nav a[aria-current=page]{border-bottom-color:#14213d;background:#eef1f8}
+main{max-width:1200px;margin:0 auto;padding:16px}
+h2{margin:0 0 6px;font-size:1.35rem}h3{margin:16px 0 6px;font-size:1.05rem}
+.card{background:#fff;border:1px solid #b9c0d0;border-radius:6px;padding:16px;margin-bottom:16px}
+.api{display:inline-block;font:12px/1.4 Consolas,monospace;background:#e3e7ef;color:#27314a;border:1px solid #8d97b0;border-radius:3px;padding:1px 6px;margin:2px 2px 2px 0}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid #d3d8e4;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#eef1f8}
+input,select,textarea{width:100%;min-height:44px;padding:6px 8px;border:2px solid #56617d;border-radius:4px;font:inherit;background:#fff;color:#141a26}
+label{font-weight:600;display:block;margin-top:10px}
+button{min-height:44px;padding:6px 16px;border:2px solid #14213d;background:#14213d;color:#fff;border-radius:4px;font:inherit;font-weight:600;cursor:pointer}
+button.sec{background:#fff;color:#14213d}
+button.rej{background:#7a1118;border-color:#7a1118}
+button:disabled{background:#d9dce4;color:#444b5e;border-color:#8b93a8;cursor:not-allowed}
+.banner{padding:8px 12px;border:2px solid;border-radius:4px;margin:8px 0}
+.banner.e{background:#f8d7da;color:#58151b;border-color:#a4161a}
+.banner.ok{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.banner.i{background:#e7efff;color:#0a2a66;border-color:#0b3d91}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid;font-weight:700;font-size:.8rem}
+.tag.LOW,.tag.VERIFIED{background:#d1e7dd;color:#0a3622;border-color:#0f5132}
+.tag.MEDIUM,.tag.FLAGGED{background:#fff3cd;color:#523e02;border-color:#664d03}
+.tag.HIGH{background:#f8d7da;color:#58151b;border-color:#842029}
+.meta{color:#444d63;font-size:.9rem}
+ul.nl{list-style:none;margin:0;padding:0}
+ul.nl li{border-top:1px solid #d3d8e4;padding:10px 0}
+.backdrop{position:fixed;inset:0;background:rgba(10,15,30,.7);display:flex;align-items:center;justify-content:center;padding:12px;z-index:10}
+[role=dialog]{background:#fff;border-radius:8px;padding:20px;max-width:520px;width:100%;max-height:95vh;overflow:auto;border:3px solid #14213d}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.sr{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+@media (max-width:480px){main{padding:10px}th,td{padding:6px}}
+</style>
+</head>
+<body>
+<header><h1>OnboardX</h1></header>
+<div class="bar" role="region" aria-label="Mockup controls">
+  <label for="mock" style="margin:0">Mock state:</label>
+  <select id="mock" style="width:auto"><option value="normal">normal</option><option value="empty">empty</option><option value="error">error</option></select>
+  <span class="meta">No network calls. Staff pages require compliance-officer.</span>
+</div>
+<nav aria-label="Pages"><a href="#queue">Review queue</a><a href="#review">Review panel</a><a href="#prospect">Prospect status (portal)</a></nav>
+<div id="app"><main id="main" tabindex="-1"></main></div>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+<div id="dlgroot"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api=t=>`<span class="api" data-api="${esc(t)}">${esc(t)}</span>`;
+const mock=()=>$("#mock").value;
+const tag=s=>`<span class="tag ${s}">${s}</span>`;
+const APPROVE=["FALSE_POSITIVE_CLEARED","RISK_ACCEPTED","DOCS_CONFIRMED"];
+const REJECT=["CONFIRMED_WATCHLIST_MATCH","DOCS_INSUFFICIENT","RISK_TOO_HIGH","POLICY_OTHER"];
+const mkb=(f,v,p,w)=>({factor:f,value_label:v,points:p,weight:w,contribution:p*w});
+const SEED=[
+ {case_id:"c5d9e3f1-6b2a-4c77-9a10-2e8f4b6d7a33",product:"NRE",reason_code:"AML_HIT",age_minutes:940,entered_review_at:"2026-09-30T17:50:00Z",
+  docs:[["ID_PROOF","PASSPORT","VERIFIED",null],["OVERSEAS_ADDRESS_PROOF","UTILITY_BILL","VERIFIED",null],["PHOTOGRAPH","PHOTOGRAPH","VERIFIED",null]],
+  hits:[{entry_id:"b1000000-0000-4000-8000-000000000001",list_type:"AML",reason_code:"AML_HIT"}],score:16,band:"LOW",bd:[mkb("age","25-60",0,20),mkb("income_band","B3",30,25),mkb("occupation_category","O3",30,30),mkb("geography","DOMESTIC",0,25)]},
+ {case_id:"5a6b7c8d-9e0f-4a1b-b2c3-d4e5f6071829",product:"Current",reason_code:"RISK_MEDIUM",age_minutes:310,entered_review_at:"2026-10-01T04:20:00Z",
+  docs:[["ID_PROOF","PAN","VERIFIED",null],["ADDRESS_PROOF","AADHAAR","VERIFIED",null],["PHOTOGRAPH","PHOTOGRAPH","VERIFIED",null],["BUSINESS_PROOF","GST_CERTIFICATE","VERIFIED",null]],
+  hits:[],score:45,band:"MEDIUM",bd:[mkb("age","61+",40,20),mkb("income_band","B4",60,25),mkb("occupation_category","O4",50,30),mkb("geography","FOREIGN_STANDARD",30,25)]},
+ {case_id:"3f0c2c9e-7a54-4b7e-9d3e-5b1f6a2e9c10",product:"Savings",reason_code:"DOC_UNRECOGNISED",age_minutes:75,entered_review_at:"2026-10-01T09:30:00Z",
+  docs:[["ID_PROOF","PAN","VERIFIED",null],["ADDRESS_PROOF","UNRECOGNISED","FLAGGED","DOC_UNRECOGNISED"],["PHOTOGRAPH","PHOTOGRAPH","VERIFIED",null]],
+  hits:[],score:2,band:"LOW",bd:[mkb("age","25-60",0,20),mkb("income_band","B1",10,25),mkb("occupation_category","O1",0,30),mkb("geography","DOMESTIC",0,25)]}];
+let queue=SEED.map(x=>({...x}));
+let cur=queue[0].case_id,outcome=null,notifs=[
+ {notification_id:"n3",case_id:SEED[2].case_id,event:"MANUAL_REVIEW",template:"case_manual_review",text:"Your application needs an additional review. No action is needed from you.",details:{reason_code:"DOC_UNRECOGNISED"},created_at:"2026-10-01T09:30:05Z"},
+ {notification_id:"n2",case_id:SEED[2].case_id,event:"DOC_REJECTED",template:"doc_rejected",text:"Your ADDRESS_PROOF could not be accepted. Please upload a clearer copy.",details:{item_code:"ADDRESS_PROOF",reason_code:"DOC_ILLEGIBLE"},created_at:"2026-10-01T09:10:00Z"},
+ {notification_id:"n1",case_id:SEED[2].case_id,event:"INITIATED",template:"case_initiated",text:"Your application has been started.",details:{},created_at:"2026-10-01T08:00:00Z"}];
+let propState="MANUAL_REVIEW",propAcct=null;
+
+const P={
+queue(){
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Manual review queue</h2>${api("GET /api/v1/review-queue")}
+  <div id="qmsg" role="status" tabindex="-1">${outcome?`<div class="banner ${outcome.cls}">${outcome.html}</div>`:""}</div>
+  ${mock()==="error"?`<div class="banner e" role="alert">FORBIDDEN (403): required_roles ["compliance-officer"]. Your role cannot view this queue.</div>`
+  :(mock()==="empty"||!queue.length)?`<div class="banner i">No cases are awaiting manual review.</div><p class="meta">total 0</p>`
+  :`<div class="tw"><table><caption class="sr">Cases in MANUAL_REVIEW, oldest first</caption><thead><tr><th>case_id</th><th>product</th><th>reason_code</th><th>age_minutes (oldest first)</th><th>entered_review_at</th></tr></thead><tbody>
+  ${queue.slice().sort((a,b)=>b.age_minutes-a.age_minutes).map(c=>`<tr><td><a href="#review" data-c="${c.case_id}">${c.case_id}</a></td><td>${c.product}</td><td>${c.reason_code}</td><td>${c.age_minutes}</td><td>${c.entered_review_at}</td></tr>`).join("")}</tbody></table></div><p class="meta">total ${queue.length}</p>`}
+  </section>`;
+},
+review(){
+  const c=queue.find(x=>x.case_id===cur);
+  if(!c)return `<section class="card"><h2 id="h">Review panel</h2><div class="banner i">No case selected or the case has left the queue. <a href="#queue">Back to queue</a></div>${outcome?`<div class="banner ${outcome.cls}" role="status">${outcome.html}</div>`:""}</section>`;
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Review panel</h2>
+  <p><a href="#queue">Back to queue</a> ${api("GET /api/v1/cases/{case_id}/evidence")}</p>
+  <p>case_id <code>${c.case_id}</code> | product ${c.product} | contact_masked <code>********21</code> | review_reason_code <strong>${c.reason_code}</strong></p>
+  <h3>Documents</h3><div class="tw"><table><caption class="sr">Documents</caption><thead><tr><th>checklist_item</th><th>doc_class</th><th>status</th><th>reason_code</th></tr></thead><tbody>
+  ${c.docs.map(d=>`<tr><td>${d[0]}</td><td>${d[1]}</td><td>${tag(d[2])}</td><td>${d[3]||"none"}</td></tr>`).join("")}</tbody></table></div>
+  <h3>Screening hits</h3>${c.hits.length?`<div class="tw"><table><thead><tr><th>entry_id</th><th>list_type</th><th>reason_code</th></tr></thead><tbody>${c.hits.map(h=>`<tr><td>${h.entry_id}</td><td>${h.list_type}</td><td>${h.reason_code}</td></tr>`).join("")}</tbody></table></div>`:`<div class="banner i">No screening hits.</div>`}
+  <h3>Risk breakdown</h3><p><strong>score ${c.score}</strong> ${tag(c.band)} band ${c.band}, rule_version 1</p>
+  <div class="tw"><table><thead><tr><th>factor</th><th>value_label</th><th>points</th><th>weight</th><th>contribution</th></tr></thead><tbody>
+  ${c.bd.map(b=>`<tr><td>${b.factor}</td><td>${b.value_label}</td><td>${b.points}</td><td>${b.weight}</td><td>${b.contribution}</td></tr>`).join("")}</tbody></table></div>
+  <div class="acts"><button id="open">Record decision</button> ${api("POST /api/v1/cases/{case_id}/override")}</div>
+  </section>`;
+},
+prospect(){
+  const list=mock()==="empty"?[]:notifs.filter(n=>n.case_id===SEED[2].case_id).slice().sort((a,b)=>b.created_at.localeCompare(a.created_at));
+  return `<section class="card" aria-labelledby="h"><h2 id="h">Your application status</h2>${api("GET /api/v1/cases/{case_id}")}
+  <p>State: <strong>${propState}</strong>${propAcct?` | account_number_masked <code>${propAcct}</code>`:""}</p>
+  <h3 id="nh">Notifications</h3>${api("GET /api/v1/cases/{case_id}/notifications")}
+  ${mock()==="error"?`<div class="banner e" role="alert">FORBIDDEN (403): notifications can only be read by the case owner.</div>`
+  :list.length?`<ul class="nl" aria-labelledby="nh">${list.map(n=>`<li><strong>${n.event}</strong> <span class="meta"><time datetime="${n.created_at}">${n.created_at}</time></span><br>${esc(n.text)}${n.details.item_code?`<br><span class="meta">item_code ${n.details.item_code}, reason_code ${n.details.reason_code}</span>`:""}</li>`).join("")}</ul><p class="meta">Newest first.</p>`
+  :`<div class="banner i">No notifications yet.</div>`}
+  </section>`;
+}};
+
+/* Dialog with focus trap */
+let opener=null;
+function openDialog(){
+  opener=document.activeElement;
+  const c=queue.find(x=>x.case_id===cur);
+  $("#dlgroot").innerHTML=`<div class="backdrop"><div role="dialog" aria-modal="true" aria-labelledby="dt" aria-describedby="dd" id="dlg">
+  <h2 id="dt" style="font-size:1.25rem">Record decision for ${c.product} case</h2><p id="dd" class="meta">Choose a reason code. Approve accepts approve codes, Reject accepts reject codes. ${api("POST /api/v1/cases/{case_id}/override")}</p>
+  <div id="derr" role="alert"></div>
+  <label for="rc">Reason code</label>
+  <select id="rc" aria-describedby="rc-h"><option value="">Select a reason code</option>
+   <optgroup label="Approve">${APPROVE.map(r=>`<option>${r}</option>`).join("")}</optgroup>
+   <optgroup label="Reject">${REJECT.map(r=>`<option>${r}</option>`).join("")}</optgroup></select>
+  <p class="meta" id="rc-h">Buttons stay disabled until a matching reason code is chosen.</p>
+  <label for="cm">Comment (optional, max 500)</label><textarea id="cm" maxlength="500" rows="3"></textarea>
+  <div class="acts"><button id="ap" disabled>Approve</button><button id="rj" class="rej" disabled>Reject</button><button id="cx" class="sec">Cancel</button></div></div></div>`;
+  $("#main").setAttribute("inert","");document.querySelector("nav").setAttribute("inert","");
+  $("#rc").focus();
+  $("#rc").onchange=()=>{const v=$("#rc").value;$("#ap").disabled=!APPROVE.includes(v);$("#rj").disabled=!REJECT.includes(v)};
+  $("#cx").onclick=closeDialog;
+  $("#ap").onclick=()=>submit("APPROVE");$("#rj").onclick=()=>submit("REJECT");
+  $("#dlg").onkeydown=e=>{
+    if(e.key==="Escape"){e.preventDefault();closeDialog()}
+    if(e.key==="Tab"){
+      const f=[...$("#dlg").querySelectorAll("select,textarea,button:not(:disabled)")];
+      const first=f[0],last=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+      else if(!$("#dlg").contains(document.activeElement)){e.preventDefault();first.focus()}
+    }};
+}
+function closeDialog(){
+  $("#dlgroot").innerHTML="";$("#main").removeAttribute("inert");document.querySelector("nav").removeAttribute("inert");
+  if(opener&&document.contains(opener))opener.focus();else $("#main").focus();
+}
+function submit(decision){
+  const rc=$("#rc").value;
+  if(mock()==="error"){$("#derr").innerHTML=`<div class="banner e">INVALID_STATE (409): case is no longer in MANUAL_REVIEW. State unchanged.</div>`;return}
+  const c=queue.find(x=>x.case_id===cur);
+  queue=queue.filter(x=>x.case_id!==cur);
+  const acct="SAV123456789012";
+  if(decision==="APPROVE"){outcome={cls:"ok",html:`Case approved (reason_code ${rc}). New account number: <strong>${acct}</strong>.`};
+    if(c.case_id===SEED[2].case_id){propState="APPROVED";propAcct="SAV********9012";notifs.unshift({notification_id:"n4",case_id:c.case_id,event:"APPROVED",template:"case_approved",text:"Your application has been approved. Your account is ready.",details:{},created_at:"2026-10-01T11:00:00Z"})}}
+  else{outcome={cls:"ok",html:`Case rejected (reason_code ${rc}). No account was created.`};
+    if(c.case_id===SEED[2].case_id){propState="REJECTED";notifs.unshift({notification_id:"n4",case_id:c.case_id,event:"REJECTED",template:"case_rejected",text:"Your application could not be approved.",details:{},created_at:"2026-10-01T11:00:00Z"})}}
+  closeDialog();
+  flagFocus=true;location.hash="#queue";
+  document.getElementById("live").textContent="Decision recorded and case removed from the queue.";
+}
+function render(){
+  const h=(location.hash||"#queue").slice(1),pg=P[h]?h:"queue";
+  document.querySelectorAll("nav a").forEach(a=>a.getAttribute("href")==="#"+pg?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current"));
+  $("#main").innerHTML=P[pg]();document.title=pg+" - E4-S5 OnboardX";
+  $("#main").querySelectorAll("[data-c]").forEach(a=>a.onclick=()=>{cur=a.dataset.c;outcome=null});
+  const o=$("#open");if(o)o.onclick=openDialog;
+}
+$("#mock").onchange=render;
+let flagFocus=false;window.addEventListener("hashchange",()=>{if(!$("#dlg")){render();if(flagFocus){flagFocus=false;$("#qmsg").focus()}}});
+render();
+</script>
+</body>
+</html>
