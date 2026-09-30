@@ -10,11 +10,11 @@ import hashlib
 import uuid
 from typing import Any
 
-from onboardx.domain.entities import StateHistoryEntry, TransitionResult
+from onboardx.domain.entities import Case, StateHistoryEntry, TransitionResult
 from onboardx.domain.enums import AuditEvent, CaseState
 from onboardx.domain.errors import NotFoundError
 from onboardx.domain.lifecycle import assert_transition
-from onboardx.domain.ports import Clock, TransitionObserver
+from onboardx.domain.ports import Clock, TransitionObserver, TransitionRecorder
 from onboardx.domain.timeutil import to_iso_z
 from onboardx.repositories.idempotency_repository import IdempotencyRecord
 from onboardx.repositories.unit_of_work import UnitOfWork, UnitOfWorkFactory
@@ -48,11 +48,16 @@ def _result_from_json(data: dict[str, Any]) -> TransitionResult:
 
 class OnboardingService:
     def __init__(
-        self, clock: Clock, audit: AuditService, observer: TransitionObserver | None = None
+        self,
+        clock: Clock,
+        audit: AuditService,
+        observer: TransitionObserver | None = None,
+        recorder: TransitionRecorder | None = None,
     ) -> None:
         self._clock = clock
         self._audit = audit
         self._observer = observer
+        self._recorder = recorder
 
     def start_case(self, uow: UnitOfWork, *, case_id: str, actor: str, role: str) -> None:
         """Append the initial INITIATED history row (from_state null) for a new case."""
@@ -61,6 +66,8 @@ class OnboardingService:
             str(uuid.uuid4()), case_id, None, CaseState.INITIATED, actor, None, None, now
         )
         uow.state_history.add(entry)
+        if self._recorder is not None:
+            self._recorder.record_transition(uow, case_id, None, CaseState.INITIATED)
         if self._observer is not None:
             self._observer.on_transition(case_id, None, CaseState.INITIATED)
 
@@ -85,15 +92,30 @@ class OnboardingService:
         assert_transition(case_id, case.state, to_state)
         now = to_iso_z(self._clock.now())
         uow.cases.update_state(case_id, to_state, now)
+        key = idempotency_key
+        history = self._append_history(uow, case, to_state, actor, role, reason_code, key, now)
+        if self._recorder is not None:
+            self._recorder.record_transition(uow, case_id, case.state, to_state)
+        if self._observer is not None:
+            self._observer.on_transition(case_id, case.state, to_state)
+        result = TransitionResult(case_id, case.state, to_state, history.history_id, now)
+        self._remember(uow, idempotency_key, result, now)
+        return result
+
+    def _append_history(
+        self,
+        uow: UnitOfWork,
+        case: Case,
+        to_state: CaseState,
+        actor: str,
+        role: str,
+        reason_code: str | None,
+        key: str | None,
+        now: str,
+    ) -> StateHistoryEntry:
+        """Append the state-history row and its STATE_TRANSITION audit entry."""
         history = StateHistoryEntry(
-            str(uuid.uuid4()),
-            case_id,
-            case.state,
-            to_state,
-            actor,
-            reason_code,
-            idempotency_key,
-            now,
+            str(uuid.uuid4()), case.case_id, case.state, to_state, actor, reason_code, key, now
         )
         uow.state_history.add(history)
         self._audit.record(
@@ -101,18 +123,14 @@ class OnboardingService:
             event=AuditEvent.STATE_TRANSITION,
             actor=actor,
             role=role,
-            case_id=case_id,
+            case_id=case.case_id,
             payload={
                 "from_state": str(case.state),
                 "to_state": str(to_state),
                 "reason_code": reason_code,
             },
         )
-        if self._observer is not None:
-            self._observer.on_transition(case_id, case.state, to_state)
-        result = TransitionResult(case_id, case.state, to_state, history.history_id, now)
-        self._remember(uow, idempotency_key, result, now)
-        return result
+        return history
 
     def transition_and_commit(
         self, uow_factory: UnitOfWorkFactory, **kwargs: Any

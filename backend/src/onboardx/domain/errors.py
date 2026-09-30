@@ -101,3 +101,66 @@ class ValidationError(DomainError):
     @classmethod
     def single(cls, field: str, message: str) -> "ValidationError":
         return cls([(field, message)])
+
+
+class FileTooLargeError(DomainError):
+    code = "FILE_TOO_LARGE"
+
+    def __init__(self, max_bytes: int) -> None:
+        super().__init__("File is too large", {"max_bytes": max_bytes})
+
+
+class UnsupportedMediaTypeError(DomainError):
+    code = "UNSUPPORTED_MEDIA_TYPE"
+
+    def __init__(self) -> None:
+        super().__init__("Unsupported file type", {"allowed": ["pdf", "jpg", "png"]})
+
+
+class UnknownChecklistItemError(DomainError):
+    code = "UNKNOWN_CHECKLIST_ITEM"
+
+    def __init__(self, checklist_item: str) -> None:
+        super().__init__(
+            "Item is not on the checklist for this product", {"checklist_item": checklist_item}
+        )
+
+
+class MissingDocumentsError(DomainError):
+    code = "MISSING_DOCUMENTS"
+
+    def __init__(self, missing_items: list[str]) -> None:
+        self.missing_items = missing_items
+        super().__init__("Mandatory documents are missing", {"missing_items": missing_items})
+
+
+class MissingProfileError(DomainError):
+    code = "MISSING_PROFILE"
+
+    def __init__(self, missing_fields: list[str]) -> None:
+        self.missing_fields = missing_fields
+        super().__init__("Profile is incomplete", {"missing_fields": missing_fields})
+
+
+class MissingProfileFieldError(DomainError):
+    code = "MISSING_PROFILE_FIELD"
+
+    def __init__(self, field: str) -> None:
+        self.field = field
+        super().__init__("A profile field needed by the rules is missing", {"field": field})
+
+
+class UnknownReasonCodeError(DomainError):
+    code = "UNKNOWN_REASON_CODE"
+
+    def __init__(self, allowed: list[str]) -> None:
+        super().__init__("Reason code is not allowed for this action", {"allowed": allowed})
+
+
+class ConcurrentUpdateError(DomainError):
+    """A competing writer won a unique-constraint or lock race; the caller may re-read and retry."""
+
+    code = "CONCURRENT_UPDATE"
+
+    def __init__(self) -> None:
+        super().__init__("The case was changed by a concurrent request; retry")

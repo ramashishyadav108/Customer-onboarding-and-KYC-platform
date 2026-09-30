@@ -18,17 +18,22 @@ from onboardx.controllers.routers import (
     admin_rule_sets,
     auth,
     cases,
+    documents,
     health,
     leads,
+    pipeline,
     products,
 )
-from onboardx.domain.ports import Clock
+from onboardx.domain.ports import Clock, NotificationSender
 from onboardx.repositories.database import create_db_engine, create_session_factory
 from onboardx.repositories.unit_of_work import make_uow_factory
 
 
 def create_app(
-    settings: Settings | None = None, engine: Engine | None = None, clock: Clock | None = None
+    settings: Settings | None = None,
+    engine: Engine | None = None,
+    clock: Clock | None = None,
+    notification_sender: NotificationSender | None = None,
 ) -> FastAPI:
     """Create the app; with no settings they are loaded from the environment (fails fast)."""
     resolved = settings or load_settings()
@@ -54,10 +59,14 @@ def create_app(
     app.state.engine = db_engine
     app.state.session_factory = session_factory
     app.state.services = build_services(
-        resolved, make_uow_factory(session_factory), clock or SystemClock(), secret
+        resolved,
+        make_uow_factory(session_factory),
+        clock or SystemClock(),
+        secret,
+        notification_sender,
     )
     register_error_handlers(app)
     app.add_middleware(CorrelationMiddleware)
-    for module in (health, auth, leads, cases, products, admin_rule_sets):
+    for module in (health, auth, leads, cases, documents, pipeline, products, admin_rule_sets):
         app.include_router(module.router)
     return app

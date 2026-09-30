@@ -93,25 +93,8 @@ class LeadService:
                 raise CaseLockedError(case_id, case.state)
             if case.state is not CaseState.INITIATED:
                 raise ProfileLockedError(case_id, case.state)
-            now = self._clock.now()
-            ensure_valid(
-                validate_profile(
-                    date_of_birth=date_of_birth,
-                    annual_income=annual_income,
-                    occupation_category=occupation_category,
-                    country_code=country_code,
-                    state_code=state_code,
-                    today=now.date(),
-                )
-            )
-            profile = CaseProfile(
-                case_id,
-                date_of_birth,
-                annual_income,
-                occupation_category,
-                country_code,
-                state_code,
-                to_iso_z(now),
+            profile = self._validated_profile(
+                case_id, date_of_birth, annual_income, occupation_category, country_code, state_code
             )
             uow.profiles.upsert(profile)
             self._audit.record(
@@ -124,6 +107,36 @@ class LeadService:
             )
             uow.commit()
         return profile
+
+    def _validated_profile(
+        self,
+        case_id: str,
+        date_of_birth: date,
+        annual_income: int,
+        occupation_category: str,
+        country_code: str,
+        state_code: str | None,
+    ) -> CaseProfile:
+        now = self._clock.now()
+        ensure_valid(
+            validate_profile(
+                date_of_birth=date_of_birth,
+                annual_income=annual_income,
+                occupation_category=occupation_category,
+                country_code=country_code,
+                state_code=state_code,
+                today=now.date(),
+            )
+        )
+        return CaseProfile(
+            case_id,
+            date_of_birth,
+            annual_income,
+            occupation_category,
+            country_code,
+            state_code,
+            to_iso_z(now),
+        )
 
     def _fingerprint(self, name: str, contact: str, product: str) -> str:
         body = json.dumps({"n": name, "c": contact, "p": product}, sort_keys=True).encode()

@@ -92,13 +92,52 @@ class TransitionResult:
 
 @dataclass(frozen=True)
 class Document:
+    """One stored file version; ``display_name`` and ``storage_path`` are never logged."""
+
     document_id: str
     case_id: str
     checklist_item: str
     version: int
+    storage_path: str
+    display_name: str
+    content_type: str
     sha256: str
     size_bytes: int
+    uploaded_by: str
     uploaded_at: str
+
+
+@dataclass(frozen=True)
+class ClassificationResult:
+    result_id: str
+    document_id: str
+    doc_class: str
+    status: str
+    reason_code: str | None
+    confidence_bp: int
+    rule_version: int
+    classified_at: str
+
+
+@dataclass(frozen=True)
+class DocumentRejection:
+    rejection_id: str
+    document_id: str
+    case_id: str
+    reason_code: str
+    comment: str | None
+    actor: str
+    created_at: str
+
+
+@dataclass(frozen=True)
+class WatchlistEntry:
+    entry_id: str
+    name: str
+    aliases: tuple[str, ...]
+    list_type: str
+    name_tokens: str
+    alias_tokens: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -162,6 +201,8 @@ class Notification:
     event: str
     template: str
     text: str
+    details: dict[str, str]
+    contact_masked: str
     created_at: str
 
 

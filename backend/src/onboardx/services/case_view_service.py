@@ -1,13 +1,13 @@
 """Assembles case read models: CaseDetail (masked contact) and the staff case list."""
 
-from onboardx.domain.entities import Case, CaseProfile, Checklist
-from onboardx.domain.enums import CaseState, ItemStatus, Product
+from onboardx.domain.documents import action_required, blocking_items, build_item_views
+from onboardx.domain.entities import Case, CaseProfile
+from onboardx.domain.enums import CaseState, Product
 from onboardx.domain.errors import NotFoundError
-from onboardx.domain.masking import mask_contact
+from onboardx.domain.masking import mask_account_number, mask_contact
 from onboardx.domain.ports import Clock
 from onboardx.domain.timeutil import parse_iso
 from onboardx.domain.views import (
-    ActionRequired,
     CaseDetail,
     CaseItemView,
     CaseListItem,
@@ -31,9 +31,15 @@ class CaseViewService:
                 raise NotFoundError("case")
             checklist = uow.checklists.get(case.product, case.checklist_version)
             profile = uow.profiles.get(case_id)
+            documents = uow.documents.list_views(case_id)
+            account = uow.accounts.get_for_case(case_id)
         if checklist is None:
             raise NotFoundError("checklist")
-        return _detail(case, checklist, profile if include_profile else None, profile is not None)
+        masked = None if account is None else mask_account_number(account.account_number)
+        views = build_item_views(checklist, documents)
+        return _detail(
+            case, views, profile if include_profile else None, profile is not None, masked
+        )
 
     def list_cases(
         self,
@@ -67,22 +73,12 @@ class CaseViewService:
 
 
 def _detail(
-    case: Case, checklist: Checklist, profile: CaseProfile | None, has_profile: bool
+    case: Case,
+    views: tuple[CaseItemView, ...],
+    profile: CaseProfile | None,
+    has_profile: bool,
+    account_masked: str | None,
 ) -> CaseDetail:
-    views = tuple(
-        CaseItemView(
-            i.item_code,
-            i.mandatory,
-            i.accepted_classes,
-            str(ItemStatus.MISSING),
-            None,
-            None,
-            None,
-            None,
-        )
-        for i in checklist.items
-    )
-    missing = tuple(v.item_code for v in views if v.mandatory and v.status == ItemStatus.MISSING)
     return CaseDetail(
         case_id=case.case_id,
         name=case.name,
@@ -91,13 +87,11 @@ def _detail(
         state=str(case.state),
         checklist_version=case.checklist_version,
         checklist_items=views,
-        missing_items=missing,
-        action_required=tuple(
-            ActionRequired(v.item_code, str(ItemStatus.MISSING), None) for v in views if v.mandatory
-        ),
+        missing_items=tuple(blocking_items(views)),
+        action_required=action_required(views),
         profile=profile,
         profile_complete=has_profile,
-        account_number_masked=None,
+        account_number_masked=account_masked,
         created_at=case.created_at,
         updated_at=case.updated_at,
     )

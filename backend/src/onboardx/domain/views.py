@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from onboardx.domain.entities import CaseProfile
+from onboardx.domain.entities import CaseProfile, Decision
 
 
 @dataclass(frozen=True)
@@ -57,3 +57,44 @@ class CaseListPage:
     page: int
     page_size: int
     total: int
+
+
+@dataclass(frozen=True)
+class DocumentView:
+    """A stored document version with its derived status (REJECTED overlays the classifier)."""
+
+    document_id: str
+    checklist_item: str
+    version: int
+    status: str
+    doc_class: str
+    reason_code: str | None
+    confidence_bp: int
+    rule_version: int
+    superseded: bool
+    size_bytes: int
+    sha256: str
+    uploaded_at: str
+
+
+@dataclass(frozen=True)
+class DecisionResult:
+    case_id: str
+    state: str
+    decision: Decision
+    account_number: str | None
+
+
+@dataclass(frozen=True)
+class AdvanceResult:
+    case_id: str
+    state: str
+    steps_run: tuple[str, ...]
+    decision: Decision | None
+
+
+@dataclass(frozen=True)
+class SubmitResult:
+    case_id: str
+    state: str
+    missing_items: tuple[str, ...]

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from onboardx.domain.entities import StateHistoryEntry
 from onboardx.domain.enums import CaseState
+from onboardx.repositories._errors import flush_unique
 from onboardx.repositories.models.cases import StateHistoryModel
 
 
@@ -38,7 +39,7 @@ class StateHistoryRepository:
                 created_at=entry.created_at,
             )
         )
-        self._session.flush()
+        flush_unique(self._session)
 
     def list_for_case(self, case_id: str) -> list[StateHistoryEntry]:
         rows = self._session.scalars(

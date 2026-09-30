@@ -93,6 +93,8 @@ pyproject-hooks==1.3.3
     # via
     #   build
     #   pip-tools
+python-multipart==0.0.32
+    # via onboardx (pyproject.toml)
 pytest==9.1.1
     # via
     #   onboardx (pyproject.toml)

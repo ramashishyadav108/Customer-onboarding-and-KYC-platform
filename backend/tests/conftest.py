@@ -44,8 +44,28 @@ def engine(db_url: str) -> Iterator[Engine]:
 
 
 @pytest.fixture
-def settings(db_url: str) -> Settings:
-    return Settings(_env_file=None, database_url=db_url, jwt_secret=JWT_SECRET)  # type: ignore[call-arg]
+def upload_dir(tmp_path: Path) -> Path:
+    return tmp_path / "uploads"
+
+
+@pytest.fixture
+def settings(db_url: str, upload_dir: Path) -> Settings:
+    """Step-by-step tests: auto-advance off so each pipeline step is driven explicitly."""
+    return Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        database_url=db_url,
+        jwt_secret=JWT_SECRET,
+        upload_dir=upload_dir,
+        auto_advance_on_submit=False,
+    )
+
+
+@pytest.fixture
+def auto_settings(db_url: str, upload_dir: Path) -> Settings:
+    """Default product behaviour (DD-13): submit runs the whole pipeline."""
+    return Settings(  # type: ignore[call-arg]
+        _env_file=None, database_url=db_url, jwt_secret=JWT_SECRET, upload_dir=upload_dir
+    )
 
 
 @pytest.fixture
@@ -61,6 +81,12 @@ def app(settings: Settings, clock: FakeClock) -> FastAPI:
 @pytest.fixture
 def client(app: FastAPI) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def auto_client(auto_settings: Settings, clock: FakeClock) -> Iterator[TestClient]:
+    with TestClient(create_app(auto_settings, clock=clock)) as test_client:
         yield test_client
 
 

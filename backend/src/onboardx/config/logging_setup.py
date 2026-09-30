@@ -69,7 +69,7 @@ class JsonFormatter(logging.Formatter):
             "message": redact_text(record.getMessage()),
             "logger": record.name,
         }
-        case_id = current_case_id()
+        case_id = record.__dict__.get("case_id") or current_case_id()
         if case_id is not None:
             payload["case_id"] = case_id
         for key in set(record.__dict__) - _STANDARD_ATTRS - _RESERVED_KEYS:

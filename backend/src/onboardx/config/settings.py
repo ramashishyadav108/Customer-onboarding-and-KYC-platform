@@ -1,5 +1,6 @@
 """Typed application settings loaded from environment variables (E1-S1 AC4)."""
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, ValidationError
@@ -25,6 +26,8 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         default="INFO", validation_alias="LOG_LEVEL"
     )
+    upload_dir: Path = Field(default=Path("../uploads"), validation_alias="UPLOAD_DIR")
+    auto_advance_on_submit: bool = Field(default=True, validation_alias="AUTO_ADVANCE_ON_SUBMIT")
 
 
 def load_settings() -> Settings:
