@@ -1,0 +1,13 @@
+{
+  "name": "onboardx-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright E2E for the OnboardX frontend (backend mocked with page.route)",
+  "scripts": {
+    "test": "playwright test",
+    "test:update": "playwright test --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1"
+  }
+}
