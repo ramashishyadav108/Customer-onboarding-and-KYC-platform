@@ -10,8 +10,8 @@
       "Poll GET /health until first response",
       "Assert status is 200 and body status equals ok"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -26,8 +26,8 @@
       "Poll GET /health every 50 ms",
       "Assert first 200 arrives at or under 1000 ms after start"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -42,8 +42,8 @@
       "Parse each line with json.loads",
       "Assert the four keys are present on every line"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -58,8 +58,8 @@
       "Assert response header equals abc-123 and log lines carry abc-123",
       "Call without header and assert a UUID4 is generated and echoed"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -74,8 +74,8 @@
       "Capture logs",
       "Assert at least one log line contains the same case_id"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -90,8 +90,8 @@
       "Capture the formatted output",
       "Assert none of the plaintext values appear and a redaction marker is present"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -106,8 +106,8 @@
       "Start the app or instantiate Settings",
       "Assert a startup error is raised and its message contains DATABASE_URL"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -122,8 +122,8 @@
       "Modify an existing migration in a temp copy and assert guard fails",
       "Delete one and assert guard fails"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -138,8 +138,8 @@
       "Add a new migration and update manifest with the new entry only",
       "Assert guard passes"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -441,8 +441,8 @@
       "Request the transition",
       "Assert new state equals the to-state"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -457,8 +457,8 @@
       "Request each transition",
       "Assert each raises InvalidOnboardingStateException"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -473,8 +473,8 @@
       "Assert InvalidOnboardingStateException with case_id, from_state INITIATED and to_state APPROVED",
       "Assert stored state still INITIATED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -489,8 +489,8 @@
       "Assert HTTP 409",
       "Assert body error code is INVALID_STATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -505,8 +505,8 @@
       "Assert case state and one new history row exist",
       "Inject failure after state update and assert neither persisted"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -521,8 +521,8 @@
       "Assert exception each time",
       "Repeat for REJECTED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -538,8 +538,8 @@
       "Assert the database raises an error",
       "Assert repository classes define no update or delete method"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -554,8 +554,8 @@
       "Repeat with key t1",
       "Assert one history row and unchanged state"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -570,8 +570,8 @@
       "Assert items ID_PROOF, ADDRESS_PROOF, PHOTOGRAPH are all mandatory",
       "Assert accepted classes match the specification"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -586,8 +586,8 @@
       "Assert it contains the three Savings items",
       "Assert BUSINESS_PROOF is mandatory and accepts GST_CERTIFICATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -602,8 +602,8 @@
       "Assert ID_PROOF accepts only PASSPORT",
       "Assert OVERSEAS_ADDRESS_PROOF is mandatory and accepts VISA"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -618,8 +618,8 @@
       "Assert 200",
       "Assert body has version and items array"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -633,8 +633,8 @@
       "GET /api/v1/products/Loan/checklist",
       "Assert 404"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -650,8 +650,8 @@
       "GET the case",
       "Assert checklist version is still 1"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -666,8 +666,8 @@
       "Run the migration guard",
       "Assert failure"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1349,8 +1349,8 @@
       "Persist and reload",
       "Assert version is int and every weight, point and threshold is int"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1364,8 +1364,8 @@
       "Build a RuleSet with weight 0.25",
       "Assert ValidationError"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1379,8 +1379,8 @@
       "AST-scan risk engine and rule modules",
       "Assert zero float literals, float() calls and float annotations"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1395,8 +1395,8 @@
       "Attempt to change a weight and to delete",
       "Assert PublishedRuleSetImmutableError both times"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1411,8 +1411,8 @@
       "Execute raw UPDATE and DELETE on its row",
       "Assert database error"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1427,8 +1427,8 @@
       "Assert version 2 and identical values",
       "Assert v1 unchanged and retrievable"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1442,8 +1442,8 @@
       "Draft with weights summing to 99 and publish: assert RULESET_INVALID",
       "Draft with low_max 60 and medium_max 59: assert RULESET_INVALID"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1458,8 +1458,8 @@
       "Load published v1",
       "Assert weights 20/25/30/25 and thresholds 29/59"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T02:46:40.580277Z",
     "failure_reason": null,
     "failure_layer": null
   },

@@ -19,3 +19,4 @@ test-results/
 uploads/
 .test_run.log
 frontend/.vite
+.eval*

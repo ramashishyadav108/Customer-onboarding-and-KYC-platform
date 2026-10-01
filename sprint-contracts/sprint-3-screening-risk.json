@@ -1,0 +1,395 @@
+{
+  "group": "sprint-3-screening-risk",
+  "stories": [
+    "E3-S1",
+    "E3-S3",
+    "E3-S4"
+  ],
+  "features": [
+    "F075",
+    "F076",
+    "F077",
+    "F078",
+    "F079",
+    "F080",
+    "F081",
+    "F082",
+    "F083",
+    "F084",
+    "F093",
+    "F094",
+    "F095",
+    "F096",
+    "F097",
+    "F098",
+    "F099",
+    "F100",
+    "F101",
+    "F102",
+    "F103",
+    "F104",
+    "F105",
+    "F106",
+    "F107"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S3-API-01",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "DOCS_SUBMITTED"
+        },
+        "description": "E3-S1 / F075, F078: lead name 'Test Person One' (watchlist AML entry, alias 'T P One'), Savings, Case A profile, all three documents uploaded, then submit. Submit auto-advances the pipeline so GET /api/v1/cases/{case_id} state is MANUAL_REVIEW. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-02",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "MANUAL_REVIEW",
+          "review_reason_code": "AML_HIT"
+        },
+        "description": "E3-S1 / F078, F115: for the Test Person One case, screening.hits[0] has list_type AML, reason_code AML_HIT and entry_id 10000000-0000-4000-8000-000000000001, screening.requires_manual_review true, decision.reason_code AML_HIT with outcome MANUAL_REVIEW, history ends INITIATED, DOCS_SUBMITTED, SCREENED, CLASSIFIED, MANUAL_REVIEW. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-03",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "APPROVED"
+        },
+        "description": "E3-S1 / F077, F080: Case A 'Test Person Alpha' has screening.hits == [] and requires_manual_review false (explicit clean result); state APPROVED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-04",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "APPROVED"
+        },
+        "description": "E3-S3 / F093, F095, F096: Case A (Savings, 1990-04-12, 3,000,000, SELF_EMPLOYED, IN): risk_assessment.score == 16 (integer), band LOW, source RULE_ENGINE, integer rule_version, breakdown factors age, income_band, occupation_category, geography each with integer points, weight, contribution. State APPROVED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-05",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "MANUAL_REVIEW",
+          "review_reason_code": "RISK_MEDIUM"
+        },
+        "description": "E3-S3 / F093: Case C 'Test Person Gamma' (Current, DOB 1960-03-01, 12,000,000, BUSINESS_OWNER, GB, plus BUSINESS_PROOF gst-certificate_valid.pdf): risk_assessment.score == 45, band MEDIUM; state MANUAL_REVIEW, review_reason_code RISK_MEDIUM. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-06",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "MANUAL_REVIEW",
+          "review_reason_code": "RISK_HIGH"
+        },
+        "description": "E3-S3 / F093: Case D 'Test Person Delta' (NRE, DOB 1960-03-01, 12,000,000, CASH_INTENSIVE, KP; docs passport_valid.png, aadhaar_valid.jpg, photograph_valid.jpg, visa_valid.pdf): risk_assessment.score == 72, band HIGH; state MANUAL_REVIEW, review_reason_code RISK_HIGH. Scores assume seeded rule set v1; if an admin published a later version the evaluator uses a case created before it. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-07",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/screen",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "INVALID_STATE"
+          }
+        },
+        "description": "E3-S1 / F083: screening a case that is not DOCS_SUBMITTED (e.g. APPROVED or MANUAL_REVIEW) -> 409 INVALID_STATE. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-08",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/classify",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "INVALID_STATE"
+          }
+        },
+        "description": "E3-S3 / F098: classify on a case not in SCREENED -> 409 INVALID_STATE. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-09",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/screen",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E3-S1: compliance-officer cannot trigger screening: 403 FORBIDDEN, required_roles [admin, kyc-analyst]. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-10",
+        "method": "GET",
+        "path": "/api/v1/admin/rule-sets",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E3-S4 / F106: admin lists rule sets with version, status, author, created_at, published_at; seeded version 1 has status PUBLISHED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-11",
+        "method": "PUT",
+        "path": "/api/v1/admin/rule-sets/{version}",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "body": {
+          "weights": {
+            "age": 20
+          }
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "RULESET_IMMUTABLE"
+          }
+        },
+        "description": "E3-S2/E3-S4 / F102: PUT /api/v1/admin/rule-sets/1 on the published version -> 409 RULESET_IMMUTABLE with details.version 1. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-12",
+        "method": "POST",
+        "path": "/api/v1/admin/rule-sets/{version}/publish",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "RULESET_IMMUTABLE"
+          }
+        },
+        "description": "E3-S2 / F088: publishing the already PUBLISHED version 1 -> 409 RULESET_IMMUTABLE. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-13",
+        "method": "POST",
+        "path": "/api/v1/admin/rule-sets",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "status": "DRAFT"
+        },
+        "description": "E3-S4 / F100, F090: admin creates a draft copying the latest published version with the next version number; status DRAFT, integer weights age 20, income_band 25, occupation_category 30, geography 25. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-14",
+        "method": "PUT",
+        "path": "/api/v1/admin/rule-sets/{version}",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "body": {
+          "weights": {
+            "age": 20.5
+          }
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E3-S4 / F103, F086: draft payload {\"weights\":{\"age\":20.5}} -> 422 VALIDATION_ERROR (field weights.age must be integer). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-15",
+        "method": "PUT",
+        "path": "/api/v1/admin/rule-sets/{version}",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "body": {
+          "weights": {
+            "age": 20,
+            "income_band": 25,
+            "occupation_category": 30,
+            "geography": 25
+          }
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "status": "DRAFT"
+        },
+        "description": "E3-S4 / F100: valid integer weights {age:20,income_band:25,occupation_category:30,geography:25} on the DRAFT -> 200. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-16",
+        "method": "POST",
+        "path": "/api/v1/admin/rule-sets/{version}/publish",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "status": "PUBLISHED"
+        },
+        "description": "E3-S4 / F091, F100: publish the valid DRAFT (weights sum 100) -> 200 status PUBLISHED. Afterwards PUT on it returns 409 RULESET_IMMUTABLE. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-17",
+        "method": "GET",
+        "path": "/api/v1/admin/rule-sets",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E3-S4 / F101: kyc-analyst token -> 403 FORBIDDEN, required_roles [admin]. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-18",
+        "method": "GET",
+        "path": "/api/v1/admin/watchlist",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E3-S1 / F081: seeded watchlist has 5 AML and 5 PEP entries including 'Test Person One' (entry 10000000-0000-4000-8000-000000000001, alias 'T P One'); body has integer watchlist_version. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-19",
+        "method": "POST",
+        "path": "/api/v1/admin/watchlist",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "body": {
+          "name": "Test Person Zeta",
+          "aliases": [],
+          "list_type": "AML"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "active": true,
+          "list_type": "AML"
+        },
+        "description": "E3-S4 / F104: admin adds {name:'Test Person Zeta', aliases:[], list_type:'AML'}; 201 with entry_id, active true, deactivated_at null; a later case for that name routes to MANUAL_REVIEW AML_HIT. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-20",
+        "method": "POST",
+        "path": "/api/v1/admin/watchlist",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "body": {
+          "name": "X",
+          "list_type": "FOO"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E3-S4: list_type outside AML or PEP -> 422 VALIDATION_ERROR. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-21",
+        "method": "POST",
+        "path": "/api/v1/admin/watchlist/{entry_id}/deactivate",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "active": false
+        },
+        "description": "E3-S4 / F105: admin deactivates an added PEP entry (e.g. 'Test Person Eta'): active false, deactivated_at set; the entry remains in GET /api/v1/admin/watchlist (history kept) and a later case for that name is no longer a hit (auto-approved). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S3-API-22",
+        "method": "POST",
+        "path": "/api/v1/admin/watchlist",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "name": "X",
+          "list_type": "AML"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E3-S4 / F101: kyc-analyst cannot add watchlist entries: 403 FORBIDDEN. (base URL http://127.0.0.1:8010)"
+      }
+    ],
+    "playwright_checks": [],
+    "design_checks": {},
+    "performance_checks": [
+      {
+        "endpoint": "/api/v1/admin/rule-sets",
+        "max_response_time_ms": 1000,
+        "method": "GET"
+      }
+    ],
+    "architecture_checks": {
+      "layering": {
+        "required": true,
+        "description": "One-way layering preserved (backend/tests/architecture): domain/risk.py and domain screening code import nothing from services, repositories, controllers or sqlalchemy."
+      },
+      "typing": {
+        "required": true,
+        "description": "From backend/: `.venv/Scripts/python -m ruff check .`, `.venv/Scripts/python -m mypy src/` and `.venv/Scripts/python -m pytest` exit 0; no skipped or xfail test mapped to this sprint's features."
+      },
+      "migrations": {
+        "required": true,
+        "description": "Published rule sets are immutable at DB level: a raw UPDATE or DELETE of a published rule_sets row is blocked by trigger (F089); watchlist seed (5 AML + 5 PEP) comes from an alembic migration (F081); screening results are append-only (F082). Verified by pytest."
+      }
+    }
+  }
+}
