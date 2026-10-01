@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { installLogin, json, loginAs } from './mockApi';
+import { expectVisual } from './visual';
 
 const reports = {
   tat: { filters: {}, items: [
@@ -55,7 +56,7 @@ test.describe('admin console', () => {
     await expect(page.getByRole('table', { name: 'Approval funnel (table)' }).getByRole('row', { name: /Docs submitted/ })).toContainText('84.00%');
     await expect(page.getByText(/Target met/)).toBeVisible();
     await expect(page.getByRole('table', { name: 'Top rejection reasons (table)' })).toContainText('RISK_TOO_HIGH');
-    await expect(page).toHaveScreenshot('reports-dashboard.png', { fullPage: true });
+    await expectVisual(page, 'reports-dashboard.png', { fullPage: true });
 
     await page.getByLabel('Product', { exact: true }).selectOption('NRE');
     await expect(tat.getByRole('row')).toHaveCount(2);

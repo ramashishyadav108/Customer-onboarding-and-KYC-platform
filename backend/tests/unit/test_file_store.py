@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from onboardx.repositories.file_store import LocalFileStore, UnsafePathError
+from onboardx.repositories.file_store import LocalFileStore, UnsafePathError, has_drive_prefix
 
 
 @pytest.mark.ac("AC-02")
@@ -74,3 +74,16 @@ def test_nfr02_documents_are_stored_under_unique_paths(tmp_path: Path) -> None:
     store.save("c/d1.pdf", b"one")
     store.save("c/d2.pdf", b"two")
     assert (store.read("c/d1.pdf"), store.read("c/d2.pdf")) == (b"one", b"two")
+
+
+@pytest.mark.ac("AC-02.5")
+@pytest.mark.parametrize(
+    ("path", "is_drive"),
+    [("C:/x.pdf", True), ("c:\\x.pdf", True), ("D:relative.pdf", True), ("ab/C:/x.pdf", False),
+     ("case/id.pdf", False), ("C", False), ("1:/x.pdf", False)],
+)  # fmt: skip
+def test_ac02_5_drive_prefixes_are_detected_on_every_operating_system(
+    path: str, is_drive: bool
+) -> None:
+    """Linux treats `C:/x.pdf` as a plain relative path, so the rule cannot rely on pathlib."""
+    assert has_drive_prefix(path) is is_drive

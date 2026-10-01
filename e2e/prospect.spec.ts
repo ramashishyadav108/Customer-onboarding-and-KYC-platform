@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { CASE_ID, ProspectMock, pdf } from './mockApi';
+import { expectVisual } from './visual';
 
 async function register(page: Page) {
   await page.goto('/portal/register');
@@ -30,7 +31,7 @@ test.describe('prospect portal', () => {
     await page.goto('/portal/register');
     await page.getByRole('button', { name: 'Start application' }).click();
     await expect(page.getByText('Enter your full name.')).toBeVisible();
-    await expect(page).toHaveScreenshot('register-validation.png');
+    await expectVisual(page, 'register-validation.png');
     await register(page);
     await expect(page.getByRole('heading', { name: 'Your profile' })).toBeVisible();
     expect(mock.leadBody).toEqual({ name: 'Meera Nair', contact: '9876543221', product: 'Savings' });
@@ -60,7 +61,7 @@ test.describe('prospect portal', () => {
     await expect(page.getByText(/flagged for review \(DOC_UNRECOGNISED\)/)).toBeVisible();
     await expect(submit).toBeDisabled();
     await expect(page.getByText(/Still missing: Photograph/)).toBeVisible();
-    await expect(page).toHaveScreenshot('checklist-partial.png');
+    await expectVisual(page, 'checklist-partial.png');
 
     await page.getByLabel('Upload Photograph').setInputFiles(pdf('photograph_valid.pdf'));
     await expect(submit).toBeEnabled();
@@ -95,7 +96,7 @@ test.describe('prospect portal', () => {
     await expect(timeline).toContainText('AML_HIT');
     await expect(page.getByRole('list', { name: 'Notifications' })).toContainText('Reason: DOC_EXPIRED');
     await expect(page.getByText(/Action required on 1 document/)).toBeVisible();
-    await expect(page).toHaveScreenshot('status-timeline.png');
+    await expectVisual(page, 'status-timeline.png');
 
     // Re-upload the rejected item without restarting the case.
     await page.getByRole('link', { name: 'Go to documents' }).click();
@@ -114,7 +115,7 @@ test.describe('prospect portal', () => {
     const row = page.getByTestId('item-ID_PROOF');
     await expect(row.getByText(/content must match its type/)).toBeVisible();
     await expect(row.locator('[aria-live="polite"]')).toContainText('real PDF, JPG or PNG');
-    await expect(page).toHaveScreenshot('upload-415-error.png');
+    await expectVisual(page, 'upload-415-error.png');
   });
 
   test('AC-03: a flagged result explains why and what happens next', async ({ page }) => {
@@ -126,6 +127,6 @@ test.describe('prospect portal', () => {
     await expect(row.getByText(/manual review/)).toBeVisible();
     await page.getByLabel('Upload Photograph').setInputFiles(pdf('utility-bill_x.pdf'));
     await expect(page.getByTestId('item-PHOTOGRAPH').getByText(/This looks like Utility bill but this item accepts Photograph\./)).toBeVisible();
-    await expect(page).toHaveScreenshot('flagged-explanation.png');
+    await expectVisual(page, 'flagged-explanation.png');
   });
 });

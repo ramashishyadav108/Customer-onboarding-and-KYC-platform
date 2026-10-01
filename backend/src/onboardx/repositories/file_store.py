@@ -1,6 +1,14 @@
 """Traversal-safe local file store under a configurable upload directory (AC-02.5)."""
 
+import re
 from pathlib import Path, PurePosixPath
+
+_DRIVE_PREFIX = re.compile(r"^[A-Za-z]:")
+
+
+def has_drive_prefix(path: str) -> bool:
+    """True for `C:` style prefixes; by pattern, because pathlib knows drives only on Windows."""
+    return bool(_DRIVE_PREFIX.match(path))
 
 
 class UnsafePathError(ValueError):
@@ -21,6 +29,7 @@ class LocalFileStore:
             or ".." in pure.parts
             or Path(relative_path).is_absolute()
             or Path(relative_path).drive != ""
+            or has_drive_prefix(relative_path)
         )
         if unsafe:
             raise UnsafePathError("path escapes the upload directory")

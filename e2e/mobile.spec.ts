@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { ProspectMock, pdf } from './mockApi';
+import { expectVisual } from './visual';
 
 test.use({ viewport: { width: 375, height: 812 } });
 
@@ -17,7 +18,7 @@ test.describe('prospect portal at 375px', () => {
     const box = await button.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
     expect(box?.width).toBeGreaterThan(300);
-    await expect(page).toHaveScreenshot('mobile-register.png');
+    await expectVisual(page, 'mobile-register.png');
   });
 
   test('AC-02: checklist and status pages have no horizontal scroll on mobile', async ({ page }) => {
@@ -37,12 +38,12 @@ test.describe('prospect portal at 375px', () => {
     await page.getByLabel('Upload ID proof').setInputFiles(pdf('pan_valid.pdf'));
     await expect(page.getByText('Classified as PAN: verified')).toBeVisible();
     await noHorizontalScroll(page);
-    await expect(page).toHaveScreenshot('mobile-checklist.png', { fullPage: true });
+    await expectVisual(page, 'mobile-checklist.png', { fullPage: true });
 
     await page.getByRole('link', { name: '3 Status' }).click();
     await expect(page.getByRole('heading', { name: 'Application status' })).toBeVisible();
     await noHorizontalScroll(page);
-    await expect(page).toHaveScreenshot('mobile-status.png', { fullPage: true });
+    await expectVisual(page, 'mobile-status.png', { fullPage: true });
   });
 
   test('NFR-04: skip link is the first focusable element', async ({ page }) => {
