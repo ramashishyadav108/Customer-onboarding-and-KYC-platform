@@ -61,7 +61,7 @@
           "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
         },
         "expected_status": 200,
-        "description": "E5-S2 / F158: count, oldest_age_minutes and buckets under_60, 60_to_1440, over_1440 (integer counts). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+        "description": "E5-S2 / F158: count, oldest_age_minutes and buckets (a list of {label,min_minutes,max_minutes,count}) labelled under_60, 60_to_1440, over_1440 (integer counts). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
       },
       {
         "id": "S5-API-04",

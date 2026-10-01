@@ -389,8 +389,8 @@
     "description": "Profile can be saved while INITIATED",
     "steps": [
       "Create lead",
-      "PUT profile with dob, annual_income 3000000, occupation SELF_EMPLOYED, country IN",
-      "Assert 200 and GET returns the stored profile to staff"
+      "PUT profile with date_of_birth, annual_income 3000000, occupation_category SELF_EMPLOYED, country_code IN",
+      "Assert 200, the owning prospect's GET returns the stored profile, and the staff GET returns profile null with profile_complete true (DD-5)"
     ],
     "passes": false,
     "last_evaluated": null,
@@ -2647,10 +2647,10 @@
     "category": "ui",
     "story": "E5-S4",
     "group": "L",
-    "description": "Dashboard shows all five report panels with API values",
+    "description": "Dashboard shows all six report panels with API values",
     "steps": [
       "Seed data and open dashboard as admin",
-      "Assert five panels are present",
+      "Assert six panels are present (the five AC-10 reports plus auto-approval rate)",
       "Assert displayed values equal the API responses"
     ],
     "passes": false,

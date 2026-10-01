@@ -154,8 +154,8 @@
       "Assert 200",
       "Assert access_token non-empty, token_type is bearer and role is kyc-analyst"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -170,8 +170,8 @@
       "Assert 401",
       "Assert error body does not state whether username or password was wrong"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -186,8 +186,8 @@
       "Query users table",
       "Assert four users exist with the four distinct roles"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -202,8 +202,8 @@
       "Assert value is not equal to the plaintext password and has a hash prefix",
       "Perform login and assert captured logs do not contain the plaintext"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -218,8 +218,8 @@
       "Call it with prospect token and assert 403",
       "Call it with compliance-officer token and assert 200"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -233,8 +233,8 @@
       "Statically scan service and repository packages for imports of the auth dependency module",
       "Assert zero matches"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -250,8 +250,8 @@
       "Wait 2 seconds and call a protected endpoint",
       "Assert 401"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -266,8 +266,8 @@
       "GET case B using token A",
       "Assert 403"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -281,8 +281,8 @@
       "GET case A using kyc-analyst token",
       "Assert 200"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -297,8 +297,8 @@
       "Assert 201",
       "Assert case_id is a UUID and state equals INITIATED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -312,8 +312,8 @@
       "POST leads for Savings, Current and NRE",
       "Assert each returns 201 and echoes the product"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -328,8 +328,8 @@
       "Assert each returns 422 with errors naming the offending field",
       "Assert case count in DB is unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -344,8 +344,8 @@
       "Query audit log and state history for the case_id",
       "Assert LEAD_CREATED and INITIATED rows exist with UTC timestamps"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -360,8 +360,8 @@
       "GET the case as owning prospect",
       "Assert state INITIATED, product Current and checklist includes BUSINESS_PROOF"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -376,8 +376,8 @@
       "GET the case",
       "Assert contact equals ********12 and raw number does not appear in body"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -389,11 +389,11 @@
     "description": "Profile can be saved while INITIATED",
     "steps": [
       "Create lead",
-      "PUT profile with dob, annual_income 3000000, occupation SELF_EMPLOYED, country IN",
-      "Assert 200 and GET returns the stored profile to staff"
+      "PUT profile with date_of_birth, annual_income 3000000, occupation_category SELF_EMPLOYED, country_code IN",
+      "Assert 200, the owning prospect's GET returns the stored profile, and the staff GET returns profile null with profile_complete true (DD-5)"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -408,8 +408,8 @@
       "Move case to DOCS_SUBMITTED",
       "PUT profile and assert 409"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -425,8 +425,8 @@
       "Assert second response carries the same case_id",
       "Assert one case row exists"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1100,8 +1100,8 @@
       "Submit empty form and assert inline errors linked via aria-describedby",
       "Submit valid data and assert case_id is displayed"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1116,8 +1116,8 @@
       "Assert three items show Missing and Submit is disabled",
       "Upload all three and assert chips update and Submit is enabled"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1132,8 +1132,8 @@
       "Use Re-upload with pan_valid.pdf",
       "Assert chip becomes Verified and case_id and state text are unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1148,8 +1148,8 @@
       "Visit each prospect page and assert document scrollWidth <= innerWidth",
       "Repeat at 1280x800"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1163,8 +1163,8 @@
       "Run axe-core on lead, upload and status pages",
       "Assert zero serious and critical violations"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1178,8 +1178,8 @@
       "Complete lead registration and upload using only Tab, Enter and Space",
       "Assert the flow completes"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1714,8 +1714,8 @@
       "Filter by state SCREENED and product NRE",
       "Assert only matching rows"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1731,8 +1731,8 @@
       "Assert screening section shows hits or none",
       "Assert score, band and rule version are displayed"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1748,8 +1748,8 @@
       "Choose ILLEGIBLE and click Reject",
       "Assert row status REJECTED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1764,8 +1764,8 @@
       "Assert v1 inputs are disabled",
       "Create draft and assert inputs are enabled"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1780,8 +1780,8 @@
       "Add entry",
       "Assert it appears in the list"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1796,8 +1796,8 @@
       "Assert zero serious and critical violations",
       "Assert displayed contact shows only its last 2 characters"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2303,8 +2303,8 @@
       "Open review queue",
       "Assert rows ordered oldest first with reason code, product and age"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2318,8 +2318,8 @@
       "Log in as kyc-analyst and open the route",
       "Assert redirect to a forbidden page"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2334,8 +2334,8 @@
       "Assert Approve and Reject disabled",
       "Select a reason and assert both enabled"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2350,8 +2350,8 @@
       "Assert success message shows account number",
       "Assert case no longer listed"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2366,8 +2366,8 @@
       "Open the prospect status page",
       "Assert notifications listed newest first"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2382,8 +2382,8 @@
       "Press Escape and assert focus returns to the trigger",
       "Run axe-core and assert zero serious and critical violations"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2647,14 +2647,14 @@
     "category": "ui",
     "story": "E5-S4",
     "group": "L",
-    "description": "Dashboard shows all five report panels with API values",
+    "description": "Dashboard shows all six report panels with API values",
     "steps": [
       "Seed data and open dashboard as admin",
-      "Assert five panels are present",
+      "Assert six panels are present (the five AC-10 reports plus auto-approval rate)",
       "Assert displayed values equal the API responses"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2668,8 +2668,8 @@
       "Select product NRE and a date range",
       "Assert each panel's request includes both filters and values refresh"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2684,8 +2684,8 @@
       "Assert a data table and summary text exist",
       "Assert series are distinguishable by label or pattern"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2699,8 +2699,8 @@
       "Open dashboard on an empty database",
       "Assert each panel shows an empty-state message"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2715,8 +2715,8 @@
       "Tab through all controls",
       "Open the route as kyc-analyst and assert redirect to forbidden"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T15:38:39.000000Z",
     "failure_reason": null,
     "failure_layer": null
   },
