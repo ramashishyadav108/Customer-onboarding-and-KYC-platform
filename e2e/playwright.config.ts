@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 // E2E runs against the Vite dev server (port 3000). Every backend call is intercepted with
 // page.route() mocks (see mockApi.ts), so the suite passes without the FastAPI backend.
+const PORT = Number(process.env.E2E_PORT ?? 3000);
+
 export default defineConfig({
   testDir: '.',
   testMatch: '**/*.spec.ts',
@@ -11,15 +13,15 @@ export default defineConfig({
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFileName}/{arg}{ext}',
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.03, animations: 'disabled' } },
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${PORT}`,
     viewport: { width: 1280, height: 800 },
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } }],
   webServer: {
-    command: 'npm start',
+    command: `npm start -- --port ${PORT} --strictPort`,
     cwd: '../frontend',
-    url: 'http://localhost:3000',
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: true,
     timeout: 60_000,
   },

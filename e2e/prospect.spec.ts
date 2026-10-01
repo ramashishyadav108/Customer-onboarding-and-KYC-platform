@@ -104,4 +104,28 @@ test.describe('prospect portal', () => {
     await expect(page.getByText('Classified as UTILITY_BILL: verified')).toBeVisible();
     expect(CASE_ID).toBeTruthy();
   });
+
+  test('AC-02: a 415 from the API is shown next to the item with a specific message', async ({ page }) => {
+    await register(page);
+    await completeProfile(page);
+    await expect(page.getByRole('region', { name: 'How to name your files (demo classifier)' })).toBeVisible();
+    await expect(page.getByTestId('item-ADDRESS_PROOF')).toContainText('utility-bill_march.pdf');
+    await page.getByLabel('Upload ID proof').setInputFiles(pdf('fake_pan.pdf'));
+    const row = page.getByTestId('item-ID_PROOF');
+    await expect(row.getByText(/content must match its type/)).toBeVisible();
+    await expect(row.locator('[aria-live="polite"]')).toContainText('real PDF, JPG or PNG');
+    await expect(page).toHaveScreenshot('upload-415-error.png');
+  });
+
+  test('AC-03: a flagged result explains why and what happens next', async ({ page }) => {
+    await register(page);
+    await completeProfile(page);
+    await page.getByLabel('Upload Address proof').setInputFiles(pdf('unknown_scan.pdf'));
+    const row = page.getByTestId('item-ADDRESS_PROOF');
+    await expect(row.getByText(/Rename it to start with one of: pan_/)).toBeVisible();
+    await expect(row.getByText(/manual review/)).toBeVisible();
+    await page.getByLabel('Upload Photograph').setInputFiles(pdf('utility-bill_x.pdf'));
+    await expect(page.getByTestId('item-PHOTOGRAPH').getByText(/This looks like Utility bill but this item accepts Photograph\./)).toBeVisible();
+    await expect(page).toHaveScreenshot('flagged-explanation.png');
+  });
 });

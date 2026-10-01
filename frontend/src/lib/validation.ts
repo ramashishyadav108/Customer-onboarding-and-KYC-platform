@@ -1,5 +1,5 @@
 import type { Product } from '@/types';
-import { ALLOWED_UPLOAD_EXT, MAX_UPLOAD_BYTES, PRODUCTS } from '@/config';
+import { PRODUCTS } from '@/config';
 
 export type FieldErrors = Record<string, string>;
 
@@ -43,13 +43,7 @@ export function validateProfile(input: ProfileInput, today: Date = new Date()): 
   return errors;
 }
 
-export function validateUploadFile(file: { name: string; size: number }): string | null {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-  if (!ALLOWED_UPLOAD_EXT.includes(ext)) return 'Only PDF, JPG or PNG files are accepted.';
-  if (file.size > MAX_UPLOAD_BYTES) return 'File is larger than 5 MB.';
-  if (file.size === 0) return 'File is empty.';
-  return null;
-}
+export { validateUploadFile } from '@/lib/uploadHelp';
 
 export function validateReasonSelected(reason: string): string | null {
   return reason ? null : 'Select a reason code.';

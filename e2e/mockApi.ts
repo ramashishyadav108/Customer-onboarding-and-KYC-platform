@@ -85,7 +85,10 @@ export class ProspectMock {
         const filename = /filename="([^"]+)"/.exec(body)?.[1] ?? '';
         const it = this.items.find((i) => i.item_code === item);
         if (!it) return err(route, 422, 'UNKNOWN_CHECKLIST_ITEM', 'Item is not on the checklist', { checklist_item: item });
-        const c = classify(filename);
+        if (filename.startsWith('fake_')) return err(route, 415, 'UNSUPPORTED_MEDIA_TYPE', 'File content does not match its declared type');
+        const base = classify(filename);
+        const mismatch = base.status === 'VERIFIED' && !it.accepted_classes.includes(base.doc_class);
+        const c = mismatch ? { doc_class: base.doc_class, status: 'FLAGGED' as const, reason_code: 'DOC_CLASS_MISMATCH' } : base;
         it.status = c.status; it.doc_class = c.doc_class; it.reason_code = c.reason_code; it.doc_version = (it.doc_version ?? 0) + 1; it.document_id = `doc-${item}-${it.doc_version}`;
         return json(route, 201, { document_id: it.document_id, checklist_item: item, version: it.doc_version, ...c, confidence_bp: c.status === 'VERIFIED' ? 9500 : 0, rule_version: 1 });
       }
@@ -109,6 +112,8 @@ export function pdf(name: string) {
 const STAFF_TOKENS: Record<string, string> = { officer1: 'compliance-officer', admin1: 'admin', analyst1: 'kyc-analyst' };
 
 export async function installLogin(page: Page) {
+  // Lowest-priority catch-all (later routes win): unmocked API calls fail locally instead of reaching a real backend on :8000.
+  await page.route('**/api/v1/**', (route) => err(route, 404, 'NOT_FOUND', 'Not mocked in this test'));
   await page.route('**/api/v1/auth/login', async (route) => {
     const { username } = route.request().postDataJSON() as { username: string };
     const role = STAFF_TOKENS[username];
