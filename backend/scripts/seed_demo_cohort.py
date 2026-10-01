@@ -28,7 +28,11 @@ from onboardx.repositories.unit_of_work import make_uow_factory
 SEED = 20261001
 START = datetime(2026, 9, 1, 8, 0, tzinfo=UTC)
 ACTOR = "seed"
-CONTENT = b"%PDF-1.4 synthetic fixture"
+CONTENTS = {
+    "pdf": b"%PDF-1.4 synthetic fixture",
+    "jpg": bytes.fromhex("ffd8ff") + b" synthetic fixture",
+    "png": bytes.fromhex("89504e470d0a1a0a") + b" synthetic fixture",
+}
 CONTENT_TYPES = {"pdf": "application/pdf", "jpg": "image/jpeg", "png": "image/png"}
 ID_PAN = "pan_valid.pdf"
 BILL = "utility-bill_valid.pdf"
@@ -124,7 +128,8 @@ def create_case(
         clock.advance(rng.randint(10, 600))
         services.documents.upload(
             case_id=lead.case_id, actor=ACTOR, checklist_item=item, filename=filename,
-            content_type=CONTENT_TYPES[filename.rsplit(".", 1)[-1]], content=CONTENT,
+            content_type=CONTENT_TYPES[filename.rsplit(".", 1)[-1]],
+            content=CONTENTS[filename.rsplit(".", 1)[-1]],
         )  # fmt: skip
     clock.advance(rng.randint(30, 1800))
     services.submission.submit(case_id=lead.case_id, actor=ACTOR)
