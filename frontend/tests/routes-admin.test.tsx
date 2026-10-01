@@ -111,7 +111,7 @@ describe('StatusPage', () => {
 
   it('AC-03: flags documents needing action and refreshes on demand', async () => {
     const { calls } = mockFetch({
-      [base]: makeCase({ action_required: [{ item_code: 'ID_PROOF', reason_code: 'DOC_EXPIRED' }] as never }),
+      [base]: makeCase({ action_required: [{ item_code: 'ID_PROOF', status: 'REJECTED', reason_code: 'DOC_EXPIRED' }] }),
       ...empty,
     });
     renderApp(<StatusPage />, { session: prospectSession });
