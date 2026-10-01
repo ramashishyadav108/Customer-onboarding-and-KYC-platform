@@ -1,6 +1,6 @@
 # project.txt requirement checklist (verified 2026-10-01)
 
-Status: MET, FIXED (was missing, implemented and verified in this pass), PARTIAL, NOT MET.
+Status: MET, FIXED (was missing, implemented and verified), PARTIAL, NOT MET.
 
 ## 5. Acceptance criteria and NFRs
 | Requirement | Status | Evidence |
@@ -76,6 +76,6 @@ Status: MET, FIXED (was missing, implemented and verified in this pass), PARTIAL
 |---|---|---|
 | Reports incl. dropped-lead analysis | FIXED | API existed but no UI; dashboard now has a Dropped leads panel (AC-10.11 added to `specs/reports_spec.md`), verified live (21/21) and in unit and mocked e2e tests |
 | Admin: manage classification rules and watchlist | MET | rule-set draft/publish and watchlist add/deactivate UI |
-| Admin: manage product document checklists | NOT MET (by design) | `specs/app_spec.md` line 24: out of scope for v1, checklists change by append-only migration (NFR-05) |
-| Admin: user / role configuration | NOT MET | no spec, API or UI; roles are seeded |
-| Analyst: manage queries | NOT MET | business-case lists "raise queries" for analysts; no spec, API or UI. Analysts can only reject a document with a reason code. |
+| Admin: manage product document checklists | FIXED | `specs/admin-management_spec.md` AC-12: admin Checklists page and `/api/v1/admin/checklists` append a new immutable version (old cases keep theirs); pytest and live Playwright pass. Supersedes the earlier v1 exclusion in `app_spec.md`. |
+| Admin: user / role configuration | FIXED | AC-11: admin Users page and `/api/v1/admin/users` (create, change role, deactivate, reactivate); staff tokens honoured only for an active user with the stored role; audited; pytest and live Playwright pass |
+| Analyst: manage queries | FIXED | AC-13: analysts raise and close queries, the owning prospect replies on the status page; append-only, PII-safe; pytest and live Playwright pass |

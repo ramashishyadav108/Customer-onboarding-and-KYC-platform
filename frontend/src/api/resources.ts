@@ -1,6 +1,7 @@
 import { request } from './client';
 import type {
   CaseDetail,
+  CaseQuery,
   CaseList,
   CaseListQuery,
   DocumentView,
@@ -74,4 +75,11 @@ export const reviewApi = {
 
 export const notificationsApi = {
   list: (caseId: string) => request<{ case_id: string; notifications: Notification[] }>(`/cases/${caseId}/notifications`),
+};
+
+export const queriesApi = {
+  list: (caseId: string) => request<{ items: CaseQuery[] }>(`/cases/${caseId}/queries`),
+  raise: (caseId: string, message: string) => request<CaseQuery>(`/cases/${caseId}/queries`, { method: 'POST', body: { message } }),
+  respond: (caseId: string, queryId: string, message: string) => request<CaseQuery>(`/cases/${caseId}/queries/${queryId}/responses`, { method: 'POST', body: { message } }),
+  close: (caseId: string, queryId: string) => request<CaseQuery>(`/cases/${caseId}/queries/${queryId}/close`, { method: 'POST' }),
 };

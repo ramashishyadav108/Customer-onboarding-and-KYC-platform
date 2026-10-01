@@ -312,3 +312,5 @@ export interface Reports {
   autoApproval: AutoApprovalReport;
   droppedLeads: DroppedLeadsReport;
 }
+
+export * from './management';

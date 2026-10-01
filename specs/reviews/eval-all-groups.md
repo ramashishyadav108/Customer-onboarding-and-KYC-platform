@@ -35,3 +35,18 @@ Strictly against the original step wording these three would FAIL. The user chos
 - Mocked e2e suite (16 tests) unchanged; live suite is separate (`*.live.ts`).
 - Design-critic not run (contracts have no design_checks). Playwright MCP unavailable in this session; the Playwright test runner was used instead.
 - F165 (p95 on 1,000 cases) and the group-A file-existence/frontend_toolchain checks were covered only through the passing pytest suite.
+
+## Addendum: admin management and queries (AC-11 to AC-13), 2026-10-01
+Scope added after the brief was re-read: admin user and role management, admin checklist versions, analyst queries (spec: `specs/admin-management_spec.md`, contract: `sprint-contracts/sprint-6-admin-management.json`, features F178-F197).
+
+| Check | Result |
+|---|---|
+| New backend tests (`test_admin_users_api.py`, `test_admin_checklists_api.py`, `test_queries_api.py`, role-matrix rows) | 49 plus 11 matrix rows, all pass |
+| Backend full suite with coverage | 1404 passed, 1 skipped (Windows symlink test), coverage 98.02%, `ruff`, `mypy`, `lint-imports` clean |
+| Frontend vitest, `eslint`, `tsc`, coverage | 132 passed, clean, 97.28% statements |
+| Live Playwright against a fresh real backend (`e2e/live/`) | 34 of 34: the earlier 21 plus 13 in `ui-management.live.ts` (users, checklists, queries, role boundary, axe) |
+| Mocked e2e | 16 of 16, no snapshot changes |
+
+Behaviour change to note: staff tokens are now honoured only for an existing, active user and carry that user's stored role (AC-11.4, AC-11.5). One existing test minted a staff token for a user that did not exist; it now logs in as a seeded user. Migration-head assertions moved from 0007 to 0008 (new append-only migration; earlier migrations untouched).
+
+Limits: the three append-only and PII properties of queries (F195) and the audit rows are proven by pytest only (no HTTP surface). The last-active-admin rule (`LAST_ADMIN`) cannot be reached through the API by an active admin because self-modification is blocked first; it is tested at service level. Admin password reset and prospect user management are not part of this scope.

@@ -16,6 +16,8 @@ const NAV: Record<Role, { to: string; label: string }[]> = {
     { to: ROUTES.dashboard, label: 'Reports' },
     { to: ROUTES.ruleSets, label: 'Rule sets' },
     { to: ROUTES.watchlist, label: 'Watchlist' },
+    { to: ROUTES.users, label: 'Users' },
+    { to: ROUTES.checklists, label: 'Checklists' },
     { to: ROUTES.workbench, label: 'Cases' },
   ],
 };

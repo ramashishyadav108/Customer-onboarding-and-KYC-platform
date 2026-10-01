@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { DOC_REJECT_REASONS, ITEM_LABELS, ROUTES } from '@/config';
 import { Banner, ConfirmDialog, ReasonSelect, StatusChip } from '@/components/ui';
+import { CaseQueries } from '@/components/CaseQueries';
 import { EvidenceView } from '@/components/EvidenceView';
 import { useDocumentReview, useEvidence, useStaffCase } from '@/hooks/useStaff';
 import { useAuth } from '@/state/AuthContext';
@@ -70,6 +71,7 @@ export function CaseDetailPage() {
           </ul>
         </>
       )}
+      <CaseQueries caseId={caseId} mode={isAnalyst ? 'analyst' : 'readonly'} />
       {target && (
         <ConfirmDialog title="Reject document" confirmLabel="Confirm rejection" onConfirm={confirmReject} onCancel={() => setTarget(null)} busy={review.busy}>
           <p>The prospect will be notified with this reason.</p>

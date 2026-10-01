@@ -4,10 +4,10 @@ import { expect, type Page } from '@playwright/test';
 export const API = `http://127.0.0.1:${process.env.LIVE_BACKEND_PORT ?? 8010}/api/v1`;
 export const pdf = (name: string) => ({ name, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 synthetic') });
 
-export async function login(page: Page, username: string) {
+export async function login(page: Page, username: string, password = `demo-${username}-pass`) {
   await page.goto('/login');
   await page.getByLabel('Username').fill(username);
-  await page.getByLabel('Password').fill(`demo-${username}-pass`);
+  await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL((u) => !u.pathname.startsWith('/login'));
 }

@@ -38,6 +38,7 @@ export class ProspectMock {
   ];
   notifications: { notification_id: string; case_id: string; event: string; template: string; text: string; details: Record<string, string>; created_at: string }[] = [];
   profileSaved = false;
+  queries: unknown[] = [];
   leadBody: unknown = null;
   submitCalls = 0;
 
@@ -99,6 +100,7 @@ export class ProspectMock {
         this.moveTo('DOCS_SUBMITTED');
         return json(route, 200, { case_id: CASE_ID, state: 'DOCS_SUBMITTED', missing_items: [] });
       }
+      if (m === 'GET' && path === `/cases/${CASE_ID}/queries`) return json(route, 200, { items: this.queries });
       if (m === 'GET' && path === `/cases/${CASE_ID}/notifications`) return json(route, 200, { case_id: CASE_ID, notifications: this.notifications });
       return err(route, 404, 'NOT_FOUND', `unmocked ${m} ${path}`);
     });

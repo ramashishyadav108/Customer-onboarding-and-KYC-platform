@@ -15,6 +15,8 @@ export const ROUTES = {
   dashboard: '/admin/dashboard',
   ruleSets: '/admin/rule-sets',
   watchlist: '/admin/watchlist',
+  users: '/admin/users',
+  checklists: '/admin/checklists',
 } as const;
 
 export const ROLE_HOME: Record<Role, string> = {
@@ -105,3 +107,11 @@ export const REASON_TEXT: Record<string, string> = {
 export const UPLOAD_ALLOWED_STATES: CaseState[] = ['INITIATED', 'DOCS_SUBMITTED', 'MANUAL_REVIEW'];
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_UPLOAD_EXT = ['pdf', 'jpg', 'jpeg', 'png'];
+
+export const STAFF_ROLE_OPTIONS: ReasonOption[] = [
+  { value: 'kyc-analyst', label: 'KYC analyst' },
+  { value: 'compliance-officer', label: 'Compliance officer' },
+  { value: 'admin', label: 'Admin' },
+];
+
+export const DOC_CLASS_HINT = 'PAN, AADHAAR, PASSPORT, UTILITY_BILL, PHOTOGRAPH, GST_CERTIFICATE, VISA';

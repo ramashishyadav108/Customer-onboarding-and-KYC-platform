@@ -1,6 +1,12 @@
 import { request } from './client';
 import type {
   AutoApprovalReport,
+  ChecklistItemSpec,
+  ChecklistVersion,
+  ManagedUser,
+  NewUser,
+  StaffRole,
+  Product,
   DroppedLeadsReport,
   BacklogReport,
   FunnelReport,
@@ -45,4 +51,17 @@ export const reportsApi = {
     ]);
     return { tat, funnel, backlog, timePerStage, rejections, autoApproval, droppedLeads };
   },
+};
+
+export const usersApi = {
+  list: () => request<{ items: ManagedUser[] }>('/admin/users'),
+  create: (user: NewUser) => request<ManagedUser>('/admin/users', { method: 'POST', body: user }),
+  changeRole: (userId: string, role: StaffRole) => request<ManagedUser>(`/admin/users/${userId}/role`, { method: 'PUT', body: { role } }),
+  deactivate: (userId: string) => request<ManagedUser>(`/admin/users/${userId}/deactivate`, { method: 'POST' }),
+  reactivate: (userId: string) => request<ManagedUser>(`/admin/users/${userId}/reactivate`, { method: 'POST' }),
+};
+
+export const checklistsApi = {
+  list: () => request<{ items: ChecklistVersion[] }>('/admin/checklists'),
+  publish: (product: Product, items: ChecklistItemSpec[]) => request<ChecklistVersion>(`/admin/checklists/${product}`, { method: 'POST', body: { items } }),
 };

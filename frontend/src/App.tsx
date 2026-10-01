@@ -15,6 +15,8 @@ import { ReviewQueuePage } from '@/pages/staff/ReviewQueuePage';
 import { DashboardPage } from '@/pages/admin/DashboardPage';
 import { RuleSetsPage } from '@/pages/admin/RuleSetsPage';
 import { WatchlistPage } from '@/pages/admin/WatchlistPage';
+import { UsersPage } from '@/pages/admin/UsersPage';
+import { ChecklistsPage } from '@/pages/admin/ChecklistsPage';
 
 function Home() {
   const { session } = useAuth();
@@ -42,6 +44,8 @@ export function App() {
         <Route path={ROUTES.dashboard} element={<RequireRole roles={['admin']}><DashboardPage /></RequireRole>} />
         <Route path={ROUTES.ruleSets} element={<RequireRole roles={['admin']}><RuleSetsPage /></RequireRole>} />
         <Route path={ROUTES.watchlist} element={<RequireRole roles={['admin']}><WatchlistPage /></RequireRole>} />
+        <Route path={ROUTES.users} element={<RequireRole roles={['admin']}><UsersPage /></RequireRole>} />
+        <Route path={ROUTES.checklists} element={<RequireRole roles={['admin']}><ChecklistsPage /></RequireRole>} />
       </Route>
 
       <Route path="*" element={<Home />} />

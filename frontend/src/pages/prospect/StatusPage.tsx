@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '@/config';
 import { Banner, StatusChip } from '@/components/ui';
 import { StatusTimeline } from '@/components/data';
+import { CaseQueries } from '@/components/CaseQueries';
 import { ReuploadList } from '@/components/ReuploadList';
 import { useCase, useChecklistUpload, useNotifications } from '@/hooks/useProspect';
 import { useAuth } from '@/state/AuthContext';
@@ -44,6 +45,7 @@ export function StatusPage() {
         </Banner>
       )}
       {(d.action_required.length > 0 || Object.keys(up.feedback).length > 0) && <ReuploadList detail={d} up={up} />}
+      <CaseQueries caseId={d.case_id} mode="prospect" />
       {n.error && <Banner kind="e">{n.error}</Banner>}
       <StatusTimeline state={d.state} notifications={n.data ?? []} />
       <div className="row" style={{ marginTop: 12 }}>

@@ -2815,5 +2815,308 @@
     "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
+  },
+  {
+    "id": "F178",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin lists users without any password or hash",
+    "steps": [
+      "GET /api/v1/admin/users as admin",
+      "Assert items have user_id, username, role, active, created_at only"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F179",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin creates a staff user who can then sign in",
+    "steps": [
+      "POST /api/v1/admin/users with valid body",
+      "Assert 201 and hash stored; log in as the new user"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F180",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Invalid new user and duplicate username are rejected",
+    "steps": [
+      "POST invalid usernames, weak password, prospect role",
+      "Assert 422 naming the field; duplicate gives 409 USERNAME_TAKEN"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F181",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin changes a role and the change applies to issued tokens",
+    "steps": [
+      "PUT role for a user holding a token",
+      "Assert the old token acts with the new role"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F182",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Deactivated user cannot sign in and existing token stops working",
+    "steps": [
+      "POST deactivate",
+      "Assert login 401 generic and old token 401; reactivate restores"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F183",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admins cannot modify themselves; last active admin is protected",
+    "steps": [
+      "Admin deactivates or demotes own account",
+      "Assert 409 SELF_MODIFICATION; service refuses LAST_ADMIN"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F184",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "User management is audited without secrets and admin-only",
+    "steps": [
+      "Create, change role, deactivate, reactivate",
+      "Assert audit rows hold ids and roles only; non-admin roles get 403, anonymous 401"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F185",
+    "category": "ui",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Users page lists, creates, changes role, deactivates and hides own-row controls",
+    "steps": [
+      "Open Users as admin",
+      "Create a user, change role, deactivate and reactivate",
+      "Assert no controls on own row; axe has no serious violations"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F186",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Admin lists latest checklist version per product",
+    "steps": [
+      "GET /api/v1/admin/checklists",
+      "Assert Savings, Current, NRE with items and created_at"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F187",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Admin appends a new checklist version; old cases keep theirs",
+    "steps": [
+      "POST /api/v1/admin/checklists/Savings",
+      "Assert version 2; earlier case still version 1; new case version 2"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F188",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Invalid checklists are rejected and append nothing",
+    "steps": [
+      "POST empty, missing baseline, duplicate, unknown class or item",
+      "Assert 422 and no new template row; unknown product 404"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F189",
+    "category": "security",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Checklist changes are audited and admin-only",
+    "steps": [
+      "Publish a version",
+      "Assert CHECKLIST_VERSION_CREATED audit row; non-admin 403"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F190",
+    "category": "ui",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Checklists page edits items and publishes a new version",
+    "steps": [
+      "Open Checklists as admin",
+      "Untick mandatory photograph and assert validation error",
+      "Edit classes, publish, assert new prospects see them"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F191",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst raises a query on a case",
+    "steps": [
+      "POST /api/v1/cases/{id}/queries as analyst",
+      "Assert 201 OPEN; validation 422; terminal case 409 CASE_LOCKED"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F192",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Owner and staff list queries; other prospects cannot",
+    "steps": [
+      "GET queries as owner, staff and another prospect",
+      "Assert 200, 200, 403 and oldest first"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F193",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Prospect answers a query and closed queries refuse answers",
+    "steps": [
+      "POST response as owner",
+      "Assert ANSWERED; closed query 409 QUERY_CLOSED; unknown query 404"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F194",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst closes a query once",
+    "steps": [
+      "POST close twice",
+      "Assert CLOSED then 409 QUERY_CLOSED"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F195",
+    "category": "security",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Query history is append-only and PII-safe",
+    "steps": [
+      "Raise, answer, close",
+      "Assert UPDATE/DELETE rejected; audit and logs hold ids, never message text"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F196",
+    "category": "security",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Raise and close are analyst-only; answering is prospect-only",
+    "steps": [
+      "Call each route as every role and anonymously",
+      "Assert 401 for anonymous and 403 outside the matrix"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F197",
+    "category": "ui",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst raises and closes queries; prospect replies on the status page",
+    "steps": [
+      "Analyst raises a query on a case",
+      "Prospect sees it and replies",
+      "Analyst sees ANSWERED and closes; reply form disappears"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T16:35:22.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
   }
 ]
