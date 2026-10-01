@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { err, installLogin, json, loginAs } from './mockApi';
+import { expectVisual } from './visual';
 
 const CASE = 'aaaaaaaa-1111-2222-3333-444444444444';
 
@@ -45,7 +46,7 @@ test.describe('compliance officer', () => {
     await page.getByRole('button', { name: /Review aaaaaaaa/ }).click();
     await expect(page.getByRole('heading', { name: 'Review panel' })).toBeVisible();
     await expect(page.getByText('AML hit - AML_HIT')).toBeVisible();
-    await expect(page).toHaveScreenshot('review-panel.png', { fullPage: true });
+    await expectVisual(page, 'review-panel.png', { fullPage: true });
 
     const approve = page.getByRole('button', { name: 'Approve case' });
     await expect(approve).toBeDisabled();
