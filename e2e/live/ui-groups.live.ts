@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { API, expectNoSeriousAxe, login, pdf, seedCase } from './helpers';
+import { API, expectNoSeriousAxe, login, pdf, seedCase, staffToken } from './helpers';
 
 // Live-backend evaluation of UI groups F (prospect), H (staff), J (review), L (dashboard).
 // Serial: the first test needs an empty database.
@@ -24,6 +24,10 @@ test('seed cases through the real API', async () => {
   hit = await seedCase({ name: 'Test Person One', contact: '9999999702', product: 'Savings', submit: true, docs: 'all' });
   nre = await seedCase({ name: 'Test Person Gamma', contact: '9999999703', product: 'NRE', submit: false });
   await seedCase({ name: 'Test Person Delta', contact: '9999999704', product: 'Current', submit: false });
+  const rejected = await seedCase({ name: 'Test Person One', contact: '9999999713', product: 'Savings', submit: true, docs: 'all' });
+  const officer = await staffToken('officer1');
+  const r = await fetch(`${API}/cases/${rejected.caseId}/override`, { method: 'POST', headers: { Authorization: `Bearer ${officer}`, 'content-type': 'application/json' }, body: JSON.stringify({ decision: 'REJECT', reason_code: 'CONFIRMED_WATCHLIST_MATCH' }) });
+  expect(r.status).toBe(200);
 });
 
 async function register(page: Page, name: string, contact: string) {
@@ -309,8 +313,8 @@ test.describe('group L: admin dashboard', () => {
     await expect(page.getByRole('region', { name: 'Approval funnel' })).toBeVisible();
     seen.length = 0;
     await page.getByLabel('Product', { exact: true }).selectOption('NRE');
-    await page.getByLabel('From').fill('2020-01-01');
-    await page.getByLabel('To').fill('2099-12-31');
+    await page.getByLabel('From', { exact: true }).fill('2020-01-01');
+    await page.getByLabel('To', { exact: true }).fill('2099-12-31');
     await expect.poll(() => seen.filter((u) => u.includes('product=NRE') && u.includes('from=2020-01-01') && u.includes('to=2099-12-31')).length).toBeGreaterThanOrEqual(6);
   });
 
@@ -319,11 +323,16 @@ test.describe('group L: admin dashboard', () => {
     await page.goto('/admin/dashboard');
     await expect(page.getByRole('region', { name: 'Approval funnel' })).toBeVisible();
     await expectNoSeriousAxe(page);
+    // Every filter control is reachable by Tab, in visual order (a date input takes several Tab stops for its segments).
+    const ids = await Promise.all(['Product', 'From', 'To'].map((l) => page.getByLabel(l, { exact: true }).getAttribute('id')));
     await page.getByLabel('Product', { exact: true }).focus();
-    await page.keyboard.press('Tab');
-    await expect(page.getByLabel('From')).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(page.getByLabel('To')).toBeFocused();
+    const order: (string | null)[] = [ids[0]];
+    for (let i = 0; i < 12; i++) {
+      await page.keyboard.press('Tab');
+      order.push(await page.evaluate(() => document.activeElement?.id ?? null));
+    }
+    expect(order.indexOf(ids[1])).toBeGreaterThan(0);
+    expect(order.indexOf(ids[2])).toBeGreaterThan(order.indexOf(ids[1]));
     await page.getByRole('button', { name: 'Sign out' }).click();
     await login(page, 'analyst1');
     await page.goto('/admin/dashboard');
