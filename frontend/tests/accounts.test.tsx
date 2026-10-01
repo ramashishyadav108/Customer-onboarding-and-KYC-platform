@@ -101,7 +101,7 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByLabelText('Confirm password'), 'different-pass-123');
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(screen.getByText('The passwords do not match.')).toBeInTheDocument();
-    expect(calls).toHaveLength(0);
+    expect(calls.some((c) => c.key.startsWith('POST'))).toBe(false);
   });
 
   it('AC-14.1: creates the account, signs in and continues to registration', async () => {
@@ -112,7 +112,7 @@ describe('SignupPage', () => {
     await userEvent.type(screen.getByLabelText('Confirm password'), 'synthetic-pass-123');
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('register screen')).toBeInTheDocument();
-    expect(calls[0].body).toEqual({ username: 'meera.nair', password: 'synthetic-pass-123', role: 'prospect' });
+    expect(calls.find((c) => c.key === 'POST /api/v1/auth/signup')?.body).toEqual({ username: 'meera.nair', password: 'synthetic-pass-123', role: 'prospect' });
     expect(getAccessToken()).toBe('prospect-jwt');
   });
 
@@ -131,6 +131,49 @@ describe('SignupPage', () => {
     expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
   });
 
+  it('AC-14.11: admin sign-up is open on this server, so Admin skips approval but staff roles do not', async () => {
+    mockFetch({ 'GET /api/v1/auth/signup-options': { admin_requires_approval: false, staff_requires_approval: true } });
+    renderAt('/signup');
+    const type = screen.getByLabelText('I am a');
+    await userEvent.selectOptions(type, 'admin');
+    expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent('Admin sign-up is open on this server');
+    await userEvent.selectOptions(type, 'kyc-analyst');
+    expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent('must be approved by an administrator');
+    await userEvent.selectOptions(type, 'compliance-officer');
+    expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
+  });
+
+  it('AC-14.11: an open admin sign-up signs the new admin in and opens the dashboard', async () => {
+    const { calls } = mockFetch({
+      'GET /api/v1/auth/signup-options': { admin_requires_approval: false, staff_requires_approval: true },
+      'POST /api/v1/auth/signup': { status: 201, body: signupBody('admin') },
+    });
+    renderAt('/signup');
+    await userEvent.selectOptions(screen.getByLabelText('I am a'), 'admin');
+    await userEvent.type(screen.getByLabelText('Username'), 'new.admin');
+    await userEvent.type(screen.getByLabelText('Password'), 'synthetic-pass-123');
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'synthetic-pass-123');
+    await userEvent.click(await screen.findByRole('button', { name: 'Create account' }));
+    expect(await screen.findByText('dashboard screen')).toBeInTheDocument();
+    expect(calls.find((c) => c.key === 'POST /api/v1/auth/signup')?.body).toEqual({ username: 'new.admin', password: 'synthetic-pass-123', role: 'admin' });
+    expect(getAccessToken()).toBe('admin-jwt');
+  });
+
+  it('AC-14.11: by default (and while the options load or fail) Admin needs approval too', async () => {
+    mockFetch({ 'GET /api/v1/auth/signup-options': { admin_requires_approval: true, staff_requires_approval: true } });
+    const { unmount } = renderAt('/signup');
+    await userEvent.selectOptions(screen.getByLabelText('I am a'), 'admin');
+    expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent('must be approved by an administrator');
+    unmount();
+    mockFetch({});
+    renderAt('/signup');
+    await userEvent.selectOptions(screen.getByLabelText('I am a'), 'admin');
+    expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
+  });
+
   it('AC-14.2: a staff request shows a confirmation and never signs in', async () => {
     const { calls } = mockFetch({ 'POST /api/v1/auth/signup': { status: 201, body: pendingBody('compliance-officer') } });
     renderAt('/signup');
@@ -141,7 +184,7 @@ describe('SignupPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Request account' }));
     expect(await screen.findByRole('heading', { name: 'Request received' })).toBeInTheDocument();
     expect(screen.getByText(/cannot sign in until an administrator approves/)).toBeInTheDocument();
-    expect(calls[0].body).toEqual({ username: 'officer.two', password: 'synthetic-pass-123', role: 'compliance-officer' });
+    expect(calls.find((c) => c.key === 'POST /api/v1/auth/signup')?.body).toEqual({ username: 'officer.two', password: 'synthetic-pass-123', role: 'compliance-officer' });
     expect(getAccessToken()).toBeNull();
     expect(screen.queryByText('register screen')).not.toBeInTheDocument();
   });

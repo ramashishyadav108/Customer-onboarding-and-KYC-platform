@@ -8,6 +8,7 @@ from onboardx.controllers.dependencies.services import Services, get_services
 from onboardx.controllers.schemas.auth import (
     LoginRequest,
     LoginResponse,
+    SignupOptions,
     SignupRequest,
     SignupResponse,
 )
@@ -41,3 +42,9 @@ def signup(
         expires_in=result.expires_in,
         case_id=result.case_id,
     )
+
+
+@router.get("/signup-options")
+def signup_options(services: Annotated[Services, Depends(get_services)]) -> SignupOptions:
+    """Public: lets the sign-up page say honestly whether an admin request needs approval."""
+    return SignupOptions(admin_requires_approval=services.signup.admin_requires_approval)

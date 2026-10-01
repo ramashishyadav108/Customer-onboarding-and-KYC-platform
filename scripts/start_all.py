@@ -1,6 +1,7 @@
 """Single-command local run: start the backend (migrations + seed data) and the frontend dev server.
 
     python scripts/start_all.py [--backend-port 8000] [--frontend-port 3000] [--review-policy auto|manual]
+        [--admin-signup approval|open]
 
 Existing DATABASE_URL, JWT_SECRET and UPLOAD_DIR environment variables are respected; otherwise
 synthetic dev defaults are used. Ctrl-C stops both processes.
@@ -64,6 +65,12 @@ def main() -> int:
         default=os.environ.get("REVIEW_POLICY", "auto"),
         help="auto: clean LOW-risk cases are approved automatically (AC-07); manual: a compliance officer approves every case",
     )
+    parser.add_argument(
+        "--admin-signup",
+        choices=["approval", "open"],
+        default=os.environ.get("ADMIN_SIGNUP", "approval"),
+        help="approval: admin sign-ups wait for an admin; open: anyone can sign up as admin (local demos only)",
+    )
     args = parser.parse_args()
 
     npm = shutil.which("npm")
@@ -81,6 +88,7 @@ def main() -> int:
         "UPLOAD_DIR": os.environ.get("UPLOAD_DIR", str(ROOT / "uploads")),
         "BACKEND_PORT": str(args.backend_port),
         "REVIEW_POLICY": args.review_policy,
+        "ADMIN_SIGNUP": args.admin_signup,
     }
     backend_url = f"http://127.0.0.1:{args.backend_port}"
     processes: list[subprocess.Popen[bytes]] = []

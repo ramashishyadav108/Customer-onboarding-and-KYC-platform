@@ -20,6 +20,12 @@ export function useLogin() {
   return { login, busy: action.busy, error: action.error };
 }
 
+export function useSignupOptions() {
+  // While loading (or if the call fails) assume approval is required: the safe answer.
+  const options = useResource(() => authApi.signupOptions(), 'signup-options');
+  return { adminRequiresApproval: options.data?.admin_requires_approval ?? true };
+}
+
 export function useSignup() {
   const { signIn } = useAuth();
   const action = useAction();

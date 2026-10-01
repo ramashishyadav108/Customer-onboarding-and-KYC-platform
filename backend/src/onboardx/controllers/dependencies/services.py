@@ -58,6 +58,63 @@ class Services:
     signup: SignupService
 
 
+@dataclass(frozen=True)
+class _Management:
+    user_admin: UserAdminService
+    checklist_admin: ChecklistAdminService
+    queries: QueryService
+    signup: SignupService
+
+
+def _management_services(
+    settings: Settings,
+    uow_factory: UnitOfWorkFactory,
+    clock: Clock,
+    audit: AuditService,
+    auth: AuthService,
+) -> _Management:
+    """Admin management, analyst queries and sign-up (AC-11 to AC-14)."""
+    return _Management(
+        user_admin=UserAdminService(uow_factory, clock, audit),
+        checklist_admin=ChecklistAdminService(uow_factory, clock, audit),
+        queries=QueryService(uow_factory, clock, audit),
+        signup=SignupService(
+            uow_factory, clock, audit, auth, admin_signup_open=settings.admin_signup == "open"
+        ),
+    )
+
+
+@dataclass(frozen=True)
+class _Pipeline:
+    screening: ScreeningService
+    risk: RiskService
+    decisions: DecisionService
+    pipeline: PipelineService
+
+
+def _pipeline_services(
+    settings: Settings,
+    uow_factory: UnitOfWorkFactory,
+    clock: Clock,
+    audit: AuditService,
+    onboarding: OnboardingService,
+    accounts: AccountService,
+) -> _Pipeline:
+    """Screening, risk, decision (with the review policy) and the pipeline that runs them."""
+    screening = ScreeningService(uow_factory, clock, audit, onboarding)
+    risk = RiskService(uow_factory, clock, audit, onboarding)
+    decisions = DecisionService(
+        uow_factory,
+        clock,
+        audit,
+        onboarding,
+        accounts,
+        manual_policy=settings.review_policy == "manual",
+    )
+    pipeline = PipelineService(uow_factory, screening, risk, decisions)
+    return _Pipeline(screening, risk, decisions, pipeline)
+
+
 def build_services(
     settings: Settings,
     uow_factory: UnitOfWorkFactory,
@@ -69,19 +126,11 @@ def build_services(
     notifications = NotificationService(uow_factory, clock, sender or StubNotificationSender())
     onboarding = OnboardingService(clock, audit, recorder=notifications)
     auth = AuthService(uow_factory, secret, clock, settings.token_ttl_seconds)
-    screening = ScreeningService(uow_factory, clock, audit, onboarding)
-    risk = RiskService(uow_factory, clock, audit, onboarding)
     accounts = AccountService(clock, audit)
-    decisions = DecisionService(
-        uow_factory,
-        clock,
-        audit,
-        onboarding,
-        accounts,
-        manual_policy=settings.review_policy == "manual",
-    )
-    pipeline = PipelineService(uow_factory, screening, risk, decisions)
+    core = _pipeline_services(settings, uow_factory, clock, audit, onboarding, accounts)
+    screening, risk, decisions, pipeline = core.screening, core.risk, core.decisions, core.pipeline
     store = LocalFileStore(settings.upload_dir)
+    management = _management_services(settings, uow_factory, clock, audit, auth)
     return Services(
         auth=auth,
         leads=LeadService(uow_factory, clock, onboarding, audit, auth, secret),
@@ -102,10 +151,10 @@ def build_services(
         evidence=EvidenceService(uow_factory),
         watchlist=WatchlistService(uow_factory, clock, audit),
         reports=ReportService(uow_factory, clock),
-        user_admin=UserAdminService(uow_factory, clock, audit),
-        checklist_admin=ChecklistAdminService(uow_factory, clock, audit),
-        queries=QueryService(uow_factory, clock, audit),
-        signup=SignupService(uow_factory, clock, audit, auth),
+        user_admin=management.user_admin,
+        checklist_admin=management.checklist_admin,
+        queries=management.queries,
+        signup=management.signup,
     )
 
 

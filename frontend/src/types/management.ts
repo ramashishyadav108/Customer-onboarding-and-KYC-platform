@@ -20,6 +20,11 @@ export interface SignupResponse {
   case_id: string | null;
 }
 
+export interface SignupOptions {
+  admin_requires_approval: boolean;
+  staff_requires_approval: boolean;
+}
+
 export interface NewUser {
   username: string;
   password: string;

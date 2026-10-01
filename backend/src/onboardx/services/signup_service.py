@@ -30,17 +30,23 @@ class SignupResult:
 
 class SignupService:
     def __init__(
-        self, uow_factory: UnitOfWorkFactory, clock: Clock, audit: AuditService, auth: AuthService
+        self,
+        uow_factory: UnitOfWorkFactory,
+        clock: Clock,
+        audit: AuditService,
+        auth: AuthService,
+        admin_signup_open: bool = False,
     ) -> None:
         self._uow_factory = uow_factory
         self._clock = clock
         self._audit = audit
         self._auth = auth
+        self._admin_signup_open = admin_signup_open
 
     def signup(self, *, username: str, password: str, role: str | None = None) -> SignupResult:
         validate_credentials(username, password)
         requested = parse_signup_role(role)
-        needs_approval = requested is not Role.PROSPECT
+        needs_approval = self._needs_approval(requested)
         user = User(
             user_id=str(uuid.uuid4()),
             username=username,
@@ -66,5 +72,15 @@ class SignupService:
             uow.commit()
         if needs_approval:
             return SignupResult(PENDING_APPROVAL, requested, None, None, None)
-        issued = self._auth.issue_token(username, Role.PROSPECT, None)
-        return SignupResult(ACTIVE, Role.PROSPECT, issued.access_token, issued.expires_in, None)
+        issued = self._auth.issue_token(username, requested, None)
+        return SignupResult(ACTIVE, requested, issued.access_token, issued.expires_in, None)
+
+    def _needs_approval(self, requested: Role) -> bool:
+        """Staff roles wait for an admin; ADMIN_SIGNUP=open lets an admin sign-up skip that."""
+        if requested is Role.PROSPECT:
+            return False
+        return not (requested is Role.ADMIN and self._admin_signup_open)
+
+    @property
+    def admin_requires_approval(self) -> bool:
+        return not self._admin_signup_open

@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     review_policy: Literal["auto", "manual"] = Field(
         default="auto", validation_alias="REVIEW_POLICY"
     )
+    # approval: every staff sign-up, including admin, waits for an admin (safe default); open: an
+    # admin sign-up is active at once (analyst and officer requests still need approval).
+    admin_signup: Literal["approval", "open"] = Field(
+        default="approval", validation_alias="ADMIN_SIGNUP"
+    )
 
 
 def load_settings() -> Settings:

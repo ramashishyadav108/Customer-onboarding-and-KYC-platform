@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ROUTES, SIGNUP_ACCOUNT_TYPES, homeFor } from '@/config';
 import { Banner, FormField, SelectField, SkipLink } from '@/components/ui';
-import { useSignup } from '@/hooks/useProspect';
+import { useSignup, useSignupOptions } from '@/hooks/useProspect';
 import { validateSignup, type FieldErrors } from '@/lib/validation';
 import { useAuth } from '@/state/AuthContext';
 
@@ -25,11 +25,13 @@ export function SignupPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { signup, busy, error, fieldErrors } = useSignup();
+  const { adminRequiresApproval } = useSignupOptions();
   const [form, setForm] = useState({ role: 'prospect', username: '', password: '', confirm: '' });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pendingRole, setPendingRole] = useState<string | null>(null);
   const shown = { ...fieldErrors, ...errors };
   const isStaff = form.role !== 'prospect';
+  const needsApproval = isStaff && (form.role !== 'admin' || adminRequiresApproval);
 
   if (session) return <Navigate to={homeFor(session.role, session.caseId)} replace />;
 
@@ -41,7 +43,7 @@ export function SignupPage() {
     const res = await signup(form.username.trim(), form.password, form.role);
     if (!res) return;
     if (res.status === 'PENDING_APPROVAL') setPendingRole(res.role);
-    else navigate(ROUTES.register);
+    else navigate(homeFor(res.role, res.case_id));
   };
 
   return (
@@ -59,9 +61,13 @@ export function SignupPage() {
             {error && !fieldErrors.username && <Banner kind="e">{error}</Banner>}
             <form onSubmit={onSubmit} noValidate aria-label="Create account">
               <SelectField label="I am a" name="role" options={SIGNUP_ACCOUNT_TYPES} value={form.role} error={shown.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
-              {isStaff ? (
+              {needsApproval ? (
                 <p className="hint" role="note">
                   Bank staff accounts must be approved by an administrator before you can sign in.
+                </p>
+              ) : isStaff ? (
+                <p className="hint" role="note">
+                  Admin sign-up is open on this server, so this account is created and signed in immediately.
                 </p>
               ) : (
                 <p className="hint">Customers can start an application as soon as the account is created.</p>
@@ -71,7 +77,7 @@ export function SignupPage() {
               <FormField label="Confirm password" name="confirm" type="password" autoComplete="new-password" value={form.confirm} error={shown.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} />
               <div className="row" style={{ marginTop: 16 }}>
                 <button type="submit" disabled={busy}>
-                  {busy ? 'Creating account...' : isStaff ? 'Request account' : 'Create account'}
+                  {busy ? 'Creating account...' : needsApproval ? 'Request account' : 'Create account'}
                 </button>
               </div>
             </form>

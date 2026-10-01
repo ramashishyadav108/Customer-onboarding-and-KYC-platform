@@ -32,3 +32,8 @@ Recurring mistakes encoded back into rules, hooks and skills.
 
 - **Mistake avoided:** a request to let users choose admin or compliance officer at sign-up would let anyone grant themselves staff access.
 - **Rule now:** the form can ask for an account type, but a staff role is stored inactive and pending, gets no token, and works only after an admin approves it (`AC-14.2`, `AC-14.9`); tests in `test_staff_approval_api.py` and `test_role_matrix.py` guard it.
+
+## Open admin sign-up is a demo switch, not a default
+
+- **Risk:** a public form that can create admins hands the whole platform to anyone who finds it.
+- **Rule now:** `ADMIN_SIGNUP` defaults to `approval`; `open` must be chosen explicitly per server, is announced by `GET /auth/signup-options` so the UI does not mislead, and the spec (AC-14.11) says never to use it in a deployed environment.

@@ -89,3 +89,4 @@ Status: MET, FIXED (was missing, implemented and verified), PARTIAL, NOT MET.
 | Role-based access in the UI | MET | route guards (`RequireRole`), 403 page, live Playwright journey customer -> officer -> customer |
 | Sign-up asks the account type (prospect, KYC analyst, compliance officer, admin) | FIXED | staff roles are created pending and need admin approval (AC-14.2, AC-14.8 to AC-14.10); self-assigned admin access is impossible |
 | Who approves a case (auto vs compliance officer) | FIXED | `REVIEW_POLICY=auto` (default, the brief's AC-07) or `manual` (compliance officer approves every case, AC-15); `start_all.py --review-policy manual` |
+| Admin sign-up without approval | FIXED (opt-in) | `ADMIN_SIGNUP=open` (`start_all.py --admin-signup open`) makes an admin sign-up active at once; default stays `approval` because open admin sign-up is a privilege-escalation risk (AC-14.11); analyst and officer always need approval |

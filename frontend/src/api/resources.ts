@@ -2,6 +2,7 @@ import { request } from './client';
 import type {
   CaseDetail,
   CaseQuery,
+  SignupOptions,
   SignupResponse,
   CaseList,
   CaseListQuery,
@@ -24,6 +25,7 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     request<LoginResponse>('/auth/login', { method: 'POST', body: { username, password }, auth: false }),
+  signupOptions: () => request<SignupOptions>('/auth/signup-options', { auth: false }),
   signup: (username: string, password: string, role: string) =>
     request<SignupResponse>('/auth/signup', { method: 'POST', body: { username, password, role }, auth: false }),
 };

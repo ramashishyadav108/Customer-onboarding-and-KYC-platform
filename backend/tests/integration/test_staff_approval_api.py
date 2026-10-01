@@ -1,5 +1,7 @@
 """AC-14.8 to AC-14.9 / NFR-04: staff accounts requested at sign-up need admin approval."""
 
+from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -7,6 +9,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 
 from api_helpers import bearer, staff_headers
+from helpers import JWT_SECRET, FakeClock
+from onboardx.config.settings import ConfigurationError, Settings, load_settings
+from onboardx.main import create_app
 from pipeline_helpers import rows
 from review_helpers import admin
 
@@ -139,3 +144,71 @@ def test_ac14_9_a_pending_admin_request_gives_no_admin_power(client: TestClient)
     assert login(client, "wants.admin").status_code == 403
     users = client.get(USERS, headers=admin(client)).json()["items"]
     assert sum(1 for u in users if u["role"] == "admin" and u["status"] == "ACTIVE") == 1
+
+
+# --- AC-14.11: ADMIN_SIGNUP=open lets an admin sign-up skip approval (staff roles do not) ---
+
+
+@pytest.fixture
+def open_admin_client(db_url: str, upload_dir: Path, clock: FakeClock) -> Iterator[TestClient]:
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        database_url=db_url,
+        jwt_secret=JWT_SECRET,
+        upload_dir=upload_dir,
+        admin_signup="open",
+    )
+    with TestClient(create_app(settings, clock=clock)) as client:
+        yield client
+
+
+@pytest.mark.ac("AC-14.11")
+def test_ac14_11_approval_is_the_default_for_admin_sign_up(client: TestClient) -> None:
+    options = client.get("/api/v1/auth/signup-options")
+    assert options.status_code == 200
+    assert options.json() == {"admin_requires_approval": True, "staff_requires_approval": True}
+    assert request_staff(client, "wants.admin", "admin").json()["status"] == "PENDING_APPROVAL"
+
+
+@pytest.mark.ac("AC-14.11")
+def test_ac14_11_open_admin_sign_up_creates_an_active_admin_with_a_token(
+    open_admin_client: TestClient, engine: Engine
+) -> None:
+    options = open_admin_client.get("/api/v1/auth/signup-options").json()
+    assert options == {"admin_requires_approval": False, "staff_requires_approval": True}
+    response = request_staff(open_admin_client, "new.admin", "admin")
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["status"] == "ACTIVE" and body["role"] == "admin" and body["access_token"]
+    stored = rows(engine, "SELECT role, active, pending FROM users WHERE username='new.admin'")
+    assert tuple(stored[0]) == ("admin", 1, 0)
+    token = bearer(body["access_token"])
+    assert open_admin_client.get(USERS, headers=token).status_code == 200
+    audit = rows(engine, "SELECT role, payload FROM audit_log WHERE event='USER_SIGNED_UP'")
+    assert audit[0][0] == "admin" and PASSWORD not in audit[0][1] and "pbkdf2" not in audit[0][1]
+
+
+@pytest.mark.ac("AC-14.11")
+def test_ac14_11_open_admin_sign_up_can_log_in_afterwards(open_admin_client: TestClient) -> None:
+    request_staff(open_admin_client, "new.admin", "admin")
+    session = login(open_admin_client, "new.admin")
+    assert session.status_code == 200 and session.json()["role"] == "admin"
+
+
+@pytest.mark.nfr("NFR-04")
+@pytest.mark.ac("AC-14.11")
+@pytest.mark.parametrize("role", ["kyc-analyst", "compliance-officer"])
+def test_ac14_11_analyst_and_officer_still_need_approval_when_admin_sign_up_is_open(
+    open_admin_client: TestClient, role: str
+) -> None:
+    body = request_staff(open_admin_client, "staff.request", role).json()
+    assert body["status"] == "PENDING_APPROVAL" and body["access_token"] is None
+    assert login(open_admin_client, "staff.request").status_code == 403
+
+
+@pytest.mark.ac("AC-14.11")
+def test_ac14_11_an_unknown_admin_signup_value_fails_fast(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+    monkeypatch.setenv("ADMIN_SIGNUP", "anyone")
+    with pytest.raises(ConfigurationError, match="ADMIN_SIGNUP"):
+        load_settings()

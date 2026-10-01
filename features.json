@@ -3375,5 +3375,66 @@
     "last_evaluated": "2026-10-01T17:39:46.000000Z",
     "failure_reason": null,
     "failure_layer": null
+  },
+  {
+    "id": "F215",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin sign-up needs approval by default (ADMIN_SIGNUP=approval)",
+    "steps": [
+      "GET /api/v1/auth/signup-options on a default server",
+      "POST signup with role admin",
+      "Assert admin_requires_approval true and a pending response with no token"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:56:47.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F216",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "ADMIN_SIGNUP=open creates an active admin at sign-up while analyst and officer still wait",
+    "steps": [
+      "POST signup with role admin on an open server",
+      "Assert ACTIVE, token and admin access; analyst and officer requests stay pending; unknown setting fails fast"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:56:47.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F217",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Sign-up page tells the truth about approval for each role and opens the dashboard for an open admin sign-up",
+    "steps": [
+      "Open /signup on an open server and pick Admin, KYC analyst, Compliance officer",
+      "Assert notes and button labels; admin lands on the dashboard"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:56:47.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F218",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A self-registered admin can approve pending analyst and officer requests",
+    "steps": [
+      "Sign up as admin, sign in again",
+      "Approve analyst and officer requests in Users; the officer reaches the review queue"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:56:47.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
   }
 ]

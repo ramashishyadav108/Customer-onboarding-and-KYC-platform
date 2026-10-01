@@ -26,6 +26,13 @@ class SignupRequest(BaseModel):
     role: str | None = None
 
 
+class SignupOptions(BaseModel):
+    """What the sign-up page needs to know about this server."""
+
+    admin_requires_approval: bool
+    staff_requires_approval: bool = True
+
+
 class SignupResponse(BaseModel):
     """ACTIVE with a token for customers; PENDING_APPROVAL (no token) for requested staff roles."""
 
