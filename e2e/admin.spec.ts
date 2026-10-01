@@ -25,10 +25,11 @@ const reports = {
   'rejection-reasons': { filters: {}, items: [
     { reason_code: 'RISK_TOO_HIGH', count: 15 }, { reason_code: 'CONFIRMED_WATCHLIST_MATCH', count: 12 }, { reason_code: 'DOCS_INSUFFICIENT', count: 8 } ] },
   'auto-approval': { filters: {}, auto_approved: 160, decided: 195, rate_bp: 8205, target_bp: 6000, met: true },
+  'dropped-leads': { older_than_days: 7, total: 11, stages: [{ stage: 'INITIATED', count: 8 }, { stage: 'DOCS_SUBMITTED', count: 3 }] },
 };
 
 test.describe('admin console', () => {
-  test('AC-10: dashboard shows six panels, each with an accessible table, and filters refresh them', async ({ page }) => {
+  test('AC-10: dashboard shows seven panels, each with an accessible table, and filters refresh them', async ({ page }) => {
     await installLogin(page);
     const seen: string[] = [];
     await page.route('**/api/v1/admin/reports/*', (route) => {
@@ -43,7 +44,7 @@ test.describe('admin console', () => {
     await loginAs(page, 'admin1');
 
     await expect(page.getByRole('heading', { name: 'Operational reports' })).toBeVisible();
-    for (const title of ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate']) {
+    for (const title of ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate', 'Dropped leads']) {
       const panel = page.getByRole('region', { name: title });
       await expect(panel).toBeVisible();
       await expect(panel.getByRole('table')).toBeVisible();
@@ -70,6 +71,7 @@ test.describe('admin console', () => {
         tat: { items: [] }, funnel: { stages: [] }, backlog: { count: 0, oldest_age_minutes: 0, buckets: [] },
         'time-per-stage': { stages: [] }, 'rejection-reasons': { items: [] },
         'auto-approval': { auto_approved: 0, decided: 0, rate_bp: 0, target_bp: 6000, met: false },
+        'dropped-leads': { older_than_days: 7, total: 0, stages: [] },
       };
       return json(route, 200, empty[key as string]);
     });

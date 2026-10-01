@@ -2,9 +2,9 @@ import type { Reports } from '@/types';
 import { formatBp, formatDuration, humanize } from '@/lib/format';
 import { ChartWithTable } from './data';
 
-// Six report panels, each a chart plus an accessible table and text summary (AC-10).
+// Seven report panels, each a chart plus an accessible table and text summary (AC-10).
 export function ReportPanels({ reports }: { reports: Reports }) {
-  const { tat, funnel, backlog, timePerStage, rejections, autoApproval } = reports;
+  const { tat, funnel, backlog, timePerStage, rejections, autoApproval, droppedLeads } = reports;
   const top = rejections.items[0];
   return (
     <div className="grid-2">
@@ -51,6 +51,12 @@ export function ReportPanels({ reports }: { reports: Reports }) {
           { label: 'Auto-approved', value: autoApproval.auto_approved, display: String(autoApproval.auto_approved), cells: { Rate: formatBp(autoApproval.rate_bp) } },
           { label: 'Decided', value: autoApproval.decided, display: String(autoApproval.decided), cells: { Rate: '' } },
         ]}
+      />
+      <ChartWithTable
+        title="Dropped leads"
+        summary={droppedLeads.total ? `${droppedLeads.total} open case(s) have had no activity for more than ${droppedLeads.older_than_days} days.` : `No open cases have been inactive for more than ${droppedLeads.older_than_days} days.`}
+        valueHeader="Cases"
+        data={droppedLeads.stages.map((s) => ({ label: humanize(s.stage), value: s.count, display: String(s.count) }))}
       />
     </div>
   );

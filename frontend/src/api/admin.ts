@@ -1,6 +1,7 @@
 import { request } from './client';
 import type {
   AutoApprovalReport,
+  DroppedLeadsReport,
   BacklogReport,
   FunnelReport,
   ReportFilters,
@@ -33,14 +34,15 @@ export const reportsApi = {
   async all(f: ReportFilters): Promise<Reports> {
     const query = { product: f.product, from: f.from, to: f.to };
     const get = <T>(p: string) => request<T>(`/admin/reports/${p}`, { query });
-    const [tat, funnel, backlog, timePerStage, rejections, autoApproval] = await Promise.all([
+    const [tat, funnel, backlog, timePerStage, rejections, autoApproval, droppedLeads] = await Promise.all([
       get<TatReport>('tat'),
       get<FunnelReport>('funnel'),
       get<BacklogReport>('backlog'),
       get<TimePerStageReport>('time-per-stage'),
       get<RejectionReasonsReport>('rejection-reasons'),
       get<AutoApprovalReport>('auto-approval'),
+      get<DroppedLeadsReport>('dropped-leads'),
     ]);
-    return { tat, funnel, backlog, timePerStage, rejections, autoApproval };
+    return { tat, funnel, backlog, timePerStage, rejections, autoApproval, droppedLeads };
   },
 };

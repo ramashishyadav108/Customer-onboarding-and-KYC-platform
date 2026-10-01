@@ -5,7 +5,7 @@ import { API, expectNoSeriousAxe, login, pdf, seedCase, staffToken } from './hel
 // Serial: the first test needs an empty database.
 test.describe.configure({ mode: 'serial' });
 
-const PANELS = ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate'];
+const PANELS = ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate', 'Dropped leads'];
 
 test('F170: dashboard on an empty database shows empty-state messages', async ({ page }) => {
   await login(page, 'admin1');
@@ -315,7 +315,7 @@ test.describe('group L: admin dashboard', () => {
     await page.getByLabel('Product', { exact: true }).selectOption('NRE');
     await page.getByLabel('From', { exact: true }).fill('2020-01-01');
     await page.getByLabel('To', { exact: true }).fill('2099-12-31');
-    await expect.poll(() => seen.filter((u) => u.includes('product=NRE') && u.includes('from=2020-01-01') && u.includes('to=2099-12-31')).length).toBeGreaterThanOrEqual(6);
+    await expect.poll(() => seen.filter((u) => u.includes('product=NRE') && u.includes('from=2020-01-01') && u.includes('to=2099-12-31')).length).toBeGreaterThanOrEqual(7);
   });
 
   test('F171: dashboard axe, keyboard reachable controls, admin-only', async ({ page }) => {

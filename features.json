@@ -2647,10 +2647,10 @@
     "category": "ui",
     "story": "E5-S4",
     "group": "L",
-    "description": "Dashboard shows all six report panels with API values",
+    "description": "Dashboard shows all seven report panels with API values",
     "steps": [
       "Seed data and open dashboard as admin",
-      "Assert six panels are present (the five AC-10 reports plus auto-approval rate)",
+      "Assert seven panels are present (the five AC-10 reports plus auto-approval rate and dropped leads)",
       "Assert displayed values equal the API responses"
     ],
     "passes": true,

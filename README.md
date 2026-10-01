@@ -9,6 +9,16 @@ e2e/        Playwright specs (backend mocked with page.route)
 specs/      Requirements, design and API contracts (the spec wins over code)
 ```
 
+## Quick start (one command)
+
+With Python 3.12, Node.js 18+ and the backend dependencies installed (`pip install -r backend/requirements.lock && pip install -e "backend[dev]"`), run from the repository root:
+
+```
+python scripts/start_all.py
+```
+
+It applies every migration (schema plus seed data: product checklists, risk rule set v1, watchlist, demo users), starts the API on `http://127.0.0.1:8000` and the web app on `http://localhost:3000`, and stops both on Ctrl-C. Use `--backend-port` and `--frontend-port` to change ports. Staff logins are `analyst1`, `officer1`, `admin1` with password `demo-<username>-pass`; prospects register at `/portal/register`. The detailed manual steps follow.
+
 ## Prerequisites
 
 - Python 3.12
