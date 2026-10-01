@@ -1,8 +1,7 @@
 name: claude-review
-# Manual only: nothing runs on push or pull request, so cloning this project and pushing it to another
-# repository starts no CI. Run it on demand from the Actions tab (needs the ANTHROPIC_API_KEY secret).
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
 jobs:
   review:
     runs-on: ubuntu-latest
