@@ -11,3 +11,4 @@ Recurring mistakes encoded back into rules, hooks and skills.
 | Timing a startup requirement from process spawn | `docs/debugging-log.md`: NFR-07 test measures from first accepted connection |
 | Assuming a tool (`uv`) exists | `docs/debugging-log.md`: check the environment before choosing commands |
 | Dev proxy using `localhost` (resolves to IPv6 `::1` on Node 18) while the API binds IPv4 | `frontend/vite.config.ts` targets `127.0.0.1` |
+| Trusting client-declared upload type (Content-Type / extension) | Magic-byte validation in `domain/documents.py` (`validate_content`) + tests `test_upload_content_validation.py`, `test_upload_signatures.py` (docs/fix-loops/001) |
