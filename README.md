@@ -86,6 +86,26 @@ curl -s -X POST localhost:8000/api/v1/leads -H "Content-Type: application/json" 
 
 With `AUTO_ADVANCE_ON_SUBMIT=true` the case goes straight to `APPROVED` (clean, low risk) or `MANUAL_REVIEW`. With it `false`, staff drive the steps: `POST /api/v1/cases/{id}/screen`, `/classify`, `/decide`, or all at once with `/advance`. Document classification is a stub decided by file-name prefix (`pan_`, `aadhaar_`, `passport_`, `utility-bill_`, `photograph_`, `gst-certificate_`, `visa_`).
 
+### Seed the 200-case demo cohort
+
+With the backend configured as above (stop it first if it is running), from `backend/`:
+
+```powershell
+python scripts/seed_demo_cohort.py          # deterministic: fixed seed, synthetic names only
+```
+
+It drives the real services to create 200 cases (about 67 percent auto-approved, the rest held for or resolved by manual review), so the admin reports show data. Run it once on a fresh database; it refuses a non-empty one unless you pass `--force`. Then log in as `admin1` and call `GET /api/v1/admin/reports/auto-approval`, `/tat`, `/funnel`, `/backlog`, `/time-per-stage`, `/rejection-reasons` or `/dropped-leads`.
+
+### Manual review, admin and reports (API)
+
+| Endpoint | Role |
+|---|---|
+| `GET /api/v1/review-queue`, `POST /api/v1/cases/{id}/override`, `POST /api/v1/cases/{id}/reclassify` | compliance-officer (`officer1`) |
+| `GET /api/v1/cases/{id}/evidence`, `GET /api/v1/cases/{id}/account` | staff (the account also for the owning prospect, masked) |
+| `/api/v1/admin/rule-sets`, `/api/v1/admin/watchlist`, `/api/v1/admin/reports/*` | admin (`admin1`) |
+
+Full interactive docs: `http://localhost:8000/docs`.
+
 ### Backend checks
 
 ```powershell
@@ -93,6 +113,7 @@ cd backend
 python -m pytest -q --cov=onboardx --cov-report=xml     # full suite with coverage
 python -m ruff check .                                   # lint
 python -m mypy src                                       # types
+lint-imports                                             # layering contracts (import-linter)
 ```
 
 Migrations 0001 to 0007 are append-only: never edit them. A schema change is a new migration, then `python scripts/update_migration_manifest.py`.

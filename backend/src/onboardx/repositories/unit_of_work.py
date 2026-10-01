@@ -17,10 +17,13 @@ from onboardx.repositories.document_repository import DocumentRepository
 from onboardx.repositories.idempotency_repository import IdempotencyRepository
 from onboardx.repositories.notification_repository import NotificationRepository
 from onboardx.repositories.profile_repository import ProfileRepository
+from onboardx.repositories.report_queries import ReportQueries
+from onboardx.repositories.review_repository import ReviewRepository
 from onboardx.repositories.rule_set_repository import RuleSetRepository
 from onboardx.repositories.screening_repository import ScreeningRepository
 from onboardx.repositories.state_history_repository import StateHistoryRepository
 from onboardx.repositories.user_repository import UserRepository
+from onboardx.repositories.watchlist_repository import WatchlistRepository
 
 
 class UnitOfWork:
@@ -47,6 +50,9 @@ class UnitOfWork:
         self.decisions = DecisionRepository(session)
         self.accounts = AccountRepository(session)
         self.notifications = NotificationRepository(session)
+        self.review = ReviewRepository(session)
+        self.watchlist = WatchlistRepository(session)
+        self.reports = ReportQueries(session)
         return self
 
     def __exit__(

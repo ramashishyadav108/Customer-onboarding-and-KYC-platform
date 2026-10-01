@@ -15,7 +15,9 @@ from onboardx.controllers.dependencies.services import build_services
 from onboardx.controllers.error_handlers import register_error_handlers
 from onboardx.controllers.middleware import CorrelationMiddleware
 from onboardx.controllers.routers import (
+    admin_reports,
     admin_rule_sets,
+    admin_watchlist,
     auth,
     cases,
     documents,
@@ -23,10 +25,25 @@ from onboardx.controllers.routers import (
     leads,
     pipeline,
     products,
+    review,
 )
 from onboardx.domain.ports import Clock, NotificationSender
 from onboardx.repositories.database import create_db_engine, create_session_factory
 from onboardx.repositories.unit_of_work import make_uow_factory
+
+ROUTERS = (
+    health,
+    auth,
+    leads,
+    cases,
+    documents,
+    pipeline,
+    products,
+    review,
+    admin_rule_sets,
+    admin_watchlist,
+    admin_reports,
+)
 
 
 def create_app(
@@ -67,6 +84,6 @@ def create_app(
     )
     register_error_handlers(app)
     app.add_middleware(CorrelationMiddleware)
-    for module in (health, auth, leads, cases, documents, pipeline, products, admin_rule_sets):
+    for module in ROUTERS:
         app.include_router(module.router)
     return app

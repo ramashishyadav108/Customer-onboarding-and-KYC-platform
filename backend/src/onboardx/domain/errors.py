@@ -164,3 +164,19 @@ class ConcurrentUpdateError(DomainError):
 
     def __init__(self) -> None:
         super().__init__("The case was changed by a concurrent request; retry")
+
+
+class OverrideAuditRequiredError(DomainError):
+    """A risk-band reassignment was attempted without its audit record (NFR-08)."""
+
+    code = "OVERRIDE_AUDIT_REQUIRED"
+
+    def __init__(self, case_id: str) -> None:
+        super().__init__("Reassignment requires an audit record", {"case_id": case_id})
+
+
+class AlreadyDeactivatedError(DomainError):
+    code = "ALREADY_DEACTIVATED"
+
+    def __init__(self, entry_id: str) -> None:
+        super().__init__("Watchlist entry is already deactivated", {"entry_id": entry_id})

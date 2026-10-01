@@ -15,14 +15,18 @@ from onboardx.services.case_view_service import CaseViewService
 from onboardx.services.checklist_service import ChecklistService
 from onboardx.services.decision_service import DecisionService
 from onboardx.services.document_service import DocumentService
+from onboardx.services.evidence_service import EvidenceService
 from onboardx.services.lead_service import LeadService
 from onboardx.services.notification_service import NotificationService, StubNotificationSender
 from onboardx.services.onboarding_service import OnboardingService
+from onboardx.services.override_service import OverrideService
 from onboardx.services.pipeline_service import PipelineService
+from onboardx.services.report_service import ReportService
 from onboardx.services.risk_service import RiskService
 from onboardx.services.rule_set_service import RuleSetService
 from onboardx.services.screening_service import ScreeningService
 from onboardx.services.submission_service import SubmissionService
+from onboardx.services.watchlist_service import WatchlistService
 
 
 @dataclass(frozen=True)
@@ -40,6 +44,10 @@ class Services:
     decisions: DecisionService
     pipeline: PipelineService
     notifications: NotificationService
+    overrides: OverrideService
+    evidence: EvidenceService
+    watchlist: WatchlistService
+    reports: ReportService
 
 
 def build_services(
@@ -75,6 +83,10 @@ def build_services(
         decisions=decisions,
         pipeline=pipeline,
         notifications=notifications,
+        overrides=OverrideService(uow_factory, clock, audit, onboarding, accounts, risk),
+        evidence=EvidenceService(uow_factory),
+        watchlist=WatchlistService(uow_factory, clock, audit),
+        reports=ReportService(uow_factory, clock),
     )
 
 

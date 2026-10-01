@@ -2,7 +2,14 @@
 
 from dataclasses import dataclass
 
-from onboardx.domain.entities import CaseProfile, Decision
+from onboardx.domain.entities import (
+    CaseProfile,
+    Decision,
+    Override,
+    RiskAssessment,
+    ScreeningResult,
+    StateHistoryEntry,
+)
 
 
 @dataclass(frozen=True)
@@ -98,3 +105,62 @@ class SubmitResult:
     case_id: str
     state: str
     missing_items: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ReviewQueueItem:
+    case_id: str
+    product: str
+    reason_code: str
+    age_minutes: int
+    entered_review_at: str
+
+
+@dataclass(frozen=True)
+class OverrideResult:
+    case_id: str
+    state: str
+    override: Override
+    account_number: str | None
+
+
+@dataclass(frozen=True)
+class WatchlistEntryView:
+    """A watchlist entry with its derived active flag (append-only: deactivation is a row)."""
+
+    entry_id: str
+    name: str
+    aliases: tuple[str, ...]
+    list_type: str
+    active: bool
+    added_at: str
+    deactivated_at: str | None
+
+
+@dataclass(frozen=True)
+class WatchlistPage:
+    watchlist_version: int
+    items: tuple[WatchlistEntryView, ...]
+
+
+@dataclass(frozen=True)
+class AccountView:
+    case_id: str
+    product: str
+    account_number: str
+    created_at: str
+
+
+@dataclass(frozen=True)
+class EvidenceView:
+    case_id: str
+    state: str
+    product: str
+    documents: tuple["DocumentView", ...]
+    screening: ScreeningResult | None
+    risk_assessment: RiskAssessment | None
+    decision: Decision | None
+    override: Override | None
+    review_reason_code: str | None
+    account_number_masked: str | None
+    history: tuple[StateHistoryEntry, ...]

@@ -6,17 +6,20 @@ Integers only. Every evaluation appends a RiskAssessment with its rule version a
 import logging
 import uuid
 
-from onboardx.domain.entities import CaseProfile, RiskAssessment
-from onboardx.domain.enums import AssessmentSource, AuditEvent, CaseState
+from onboardx.domain.entities import AuditEntry, CaseProfile, RiskAssessment
+from onboardx.domain.enums import AssessmentSource, AuditEvent, CaseState, RiskBand
 from onboardx.domain.errors import (
+    CaseLockedError,
     InvalidOnboardingStateException,
     MissingProfileFieldError,
     NotFoundError,
+    OverrideAuditRequiredError,
 )
+from onboardx.domain.lifecycle import is_terminal
 from onboardx.domain.ports import Clock
 from onboardx.domain.risk import ProfileInputs, score_profile
 from onboardx.domain.timeutil import to_iso_z
-from onboardx.repositories.unit_of_work import UnitOfWorkFactory
+from onboardx.repositories.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from onboardx.services.audit_service import AuditService
 from onboardx.services.onboarding_service import OnboardingService
 
@@ -96,3 +99,44 @@ class RiskService:
             uow.commit()
         logger.info("case classified", extra={"case_id": case_id, "band": assessment.band})
         return assessment
+
+    def reassign_band(
+        self, uow: UnitOfWork, *, case_id: str, band: RiskBand, audit: AuditEntry | None
+    ) -> RiskAssessment:
+        """Append an OFFICER_RECLASSIFY assessment (MANUAL_REVIEW only, NFR-08).
+
+        Refused with OverrideAuditRequiredError unless ``audit`` is a RISK_RECLASSIFIED entry
+        for this case that is already persisted in the same transaction.
+        """
+        if not _audit_present(uow, case_id, audit):
+            raise OverrideAuditRequiredError(case_id)
+        case = uow.cases.get(case_id)
+        if case is None:
+            raise NotFoundError("case")
+        if is_terminal(case.state):
+            raise CaseLockedError(case_id, case.state)
+        if case.state is not CaseState.MANUAL_REVIEW:
+            raise InvalidOnboardingStateException(case_id, case.state, CaseState.MANUAL_REVIEW)
+        previous = uow.assessments.latest(case_id)
+        if previous is None:
+            raise NotFoundError("risk_assessment")
+        assessment = RiskAssessment(
+            str(uuid.uuid4()),
+            case_id,
+            previous.score,
+            str(band),
+            previous.rule_version,
+            str(AssessmentSource.OFFICER_RECLASSIFY),
+            previous.breakdown,
+            to_iso_z(self._clock.now()),
+        )
+        uow.assessments.add(assessment)
+        return assessment
+
+
+def _audit_present(uow: UnitOfWork, case_id: str, audit: AuditEntry | None) -> bool:
+    if audit is None or audit.case_id != case_id:
+        return False
+    if audit.event != str(AuditEvent.RISK_RECLASSIFIED):
+        return False
+    return any(row.audit_id == audit.audit_id for row in uow.audit.list_for_case(case_id))
