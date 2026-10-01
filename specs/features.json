@@ -1711,7 +1711,7 @@
     "steps": [
       "Seed cases in different states and products",
       "Open workbench as kyc-analyst",
-      "Filter by state SCREENED and product NRE",
+      "Filter by state INITIATED and product NRE (SCREENED is transient: submit auto-advances the pipeline)",
       "Assert only matching rows"
     ],
     "passes": false,

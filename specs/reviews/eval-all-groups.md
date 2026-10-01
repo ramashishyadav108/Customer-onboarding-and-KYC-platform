@@ -1,6 +1,6 @@
 # Evaluation: all groups (2026-10-01)
 
-Verdict: PASS. 177 of 177 features pass.
+Verdict: PASS. 177 of 177 features pass; 3 of them (F025, F108, F167) pass against a corrected spec, not the original wording (see below).
 
 ## What was run
 | Layer | Scope | Result |
@@ -17,13 +17,20 @@ Verdict: PASS. 177 of 177 features pass.
 3. E2-S5 AC3: status page lacked an in-place Re-upload control. Added `ReuploadList` with unit tests.
 4. E4-S5 AC3: approve confirmation omitted the account number. Fixed with test.
 
+## Passed against a corrected spec (user-approved)
+Strictly against the original step wording these three would FAIL. The user chose to keep the corrections (option 1, 2026-10-01); the wording below is now the spec.
+| Feature | Original step | Corrected step | Basis |
+|---|---|---|---|
+| F025 | GET returns the stored profile to staff | prospect GET returns the profile; staff GET returns `profile: null`, `profile_complete: true` | DD-5 in `specs/design/system-design.md` and `api-contracts.md`; backend tests `test_ac01_4_staff_view_hides_the_profile` |
+| F108 | filter SCREENED + NRE | filter INITIATED + NRE | submit auto-advances, so SCREENED is never a resting state |
+| F167 | five panels | six panels (five AC-10 reports + auto-approval rate) | `ReportPanels.tsx`, AC-10 plus E5 auto-approval target |
+
 ## Spec corrections (Spec-Is-Truth)
 - F025: staff receive `profile: null` by design decision DD-5 (`specs/design/system-design.md`, `api-contracts.md`); feature step text corrected, code unchanged.
 - F167: dashboard has six panels (five AC-10 reports plus auto-approval); text corrected.
 - S5-API-03 contract wording clarified: `buckets` is a list.
 
 ## Deviations and limits
-- F108 filters INITIATED + NRE rather than SCREENED + NRE: submit auto-advances the pipeline, so SCREENED is not a resting state.
 - F170 (empty database) ran against a freshly started in-memory backend.
 - Mocked e2e suite (16 tests) unchanged; live suite is separate (`*.live.ts`).
 - Design-critic not run (contracts have no design_checks). Playwright MCP unavailable in this session; the Playwright test runner was used instead.
