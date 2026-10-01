@@ -3,7 +3,7 @@ import { authApi, casesApi, documentsApi, leadsApi, notificationsApi } from '@/a
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/state/AuthContext';
 import type { CaseDetail, LeadRequest, Profile, UploadResult } from '@/types';
-import { validateUploadFile } from '@/lib/validation';
+import { uploadErrorMessage, validateUploadFile } from '@/lib/uploadHelp';
 import { useAction, useResource } from './useResource';
 
 export function useLogin() {
@@ -88,7 +88,7 @@ export function useChecklistUpload(caseId: string, onChanged: () => void) {
         setFeedback((f) => ({ ...f, [itemCode]: { result } }));
         onChanged();
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Upload failed.';
+        const msg = e instanceof ApiError ? uploadErrorMessage(e) : uploadErrorMessage({ status: -1, code: '', message: '' });
         setFeedback((f) => ({ ...f, [itemCode]: { error: msg } }));
       }
     },
