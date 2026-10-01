@@ -15,3 +15,6 @@ build/
 playwright-report/
 test-results/
 ~/
+.smoke*
+uploads/
+.test_run.log
