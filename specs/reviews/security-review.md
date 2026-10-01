@@ -124,3 +124,8 @@ VULN-001 (rate limiting), VULN-002 (seeded demo credentials), VULN-004 (body siz
 7. Update frontend dev tooling (vite/vitest/coverage-v8) and plan react-router v7; run pip-audit against requirements.lock and add both audits to CI (VULN-006, VULN-014).
 8. Bind idempotency replays so they do not mint new tokens (VULN-008).
 9. Add "name" and "comment" to the redaction key set; optionally move the token to in-memory storage (VULN-012, VULN-015).
+
+## Remediation
+
+- VULN-003 fixed in commit 944eb25 (with seed-script follow-up 48c266a): magic-byte validation (PDF, JPEG, PNG) in `domain/documents.py::validate_content`, wired through `DocumentService.upload`; mismatch returns 415 and nothing is stored. Live re-probe: HTML as pan_valid.png now 415. See docs/fix-loops/001-upload-content-validation.md.
+- VULN-004 not fixed: the handler already caps the read at 5 MiB + 1 byte (413), but Starlette spools the multipart body before the handler runs; a body-size middleware or proxy limit is still required.

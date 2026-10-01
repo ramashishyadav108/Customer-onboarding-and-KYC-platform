@@ -134,9 +134,8 @@ def test_ac02_4_oversize_file_is_413_and_nothing_is_stored(
 
 @pytest.mark.ac("AC-02")
 def test_ac02_4_a_file_of_exactly_five_mebibytes_is_accepted(client: TestClient) -> None:
-    response = upload(
-        client, create_lead(client), "ID_PROOF", "pan_1.pdf", b"x" * (5 * 1024 * 1024)
-    )
+    body = PDF_BYTES + b"x" * (5 * 1024 * 1024 - len(PDF_BYTES))
+    response = upload(client, create_lead(client), "ID_PROOF", "pan_1.pdf", body)
     assert response.status_code == 201 and response.json()["status"] == "VERIFIED"
 
 
@@ -186,7 +185,7 @@ def test_ac02_5_stored_document_records_sha256_size_and_safe_name(
 ) -> None:
     """AC-02.5: checksum, size, sanitised name; file lands under the upload directory."""
     lead = create_lead(client)
-    content = b"%PDF synthetic content 123"
+    content = b"%PDF-1.4 synthetic content 123"
     response = upload(client, lead, "ID_PROOF", "pan_valid.pdf", content)
     (row,) = rows(
         engine,

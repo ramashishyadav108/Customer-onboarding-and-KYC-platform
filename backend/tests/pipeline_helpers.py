@@ -10,6 +10,9 @@ from api_helpers import VALID_PROFILE, bearer, create_lead, lead_headers, staff_
 
 CONTENT_TYPES = {"pdf": "application/pdf", "jpg": "image/jpeg", "png": "image/png"}
 PDF_BYTES = b"%PDF-1.4 synthetic fixture"
+JPEG_BYTES = bytes.fromhex("ffd8ff") + b" synthetic fixture"
+PNG_BYTES = bytes.fromhex("89504e470d0a1a0a") + b" synthetic fixture"
+FIXTURE_BYTES = {"pdf": PDF_BYTES, "jpg": JPEG_BYTES, "png": PNG_BYTES}
 
 GOOD_FILES: dict[str, dict[str, str]] = {
     "Savings": {
@@ -50,15 +53,21 @@ def content_type_for(filename: str) -> str:
     return CONTENT_TYPES[filename.rsplit(".", 1)[-1].lower()]
 
 
+def bytes_for(filename: str) -> bytes:
+    """Synthetic content whose magic bytes match the extension (AC-02.4a)."""
+    return FIXTURE_BYTES[filename.rsplit(".", 1)[-1].lower()]
+
+
 def upload(
     client: TestClient,
     lead: dict[str, Any],
     item: str,
     filename: str,
-    content: bytes = PDF_BYTES,
+    content: bytes | None = None,
     content_type: str | None = None,
 ) -> Response:
-    files = {"file": (filename, content, content_type or content_type_for(filename))}
+    body = bytes_for(filename) if content is None else content
+    files = {"file": (filename, body, content_type or content_type_for(filename))}
     return client.post(
         f"/api/v1/cases/{lead['case_id']}/documents",
         data={"checklist_item": item},

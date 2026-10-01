@@ -27,6 +27,7 @@ Stories: E1-S5, E2-S1, E2-S2, E2-S4, E2-S5. Features: F036-F054, F062-F074.
 - AC-02.2 The checklist endpoint returns version and items; an unknown product returns 404.
 - AC-02.3 A case keeps the checklist version it was created under after a newer version is seeded (append-only migration).
 - AC-02.4 Upload accepts PDF, JPG, PNG up to 5 MB (415 and 413 otherwise) and only items on the case's product checklist (422 UNKNOWN_CHECKLIST_ITEM).
+- AC-02.4a Upload content is validated by magic bytes, not by the client-declared type alone: PDF must start with `%PDF-`, JPEG with `FF D8 FF`, PNG with `89 50 4E 47 0D 0A 1A 0A`. A mismatch between the declared Content-Type, the file extension and the actual content returns 415 UNSUPPORTED_MEDIA_TYPE and nothing is stored (security-review VULN-003). The 5 MiB cap is applied while reading (at most limit plus one byte is read) and returns 413 FILE_TOO_LARGE.
 - AC-02.5 Stored documents record SHA-256, size and a sanitised filename; traversal names cannot escape the upload directory; content and names are never logged.
 - AC-02.6 Submit with every mandatory item uploaded and the profile complete returns 200 and DOCS_SUBMITTED.
 - AC-02.7 Submit with any mandatory item missing returns 422 MISSING_DOCUMENTS listing the missing item codes; state stays INITIATED.

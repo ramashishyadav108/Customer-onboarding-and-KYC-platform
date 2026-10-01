@@ -6,7 +6,12 @@ import logging
 import uuid
 
 from onboardx.domain.classifier import classify_filename
-from onboardx.domain.documents import STORED_EXTENSION, sanitise_filename, validate_upload
+from onboardx.domain.documents import (
+    STORED_EXTENSION,
+    sanitise_filename,
+    validate_content,
+    validate_upload,
+)
 from onboardx.domain.entities import (
     Case,
     ChecklistItem,
@@ -173,6 +178,7 @@ class DocumentService:
             item = self._guard(uow, case, checklist_item)
             display = sanitise_filename(filename)
             kind = validate_upload(content_type, display, len(content))
+            validate_content(kind, content)
             document = self._new_document(uow, case, item, display, kind, actor, content)
             self._store.save(document.storage_path, content)
             try:

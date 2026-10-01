@@ -15,7 +15,7 @@ from helpers import JWT_SECRET, FakeClock
 from onboardx.config.settings import Settings
 from onboardx.controllers.dependencies.services import Services
 from onboardx.main import create_app
-from pipeline_helpers import history, put_profile, rows, upload_all, upload_ok
+from pipeline_helpers import PDF_BYTES, history, put_profile, rows, upload_all, upload_ok
 
 NAME = "Zorblax Quentinsen"
 EMAIL = "zorblax.quentinsen@example.com"
@@ -208,7 +208,7 @@ def test_ac09_3b_concurrent_uploads_to_one_item_produce_distinct_versions(
             checklist_item="ID_PROOF",
             filename=f"pan_{i}.pdf",
             content_type="application/pdf",
-            content=b"x" * (i + 1),
+            content=PDF_BYTES + b"x" * i,
         ),
     )
     ok = [o for o in outcomes if not isinstance(o, Exception)]
