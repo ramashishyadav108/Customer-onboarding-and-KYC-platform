@@ -1,13 +1,6 @@
 # OnboardX CI: build + test (backend, frontend), architecture checks, and Claude Code review on merge requests.
 stages: [build, test, review]
 
-# No pipeline is created for pushes or merge requests: pushing this project to another GitLab
-# repository starts no CI. To run the jobs on purpose, start a pipeline with the variable
-# RUN_PIPELINE=true (CI/CD > Pipelines > Run pipeline).
-workflow:
-  rules:
-    - if: '$RUN_PIPELINE == "true"'
-
 default:
   interruptible: true
 
