@@ -683,8 +683,8 @@
       "Assert 201",
       "Assert document_id, version 1, doc_class PAN and status VERIFIED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -699,8 +699,8 @@
       "Upload a 5 MB + 1 byte PDF and assert 413",
       "Assert document count unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -715,8 +715,8 @@
       "Upload with checklist_item BUSINESS_PROOF",
       "Assert 422 and code UNKNOWN_CHECKLIST_ITEM"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -731,8 +731,8 @@
       "GET documents",
       "Assert one entry per item with status, doc_class and reason code fields"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -747,8 +747,8 @@
       "Assert stored name has no path separators",
       "Assert no file written outside the upload directory"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -763,8 +763,8 @@
       "Assert stored checksum equals SHA-256 of bytes",
       "Assert captured logs contain neither content nor original filename"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -779,8 +779,8 @@
       "Upload as kyc-analyst and assert 403",
       "List as kyc-analyst and assert 200"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -796,8 +796,8 @@
       "POST submit",
       "Assert 200 and state DOCS_SUBMITTED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -814,8 +814,8 @@
       "Assert missing_items equals [ADDRESS_PROOF, PHOTOGRAPH]",
       "Assert state INITIATED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -830,8 +830,8 @@
       "POST submit",
       "Assert 422 MISSING_PROFILE listing date_of_birth, annual_income, occupation_category, country_code"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -846,8 +846,8 @@
       "Move case to SCREENED",
       "Submit again and assert 409 INVALID_STATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -863,8 +863,8 @@
       "Assert DOCUMENTS_SUBMITTED entry lists the document ids",
       "GET case and assert missing_items is empty"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -879,8 +879,8 @@
       "Assert classes PAN, AADHAAR, PASSPORT, UTILITY_BILL",
       "Assert each status VERIFIED and confidence_bp 9500"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -894,8 +894,8 @@
       "Classify photograph_01.jpg, gst-certificate_01.pdf, visa_01.pdf",
       "Assert PHOTOGRAPH, GST_CERTIFICATE, VISA and VERIFIED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -909,8 +909,8 @@
       "Classify random_scan.pdf",
       "Assert doc_class UNRECOGNISED, status FLAGGED and reason_code DOC_UNRECOGNISED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -924,8 +924,8 @@
       "Classify utility-bill_1.pdf for item ID_PROOF",
       "Assert FLAGGED with reason_code DOC_CLASS_MISMATCH"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -940,8 +940,8 @@
       "Assert results are equal",
       "Assert confidence_bp is of type int"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -956,8 +956,8 @@
       "Attempt UPDATE and DELETE on the classification table",
       "Assert database rejects both"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -972,8 +972,8 @@
       "Query classification_rules table",
       "Assert rules for the seven classes exist with a rule_version"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -988,8 +988,8 @@
       "Assert 200 and document status REJECTED",
       "Assert audit entry DOCUMENT_REJECTED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1003,8 +1003,8 @@
       "POST reject as prospect and assert 403",
       "POST reject as admin and assert 403"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1019,8 +1019,8 @@
       "Re-upload aadhaar_valid.pdf for ID_PROOF",
       "Assert version 2 is current and version 1 still stored as superseded"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1035,8 +1035,8 @@
       "Re-upload a document",
       "Assert all three are unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1051,8 +1051,8 @@
       "Re-upload a document",
       "Assert 409 CASE_LOCKED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1068,8 +1068,8 @@
       "Assert new version VERIFIED",
       "Assert item no longer in action_required"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1084,8 +1084,8 @@
       "GET case",
       "Assert action_required contains both with status MISSING and FLAGGED and reason codes"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1195,8 +1195,8 @@
       "Assert state SCREENED",
       "Assert a ScreeningResult row with watchlist_version exists"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1210,8 +1210,8 @@
       "Screen cases named 'test person-one' and 'One, Test Person' against entry Test Person One",
       "Assert both hit"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1225,8 +1225,8 @@
       "Screen a case named Alice Example",
       "Assert hits is empty"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1241,8 +1241,8 @@
       "Assert hits has entry_id, list_type AML and reason_code AML_HIT",
       "Assert requires_manual_review true"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1256,8 +1256,8 @@
       "Screen a case whose name equals a seeded PEP entry",
       "Assert list_type PEP and reason_code PEP_HIT"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1271,8 +1271,8 @@
       "Screen a clean-name case",
       "Assert hits [] and requires_manual_review false and state SCREENED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1287,8 +1287,8 @@
       "Count watchlist entries by list_type",
       "Assert at least 5 AML and 5 PEP"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1303,8 +1303,8 @@
       "Assert two rows exist",
       "Attempt UPDATE and DELETE on the table and assert rejection"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1318,8 +1318,8 @@
       "Call screen on an INITIATED case",
       "Assert 409 INVALID_STATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1333,8 +1333,8 @@
       "Screen a case twice with unchanged watchlist",
       "Assert one SCREENED history row and same result id"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1474,8 +1474,8 @@
       "Assert scores 16, 45 and 72",
       "Assert bands LOW, MEDIUM and HIGH"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1489,8 +1489,8 @@
       "Call band function for 29, 30, 59, 60",
       "Assert LOW, MEDIUM, MEDIUM, HIGH"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1505,8 +1505,8 @@
       "Evaluate each",
       "Assert type int and 0 <= score <= 100"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1522,8 +1522,8 @@
       "Read the stored assessment",
       "Assert it still shows rule_version 1 and original score"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1538,8 +1538,8 @@
       "POST classify as kyc-analyst",
       "Assert 200 band present and state CLASSIFIED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1553,8 +1553,8 @@
       "POST classify on an INITIATED case",
       "Assert 409 INVALID_STATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1570,8 +1570,8 @@
       "Assert 422 MISSING_PROFILE_FIELD",
       "Assert state SCREENED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1586,8 +1586,8 @@
       "PUT a weight change and assert 200",
       "POST publish and assert status PUBLISHED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1601,8 +1601,8 @@
       "Call the three endpoints as compliance-officer",
       "Assert 403 each time"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1617,8 +1617,8 @@
       "Assert 409 RULESET_IMMUTABLE",
       "GET v1 and assert values unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1633,8 +1633,8 @@
       "Assert 422",
       "Assert draft unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1649,8 +1649,8 @@
       "Screen a case with that name",
       "Assert hit"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1666,8 +1666,8 @@
       "Assert no hit",
       "Assert the original entry row and deactivation row both exist"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1681,8 +1681,8 @@
       "GET rule-sets as admin",
       "Assert each item has version, status, published_at"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1697,8 +1697,8 @@
       "Query audit log",
       "Assert entries with actor admin for each event"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1814,8 +1814,8 @@
       "Assert decision AUTO with AUTO_APPROVED",
       "Assert an account number exists"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1831,8 +1831,8 @@
       "Assert MANUAL_REVIEW reason AML_HIT",
       "Assert no account"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1847,8 +1847,8 @@
       "Decide a HIGH case and assert RISK_HIGH",
       "Decide a case with a FLAGGED document and assert DOC_UNRECOGNISED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1862,8 +1862,8 @@
       "Decide a HIGH-risk case that also has a PEP hit",
       "Assert reason code PEP_HIT"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1878,8 +1878,8 @@
       "Attempt upload, profile PUT, reclassify and transition",
       "Assert 409 CASE_LOCKED each time and stored data unchanged"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1894,8 +1894,8 @@
       "Attempt UPDATE and DELETE on decisions",
       "Assert database rejects both"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1909,8 +1909,8 @@
       "POST decide twice on the same case",
       "Assert identical response and one decision row"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1925,8 +1925,8 @@
       "POST advance",
       "Assert final state APPROVED and history shows SCREENED, CLASSIFIED, APPROVED in order"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1940,8 +1940,8 @@
       "POST advance twice",
       "Assert history row count is unchanged after the second call"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1957,8 +1957,8 @@
       "Assert suffix is 12 digits",
       "Assert same case_id yields same number"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1973,8 +1973,8 @@
       "Assert InvalidOnboardingStateException",
       "Assert no account row"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -1988,8 +1988,8 @@
       "Call create_account twice for an approved case",
       "Assert equal numbers and one row"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2004,8 +2004,8 @@
       "Attempt UPDATE and DELETE",
       "Assert database rejects both"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2020,8 +2020,8 @@
       "Create an account",
       "Assert success"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2036,8 +2036,8 @@
       "Query audit",
       "Assert ACCOUNT_CREATED entry has case_id and a masked number showing only the last 4 digits"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2052,8 +2052,8 @@
       "GET queue as compliance-officer",
       "Assert order oldest first with reason_code and age_minutes"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2067,8 +2067,8 @@
       "GET queue as kyc-analyst, prospect and admin",
       "Assert 403 each time"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2083,8 +2083,8 @@
       "Assert state APPROVED",
       "POST override REJECT with reason CONFIRMED_WATCHLIST_MATCH on another case and assert REJECTED"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2099,8 +2099,8 @@
       "Assert 422",
       "Assert case still MANUAL_REVIEW"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2114,8 +2114,8 @@
       "POST override as kyc-analyst, admin and prospect",
       "Assert 403 each time"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2129,8 +2129,8 @@
       "POST override on a CLASSIFIED case",
       "Assert 409 INVALID_STATE"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2145,8 +2145,8 @@
       "Query overrides and audit",
       "Assert both rows with actor, reason_code and rule_version"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2160,8 +2160,8 @@
       "Attempt UPDATE and DELETE on overrides",
       "Assert database rejects both"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2175,8 +2175,8 @@
       "Override APPROVE and assert account number in response",
       "Override REJECT on another case and assert no account row"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2191,8 +2191,8 @@
       "Assert new assessment and audit entry exist",
       "POST reclassify without reason and assert 422 and unchanged band"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2207,8 +2207,8 @@
       "Query notifications",
       "Assert one per state entered with correct event name"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2223,8 +2223,8 @@
       "Query notifications",
       "Assert DOC_REJECTED with item code and reason code"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2238,8 +2238,8 @@
       "GET notifications as owner",
       "Assert newest first ordering"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2253,8 +2253,8 @@
       "GET notifications as another prospect",
       "Assert 403"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2270,8 +2270,8 @@
       "Inspect notification rows and logs",
       "Assert the plaintext contact is absent"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2287,8 +2287,8 @@
       "Assert the new state persisted",
       "Assert error log line has correlation_id and case_id"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2398,8 +2398,8 @@
       "Call tat_by_product",
       "Assert count 3, average 120, min 60, max 180"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2414,8 +2414,8 @@
       "Call avg_time_per_stage",
       "Assert values per stage equal the hand-computed means"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2430,8 +2430,8 @@
       "Call tat_by_product",
       "Assert count 2"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2447,8 +2447,8 @@
       "Query a range with no cases",
       "Assert zeros and no error"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2463,8 +2463,8 @@
       "Compute all metrics",
       "Assert equality with the expected JSON"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2478,8 +2478,8 @@
       "AST-scan the metrics module",
       "Assert zero float literals or float() calls"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2494,8 +2494,8 @@
       "Call funnel",
       "Assert per-stage counts and conversion_bp equal hand-computed values"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2510,8 +2510,8 @@
       "Call backlog",
       "Assert count 3, oldest 2000 and buckets 1/1/1"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2527,8 +2527,8 @@
       "Assert order A, B, C with counts 3, 3, 1",
       "Seed 7 distinct reasons and assert only 5 returned"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2543,8 +2543,8 @@
       "Call auto_approval_rate",
       "Assert rate_bp 6000, target_bp 6000 and met true"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2559,8 +2559,8 @@
       "Call each metric with product NRE",
       "Assert only NRE cases counted"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2574,8 +2574,8 @@
       "Call each of the six endpoints as admin",
       "Assert 200 and JSON bodies with the documented keys"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2589,8 +2589,8 @@
       "Call each endpoint with no token and assert 401",
       "Call with each non-admin role and assert 403"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2605,8 +2605,8 @@
       "Assert 422 naming product",
       "Call with from=2026-13-01 and assert 422 naming from"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2621,8 +2621,8 @@
       "Call each endpoint 50 times",
       "Assert p95 latency below 500 ms"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2637,8 +2637,8 @@
       "Call each endpoint",
       "Assert no name or contact substring occurs in any body"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2731,8 +2731,8 @@
       "Attempt update and delete via service, repository and raw SQL",
       "Assert each fails"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2747,8 +2747,8 @@
       "Invoke every mutating service function",
       "Assert CaseLockedError from each"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2764,8 +2764,8 @@
       "Call with override reason",
       "Assert success and audit row"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2779,8 +2779,8 @@
       "AST-scan all backend modules",
       "Assert no module imports from a higher layer"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2795,8 +2795,8 @@
       "Attempt raw UPDATE and DELETE",
       "Assert database error each time"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   },
@@ -2811,8 +2811,8 @@
       "Capture all log output",
       "Assert none of those values appear"
     ],
-    "passes": false,
-    "last_evaluated": null,
+    "passes": true,
+    "last_evaluated": "2026-10-01T03:44:58.464624Z",
     "failure_reason": null,
     "failure_layer": null
   }
