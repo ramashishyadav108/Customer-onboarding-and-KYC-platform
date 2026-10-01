@@ -1,0 +1,185 @@
+{
+  "group": "A",
+  "stories": ["E1-S1", "E1-S4", "E1-S5", "E3-S2"],
+  "features": [
+    "F001", "F002", "F003", "F004", "F005", "F006", "F007", "F008", "F009",
+    "F028", "F029", "F030", "F031", "F032", "F033", "F034", "F035",
+    "F036", "F037", "F038", "F039", "F040", "F041", "F042",
+    "F085", "F086", "F087", "F088", "F089", "F090", "F091", "F092"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "A-API-01",
+        "method": "GET",
+        "path": "/health",
+        "expected_status": 200,
+        "expected_body": { "status": "ok" },
+        "description": "E1-S1 AC1 / F001: health returns 200 with body exactly {\"status\":\"ok\"} (backend at http://localhost:8000, public, unversioned)"
+      },
+      {
+        "id": "A-API-02",
+        "method": "GET",
+        "path": "/health",
+        "headers": { "X-Correlation-ID": "abc-123" },
+        "expected_status": 200,
+        "expected_body": { "status": "ok" },
+        "description": "E1-S1 AC2 / F004: evaluator asserts response header X-Correlation-ID equals abc-123"
+      },
+      {
+        "id": "A-API-03",
+        "method": "GET",
+        "path": "/health",
+        "expected_status": 200,
+        "expected_body": { "status": "ok" },
+        "description": "E1-S1 AC2 / F004: with no X-Correlation-ID request header, evaluator asserts the response header X-Correlation-ID is present and parses as a version-4 UUID"
+      },
+      {
+        "id": "A-API-04",
+        "method": "GET",
+        "path": "/api/v1/products/Savings/checklist",
+        "expected_status": 401,
+        "expected_body": { "error": { "code": "UNAUTHENTICATED" } },
+        "description": "E1-S5 AC4 (auth: any authenticated user; api-contracts 1.1 error envelope): request without Authorization header is rejected with 401 UNAUTHENTICATED envelope, never 200. The 200/404 paths with a token are covered by pytest (F039, F040) because the login endpoint arrives in E1-S2."
+      }
+    ],
+    "playwright_checks": [],
+    "design_checks": {},
+    "performance_checks": [
+      { "endpoint": "/health", "max_response_time_ms": 1000, "method": "GET" }
+    ],
+    "architecture_checks": {
+      "layering": {
+        "required": true,
+        "description": "Types -> Config -> Repository -> Service -> API one-way dependencies (CLAUDE.md, .claude/architecture.md): backend/src/onboardx/domain imports nothing from services, repositories, controllers, fastapi or sqlalchemy; repositories do not import services or controllers; services do not import controllers. E3-S2 AC2 / F087: backend/tests/architecture/test_no_float_in_risk.py AST-scans domain/risk.py, repositories/models/risk.py, repositories/rule_set_repository.py and migrations/versions/0006_seed_rule_set_v1.py and finds zero float literals, float() calls and float annotations; the evaluator re-runs this test."
+      },
+      "typing": {
+        "required": true,
+        "description": "Backend toolchain is venv + pip + backend/requirements.lock (DD-15; no uv). From backend/: `.venv/Scripts/python -m ruff check .` exits 0; `.venv/Scripts/python -m mypy src/` exits 0; `.venv/Scripts/python -m pytest --cov=onboardx --cov-report=xml --cov-fail-under=80` exits 0 on SQLite (deployment.md gate 5), with pytest-cov pinned in requirements.lock. Any skipped or xfail test mapped to a group-A feature in pytest_checks counts as a failure."
+      },
+      "pytest_checks": {
+        "required": true,
+        "description": "Every group-A feature is proven by a named, passing pytest. The evaluator runs each listed file and confirms a test exercising the stated assertion exists and passes. Tests run against SQLite with all migrations applied via alembic upgrade head (deployment.md test env).",
+        "features": {
+          "F001": "integration/test_health.py: TestClient GET /health -> 200, body == {\"status\":\"ok\"}",
+          "F002": "integration/test_health.py: spawns backend/scripts/run_backend.py as a subprocess, polls GET /health every 50 ms, asserts first 200 arrives <= 1000 ms after process start",
+          "F003": "integration/test_logging_correlation.py: every captured log line parses with json.loads, is a single line, and has keys timestamp, level, correlation_id, message",
+          "F004": "integration/test_logging_correlation.py: header abc-123 appears in response header and in log lines; absent header -> generated UUID4 echoed in response header and logs",
+          "F005": "integration/test_logging_correlation.py: a request to a case-scoped route (path param case_id; a test-only route is acceptable in group A) emits at least one log line whose case_id equals the path value",
+          "F006": "unit/test_redaction.py: record with synthetic PAN ABCDE1234F, Aadhaar 123412341234, a 10-digit phone, an email, an income value and an occupation value (in message and extra fields) -> none appear in formatted output and a redaction marker is present",
+          "F007": "unit/test_settings.py: with DATABASE_URL unset, constructing Settings (and app startup) raises an error whose message contains DATABASE_URL",
+          "F008": "unit/test_migration_guard.py: guard passes on the committed tree; editing an existing migration in a temp copy fails; deleting one fails",
+          "F009": "unit/test_migration_guard.py: adding a new migration file with a new manifest entry (existing entries unchanged) passes",
+          "F028": "unit/test_lifecycle.py + unit/test_onboarding_service.py: each of the 8 permitted edges (INITIATED->DOCS_SUBMITTED, DOCS_SUBMITTED->SCREENED, SCREENED->CLASSIFIED, CLASSIFIED->APPROVED, CLASSIFIED->REJECTED, CLASSIFIED->MANUAL_REVIEW, MANUAL_REVIEW->APPROVED, MANUAL_REVIEW->REJECTED) succeeds; the table contains exactly these 8 edges (no SCREENED->MANUAL_REVIEW, per amendments)",
+          "F029": "unit/test_lifecycle.py: all 49 state pairs minus the 8 permitted edges raise InvalidOnboardingStateException (parametrised)",
+          "F030": "unit/test_onboarding_service.py: INITIATED->APPROVED raises InvalidOnboardingStateException with case_id, from_state INITIATED, to_state APPROVED; stored state still INITIATED and no history row added",
+          "F031": "a group-A integration test: TestClient request that raises InvalidOnboardingStateException (test-only route acceptable) returns 409 with body {error:{code:INVALID_STATE, message, details:{case_id, from_state, to_state}}}; handler lives in controllers/error_handlers.py",
+          "F032": "integration/test_transition_rollback.py: successful transition writes state plus one history row (case_id, from_state, to_state, actor, reason_code, UTC timestamp) in one transaction; injected failure after the state update leaves neither persisted",
+          "F033": "unit/test_lifecycle.py: from APPROVED and from REJECTED, every target state raises InvalidOnboardingStateException",
+          "F034": "integration/test_state_history_append_only.py: raw UPDATE and DELETE on state-history and audit-log rows raise a database error (trigger); state_history_repository and audit_repository classes expose no update/delete/remove method (introspection). Migration 0002 contains both PostgreSQL and SQLite trigger variants",
+          "F035": "integration/test_transition_idempotency.py: transition with idempotency key t1 repeated -> same result returned, exactly one history row, state unchanged",
+          "F036": "integration/test_checklist_api.py: Savings items ID_PROOF [PAN,AADHAAR,PASSPORT], ADDRESS_PROOF [AADHAAR,PASSPORT,UTILITY_BILL], PHOTOGRAPH [PHOTOGRAPH], all mandatory",
+          "F037": "integration/test_checklist_api.py: Current = Savings items plus mandatory BUSINESS_PROOF [GST_CERTIFICATE]",
+          "F038": "integration/test_checklist_api.py: NRE has ADDRESS_PROOF, PHOTOGRAPH, ID_PROOF accepting only [PASSPORT], mandatory OVERSEAS_ADDRESS_PROOF [VISA]",
+          "F039": "integration/test_checklist_api.py: GET /api/v1/products/NRE/checklist with a valid bearer token -> 200 Checklist {product, version (int), items[{item_code, mandatory, accepted_classes}]}; without a token -> 401 UNAUTHENTICATED",
+          "F040": "integration/test_checklist_api.py: authenticated GET /api/v1/products/Loan/checklist -> 404 with error.code NOT_FOUND",
+          "F041": "integration/test_checklist_versioning.py: case created under v1; a v2 seeded via an additional migration (temp copy) does not alter v1 rows; the case still reports checklist_version 1; endpoint returns latest version 2",
+          "F042": "unit/test_migration_guard.py: modifying 0004_seed_checklists_v1.py in a temp copy makes the guard fail",
+          "F085": "integration/test_rule_set_repository.py: RuleSet draft with integer version, status DRAFT, weights for age/income_band/occupation_category/geography, points tables per factor, income band boundaries, low_max and medium_max persists and reloads with every numeric value an int",
+          "F086": "unit/test_rule_set_values.py: weight, point or threshold given as float 0.25 or Decimal('0.25') raises ValidationError",
+          "F087": "architecture/test_no_float_in_risk.py (see layering)",
+          "F088": "integration/test_rule_set_repository.py: publishing a DRAFT sets status PUBLISHED and published_at; later update and delete each raise PublishedRuleSetImmutableError before any SQL is issued",
+          "F089": "integration/test_rule_set_trigger.py: raw UPDATE and DELETE on a PUBLISHED risk_rule_sets row raise a database error; the same on a DRAFT row succeed",
+          "F090": "integration/test_rule_set_repository.py: new draft from latest has version max(version)+1 and identical values; v1 unchanged and retrievable",
+          "F091": "unit/test_rule_set_values.py: publish with weights summing to 99 -> RULESET_INVALID (reason WEIGHTS_SUM); low_max 60, medium_max 59 -> RULESET_INVALID (reason THRESHOLDS_ORDER); state stays DRAFT",
+          "F092": "unit/test_rule_set_values.py (after alembic upgrade head): published v1 has weights age 20, income_band 25, occupation_category 30, geography 25 and thresholds low_max 29, medium_max 59; DOMESTIC_BORDER state list equals {JK, PB, AS} (test tagged AC-06, DD-14)"
+        }
+      },
+      "profile_state_code": {
+        "required": true,
+        "description": "DD-14 (amendments, group-A share only): migration 0001 defines case_profiles.state_code (nullable text, two uppercase letters when present; the required-for-IN validation is E1-S3, group C, not checked here). Migration 0006 seeds rule set v1 with a DOMESTIC_BORDER state list of exactly JK, PB, AS as string codes, and the RuleSet entity in domain/risk.py exposes that list. specs/design/data-models.md, data-models.schema.json, api-contracts.md and api-contracts.schema.json are amended to include profile state_code and the rule-set border-state list, matching migration 0001/0006."
+      },
+      "frontend_toolchain": {
+        "required": true,
+        "description": "E1-S1 frontend scaffold (component-map). Node on this machine is v18.18.0: frontend/package.json pins Vite 5.x with a compatible @vitejs/plugin-react and vitest; `npm install` succeeds and `npm run typecheck` (tsc --noEmit) and `npm run build` pass under Node 18.18. Scaffold only; no pages are evaluated in group A."
+      },
+      "folder_structure": {
+        "required": true,
+        "description": "Backend code lives under backend/src/onboardx/{config,controllers,domain,repositories,services} and tests under backend/tests/{unit,integration,architecture}, as in component-map.md. No application code outside these trees."
+      },
+      "env_vars": {
+        "required": true,
+        "description": "E1-S1 AC4 / F007: Settings is a typed object loaded from environment variables; unset DATABASE_URL aborts startup with a message naming DATABASE_URL. No secrets or connection strings hardcoded in src/ (only .env.example carries sample values)."
+      },
+      "migrations": {
+        "required": true,
+        "description": "E1-S1 AC5, E1-S5 AC5, E3-S2 AC6: group-A migrations are exactly 0001_core_schema, 0002_append_only_triggers, 0004_seed_checklists_v1 and 0006_seed_rule_set_v1 (0003, 0005, 0007 belong to later groups); `alembic upgrade head` runs clean on an empty SQLite database; migrations/manifest.json lists each with its SHA-256 and the guard passes on the committed tree (F008, F009, F042). 0002 installs BEFORE UPDATE/DELETE triggers for state history and audit log (F034) and blocks UPDATE/DELETE of PUBLISHED risk_rule_sets (F089)."
+      },
+      "files_must_exist": [
+        "backend/pyproject.toml",
+        "backend/requirements.lock",
+        "init.sh",
+        "backend/alembic.ini",
+        "backend/migrations/env.py",
+        "backend/migrations/manifest.json",
+        "backend/migrations/versions/0001_core_schema.py",
+        "backend/migrations/versions/0002_append_only_triggers.py",
+        "backend/migrations/versions/0004_seed_checklists_v1.py",
+        "backend/migrations/versions/0006_seed_rule_set_v1.py",
+        "backend/scripts/update_migration_manifest.py",
+        "backend/scripts/run_backend.py",
+        "backend/src/onboardx/main.py",
+        "backend/src/onboardx/config/settings.py",
+        "backend/src/onboardx/config/logging_setup.py",
+        "backend/src/onboardx/config/redaction.py",
+        "backend/src/onboardx/config/constants.py",
+        "backend/src/onboardx/config/migration_guard.py",
+        "backend/src/onboardx/controllers/routers/health.py",
+        "backend/src/onboardx/controllers/routers/products.py",
+        "backend/src/onboardx/controllers/middleware.py",
+        "backend/src/onboardx/controllers/error_handlers.py",
+        "backend/src/onboardx/repositories/database.py",
+        "backend/src/onboardx/repositories/unit_of_work.py",
+        "backend/src/onboardx/repositories/state_history_repository.py",
+        "backend/src/onboardx/repositories/audit_repository.py",
+        "backend/src/onboardx/repositories/checklist_repository.py",
+        "backend/src/onboardx/repositories/rule_set_repository.py",
+        "backend/src/onboardx/repositories/models/base.py",
+        "backend/src/onboardx/repositories/models/cases.py",
+        "backend/src/onboardx/repositories/models/risk.py",
+        "backend/src/onboardx/domain/enums.py",
+        "backend/src/onboardx/domain/lifecycle.py",
+        "backend/src/onboardx/domain/errors.py",
+        "backend/src/onboardx/domain/entities.py",
+        "backend/src/onboardx/domain/ports.py",
+        "backend/src/onboardx/domain/risk.py",
+        "backend/src/onboardx/services/onboarding_service.py",
+        "backend/src/onboardx/services/audit_service.py",
+        "backend/src/onboardx/services/checklist_service.py",
+        "backend/tests/conftest.py",
+        "backend/tests/unit/test_redaction.py",
+        "backend/tests/unit/test_settings.py",
+        "backend/tests/unit/test_migration_guard.py",
+        "backend/tests/unit/test_lifecycle.py",
+        "backend/tests/unit/test_onboarding_service.py",
+        "backend/tests/unit/test_rule_set_values.py",
+        "backend/tests/integration/test_health.py",
+        "backend/tests/integration/test_logging_correlation.py",
+        "backend/tests/integration/test_state_history_append_only.py",
+        "backend/tests/integration/test_transition_rollback.py",
+        "backend/tests/integration/test_transition_idempotency.py",
+        "backend/tests/integration/test_checklist_api.py",
+        "backend/tests/integration/test_checklist_versioning.py",
+        "backend/tests/integration/test_rule_set_repository.py",
+        "backend/tests/integration/test_rule_set_trigger.py",
+        "backend/tests/architecture/test_no_float_in_risk.py",
+        "frontend/package.json",
+        "frontend/vite.config.ts",
+        "frontend/tsconfig.json",
+        "frontend/eslint.config.js",
+        "frontend/index.html",
+        "frontend/src/main.tsx"
+      ]
+    }
+  }
+}

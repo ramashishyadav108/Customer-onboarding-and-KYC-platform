@@ -68,6 +68,7 @@ Example: `{"case_id":"3f0c...","name":"Test Person One","contact":"9999999921","
 | annual_income | bigint | not null, >= 0 (whole INR) |
 | occupation_category | text | CHECK six categories |
 | country_code | char(2) | `^[A-Z]{2}$` |
+| state_code | char(2) | null; `^[A-Z]{2}$` when present; required by the profile API when `country_code` is IN (DD-14) |
 | updated_at | timestamp | not null |
 
 A trigger rejects UPDATE/DELETE unless the owning case is INITIATED.
@@ -134,6 +135,7 @@ Current status of a document = REJECTED if a rejection row exists, else latest `
 | points | JSON | per factor tables, ints 0..100 |
 | geography_map | JSON | country_code -> category |
 | geography_default | text | category |
+| border_states | JSON | array of state codes that map to DOMESTIC_BORDER when country_code is IN (DD-14); seeded v1 = `["JK","PB","AS"]` |
 | low_max, medium_max | integer | `low_max < medium_max < 100` at publish |
 | author | text | |
 | created_at, published_at | timestamp | published_at null while DRAFT |

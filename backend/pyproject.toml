@@ -1,0 +1,120 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onboardx"
+version = "0.1.0"
+description = "OnboardX customer onboarding and KYC platform (synthetic data only)"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "sqlalchemy>=2",
+  "alembic",
+  "pydantic>=2",
+  "pydantic-settings",
+  "pyjwt",
+  "python-multipart",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "httpx",
+  "ruff",
+  "mypy",
+  "pip-tools",
+  "import-linter",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+markers = [
+  "ac(id): acceptance criterion id the test proves (e.g. AC-04)",
+  "nfr(id): non-functional requirement id the test proves (e.g. NFR-03)",
+]
+filterwarnings = ["error::DeprecationWarning:onboardx.*"]
+
+[tool.coverage.run]
+source = ["onboardx"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "if __name__ == .__main__.:"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S608"]
+"migrations/**" = ["S608"]
+# report SQL concatenates module-level constants only; every value is a bound parameter
+"src/onboardx/repositories/report_queries.py" = ["S608"]
+"scripts/**" = ["S603", "S607"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+plugins = ["pydantic.mypy"]
+
+[tool.importlinter]
+root_package = "onboardx"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Backend layers flow one way: controllers > services > repositories > config > domain"
+type = "layers"
+layers = [
+  "onboardx.controllers",
+  "onboardx.services",
+  "onboardx.repositories",
+  "onboardx.config",
+  "onboardx.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "Domain is pure (no frameworks, no persistence, no I/O libraries)"
+type = "forbidden"
+source_modules = ["onboardx.domain"]
+forbidden_modules = ["sqlalchemy", "fastapi", "starlette", "pydantic", "alembic", "jwt", "httpx", "requests"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Services and config do not touch web or ORM frameworks"
+type = "forbidden"
+source_modules = ["onboardx.services", "onboardx.config"]
+forbidden_modules = ["fastapi", "starlette", "sqlalchemy", "alembic"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only repositories use SQLAlchemy"
+type = "forbidden"
+source_modules = ["onboardx.domain", "onboardx.config", "onboardx.services", "onboardx.controllers"]
+forbidden_modules = ["sqlalchemy"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Service ordering: orchestration above steps above leaf services"
+type = "layers"
+layers = [
+  "onboardx.services.submission_service",
+  "onboardx.services.pipeline_service",
+  "onboardx.services.decision_service | onboardx.services.override_service",
+  "onboardx.services.screening_service | onboardx.services.risk_service | onboardx.services.document_service | onboardx.services.lead_service | onboardx.services.case_view_service | onboardx.services.rule_set_service | onboardx.services.watchlist_service | onboardx.services.evidence_service | onboardx.services.report_service",
+  "onboardx.services.onboarding_service | onboardx.services.account_service | onboardx.services.notification_service | onboardx.services.checklist_service | onboardx.services.auth_service",
+  "onboardx.services.audit_service",
+]
