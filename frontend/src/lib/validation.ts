@@ -63,3 +63,43 @@ export function validateRuleSetDraft(weights: Record<string, string>, lowMax: st
     errors.thresholds = 'Thresholds must satisfy low max < medium max < 100.';
   return errors;
 }
+
+export function validateNewUser(input: { username: string; password: string; role: string }): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!/^[a-z0-9._-]{3,50}$/.test(input.username)) errors.username = 'Use 3 to 50 characters: a-z, 0-9, dot, underscore or hyphen.';
+  if (input.password.length < 10 || input.password.length > 128) errors.password = 'Use 10 to 128 characters.';
+  if (!input.role) errors.role = 'Choose a role.';
+  return errors;
+}
+
+export function validateQueryMessage(message: string): string | null {
+  const text = message.trim();
+  if (!text) return 'Enter a message.';
+  if (text.length > 500) return 'Keep the message to 500 characters or fewer.';
+  return null;
+}
+
+export interface ChecklistDraftRow {
+  item_code: string;
+  included: boolean;
+  mandatory: boolean;
+  classes: string;
+}
+
+const BASELINE = ['ID_PROOF', 'ADDRESS_PROOF', 'PHOTOGRAPH'];
+
+export function validateChecklistDraft(rows: ChecklistDraftRow[]): string | null {
+  for (const code of BASELINE) {
+    const row = rows.find((r) => r.item_code === code);
+    if (!row || !row.included || !row.mandatory) return `${code.replace(/_/g, ' ').toLowerCase()} must be included and mandatory.`;
+  }
+  const empty = rows.find((r) => r.included && r.classes.split(',').every((c) => !c.trim()));
+  return empty ? `${empty.item_code.replace(/_/g, ' ').toLowerCase()} needs at least one accepted class.` : null;
+}
+
+export function validateSignup(input: { username: string; password: string; confirm: string }): FieldErrors {
+  const errors = validateNewUser({ username: input.username, password: input.password, role: 'prospect' });
+  delete errors.role;
+  if (!errors.password && input.confirm !== input.password) errors.confirm = 'The passwords do not match.';
+  return errors;
+}

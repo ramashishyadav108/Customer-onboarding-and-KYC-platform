@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_helpers import DEMO_PASSWORDS, bearer, create_lead, lead_headers, staff_headers
-from helpers import JWT_SECRET, FakeClock, auth_header, make_token
+from helpers import JWT_SECRET, FakeClock, make_token
 from onboardx.config.settings import Settings
 from onboardx.main import create_app
 
@@ -96,7 +96,7 @@ def test_nfr04_invalid_tokens_are_401(client: TestClient, header: dict[str, str]
 @pytest.mark.nfr("NFR-04")
 def test_nfr04_unauthorised_role_is_403_with_required_roles(client: TestClient) -> None:
     """E1-S2 AC3: a valid token of an unauthorised role is 403 FORBIDDEN."""
-    response = client.get("/api/v1/cases", headers=auth_header("prospect"))
+    response = client.get("/api/v1/cases", headers=staff_headers(client, "prospect1"))
     assert response.status_code == 403
     error = response.json()["error"]
     assert error["code"] == "FORBIDDEN"

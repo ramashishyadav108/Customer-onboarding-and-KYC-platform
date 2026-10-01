@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { reportsApi, ruleSetsApi, watchlistApi } from '@/api/admin';
-import type { ReportFilters, RuleSetUpdate, WatchlistNew } from '@/types';
+import { checklistsApi, reportsApi, ruleSetsApi, usersApi, watchlistApi } from '@/api/admin';
+import type { ChecklistItemSpec, NewUser, Product, ReportFilters, RuleSetUpdate, StaffRole, WatchlistNew } from '@/types';
 import { useAction, useResource } from './useResource';
 
 export function useReports(f: ReportFilters) {
@@ -58,4 +58,40 @@ export function useWatchlist() {
     [action, reload],
   );
   return { list, add, deactivate, busy: action.busy, error: action.error };
+}
+
+export function useUsers() {
+  const list = useResource(() => usersApi.list(), 'users');
+  const action = useAction();
+  const { reload } = list;
+  const wrap = useCallback(
+    async <T,>(fn: () => Promise<T>) => {
+      const r = await action.run(fn);
+      if (r) reload();
+      return r;
+    },
+    [action, reload],
+  );
+  const create = useCallback((u: NewUser) => wrap(() => usersApi.create(u)), [wrap]);
+  const changeRole = useCallback((id: string, role: StaffRole) => wrap(() => usersApi.changeRole(id, role)), [wrap]);
+  const deactivate = useCallback((id: string) => wrap(() => usersApi.deactivate(id)), [wrap]);
+  const reactivate = useCallback((id: string) => wrap(() => usersApi.reactivate(id)), [wrap]);
+  const approve = useCallback((id: string, role?: StaffRole) => wrap(() => usersApi.approve(id, role)), [wrap]);
+  const reject = useCallback((id: string) => wrap(() => usersApi.reject(id)), [wrap]);
+  return { list, create, changeRole, deactivate, reactivate, approve, reject, busy: action.busy, error: action.error, clear: action.clear };
+}
+
+export function useChecklists() {
+  const list = useResource(() => checklistsApi.list(), 'checklists');
+  const action = useAction();
+  const { reload } = list;
+  const publish = useCallback(
+    async (product: Product, items: ChecklistItemSpec[]) => {
+      const r = await action.run(() => checklistsApi.publish(product, items));
+      if (r) reload();
+      return r;
+    },
+    [action, reload],
+  );
+  return { list, publish, busy: action.busy, error: action.error, clear: action.clear };
 }

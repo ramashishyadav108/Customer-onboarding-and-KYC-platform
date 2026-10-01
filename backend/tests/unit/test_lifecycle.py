@@ -30,6 +30,8 @@ MATRIX = list(product(CaseState, CaseState))
 
 @pytest.mark.ac("AC-04")
 @pytest.mark.parametrize(("source", "target"), MATRIX, ids=[f"{a}->{b}" for a, b in MATRIX])
+@pytest.mark.ac("AC-04.1")
+@pytest.mark.ac("AC-04.2")
 def test_ac04_full_transition_matrix(source: CaseState, target: CaseState) -> None:
     """AC-04: exactly the eight specified edges are allowed; all other pairs raise."""
     if (source, target) in EXPECTED_EDGES:

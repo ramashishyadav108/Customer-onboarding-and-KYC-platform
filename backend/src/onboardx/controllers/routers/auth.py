@@ -1,11 +1,17 @@
-"""POST /api/v1/auth/login (public, E1-S2)."""
+"""POST /api/v1/auth/login (public, E1-S2) and /auth/signup (public, AC-14)."""
 
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
 from onboardx.controllers.dependencies.services import Services, get_services
-from onboardx.controllers.schemas.auth import LoginRequest, LoginResponse
+from onboardx.controllers.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    SignupOptions,
+    SignupRequest,
+    SignupResponse,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -21,3 +27,24 @@ def login(
         expires_in=result.expires_in,
         case_id=result.case_id,
     )
+
+
+@router.post("/signup", status_code=201)
+def signup(
+    body: SignupRequest, services: Annotated[Services, Depends(get_services)]
+) -> SignupResponse:
+    """Create an account: a customer is signed in; a staff request waits for an admin."""
+    result = services.signup.signup(username=body.username, password=body.password, role=body.role)
+    return SignupResponse(
+        status=result.status,
+        access_token=result.access_token,
+        role=result.role,
+        expires_in=result.expires_in,
+        case_id=result.case_id,
+    )
+
+
+@router.get("/signup-options")
+def signup_options(services: Annotated[Services, Depends(get_services)]) -> SignupOptions:
+    """Public: lets the sign-up page say honestly whether an admin request needs approval."""
+    return SignupOptions(admin_requires_approval=services.signup.admin_requires_approval)

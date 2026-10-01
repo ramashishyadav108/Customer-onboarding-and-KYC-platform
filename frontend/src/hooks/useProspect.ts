@@ -13,15 +13,49 @@ export function useLogin() {
     async (username: string, password: string) => {
       const res = await action.run(() => authApi.login(username, password));
       if (res) signIn({ token: res.access_token, role: res.role, caseId: res.case_id });
-      return res?.role;
+      return res;
     },
     [action, signIn],
   );
   return { login, busy: action.busy, error: action.error };
 }
 
-export function useLeadRegistration() {
+export function useSignupOptions() {
+  // While loading (or if the call fails) assume approval is required: the safe answer.
+  const options = useResource(() => authApi.signupOptions(), 'signup-options');
+  return { adminRequiresApproval: options.data?.admin_requires_approval ?? true };
+}
+
+export function useSignup() {
   const { signIn } = useAuth();
+  const action = useAction();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const signup = useCallback(
+    async (username: string, password: string, role: string) => {
+      setFieldErrors({});
+      const res = await action.run(async () => {
+        try {
+          return await authApi.signup(username, password, role);
+        } catch (e) {
+          if (e instanceof ApiError && e.code === 'VALIDATION_ERROR') {
+            const fields = (e.details.fields ?? []) as { field: string; message: string }[];
+            setFieldErrors(Object.fromEntries(fields.map((f) => [f.field, f.message])));
+          }
+          if (e instanceof ApiError && e.code === 'USERNAME_TAKEN') setFieldErrors({ username: 'That username is already taken.' });
+          throw e;
+        }
+      });
+      if (res && res.status === 'ACTIVE' && res.access_token) signIn({ token: res.access_token, role: res.role, caseId: res.case_id });
+      return res;
+    },
+    [action, signIn],
+  );
+  return { signup, busy: action.busy, error: action.error, fieldErrors };
+}
+
+export function useLeadRegistration() {
+  const { session, signIn } = useAuth();
+  const ownedByAccount = session?.role === 'prospect' && session.caseId === null;
   const action = useAction();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const register = useCallback(
@@ -30,7 +64,7 @@ export function useLeadRegistration() {
       try {
         const res = await action.run(async () => {
           try {
-            return await leadsApi.create(lead);
+            return await leadsApi.create(lead, undefined, ownedByAccount);
           } catch (e) {
             if (e instanceof ApiError && e.code === 'VALIDATION_ERROR') {
               const fields = (e.details.fields ?? []) as { field: string; message: string }[];
@@ -45,7 +79,7 @@ export function useLeadRegistration() {
         return undefined;
       }
     },
-    [action, signIn],
+    [action, signIn, ownedByAccount],
   );
   return { register, busy: action.busy, error: action.error, fieldErrors };
 }

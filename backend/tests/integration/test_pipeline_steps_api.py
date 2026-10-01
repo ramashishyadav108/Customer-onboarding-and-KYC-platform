@@ -346,6 +346,7 @@ def test_ac06_9_each_assessment_records_the_rule_version_and_later_publishing_ch
 
 
 @pytest.mark.nfr("NFR-02")
+@pytest.mark.ac("AC-07.9")
 def test_nfr02_risk_assessments_decisions_accounts_notifications_are_append_only(
     client: TestClient, engine: Engine
 ) -> None:

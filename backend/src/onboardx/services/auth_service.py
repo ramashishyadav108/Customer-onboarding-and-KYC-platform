@@ -5,13 +5,15 @@ from functools import cache
 
 import jwt
 
+from onboardx.domain.entities import STAFF_ROLES
 from onboardx.domain.enums import Role
-from onboardx.domain.errors import AuthenticationError
+from onboardx.domain.errors import AccountPendingError, AuthenticationError
 from onboardx.domain.ports import Clock
 from onboardx.repositories.unit_of_work import UnitOfWorkFactory
 from onboardx.services.passwords import hash_password, verify_password
 
 ALGORITHM = "HS256"
+ANONYMOUS_PREFIX = "prospect:"  # usernames cannot contain ":", so account subjects never collide
 DEFAULT_TTL_SECONDS = 1800
 
 
@@ -64,6 +66,10 @@ class AuthService:
         valid = verify_password(password, stored)
         if user is None or not valid:
             raise AuthenticationError("Invalid credentials")
+        if user.pending:
+            raise AccountPendingError  # only after the password proved who is asking
+        if not user.active:
+            raise AuthenticationError("Invalid credentials")
         issued = self.issue_token(user.username, user.role, user.case_id)
         return LoginResult(issued.access_token, user.role, issued.expires_in, user.case_id)
 
@@ -91,6 +97,27 @@ class AuthService:
         if expires_at <= int(self._clock.now().timestamp()):
             raise AuthenticationError("Token expired")
         case_id = claims.get("case_id")
-        return TokenClaims(
-            str(claims["sub"]), role, None if case_id is None else str(case_id), expires_at
-        )
+        subject = str(claims["sub"])
+        if role in STAFF_ROLES:
+            role = self._current_staff_role(subject)
+        elif not subject.startswith(ANONYMOUS_PREFIX):
+            self._require_active_prospect(subject)
+        return TokenClaims(subject, role, None if case_id is None else str(case_id), expires_at)
+
+    def _current_staff_role(self, username: str) -> Role:
+        """Staff authority is the user's stored role while active, not the role in the token.
+
+        Deactivation and role changes therefore apply to tokens already issued (AC-11.4/11.5).
+        """
+        with self._uow_factory() as uow:
+            user = uow.users.get_by_username(username)
+        if user is None or not user.active or user.role not in STAFF_ROLES:
+            raise AuthenticationError("Account is not active")
+        return user.role
+
+    def _require_active_prospect(self, username: str) -> None:
+        """Prospect-account tokens die with the account; anonymous case tokens are not bound."""
+        with self._uow_factory() as uow:
+            user = uow.users.get_by_username(username)
+        if user is None or not user.active or user.role is not Role.PROSPECT:
+            raise AuthenticationError("Account is not active")

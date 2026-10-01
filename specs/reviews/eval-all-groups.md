@@ -35,3 +35,50 @@ Strictly against the original step wording these three would FAIL. The user chos
 - Mocked e2e suite (16 tests) unchanged; live suite is separate (`*.live.ts`).
 - Design-critic not run (contracts have no design_checks). Playwright MCP unavailable in this session; the Playwright test runner was used instead.
 - F165 (p95 on 1,000 cases) and the group-A file-existence/frontend_toolchain checks were covered only through the passing pytest suite.
+
+## Addendum: admin management and queries (AC-11 to AC-13), 2026-10-01
+Scope added after the brief was re-read: admin user and role management, admin checklist versions, analyst queries (spec: `specs/admin-management_spec.md`, contract: `sprint-contracts/sprint-6-admin-management.json`, features F178-F197).
+
+| Check | Result |
+|---|---|
+| New backend tests (`test_admin_users_api.py`, `test_admin_checklists_api.py`, `test_queries_api.py`, role-matrix rows) | 49 plus 11 matrix rows, all pass |
+| Backend full suite with coverage | 1404 passed, 1 skipped (Windows symlink test), coverage 98.02%, `ruff`, `mypy`, `lint-imports` clean |
+| Frontend vitest, `eslint`, `tsc`, coverage | 132 passed, clean, 97.28% statements |
+| Live Playwright against a fresh real backend (`e2e/live/`) | 34 of 34: the earlier 21 plus 13 in `ui-management.live.ts` (users, checklists, queries, role boundary, axe) |
+| Mocked e2e | 16 of 16, no snapshot changes |
+
+Behaviour change to note: staff tokens are now honoured only for an existing, active user and carry that user's stored role (AC-11.4, AC-11.5). One existing test minted a staff token for a user that did not exist; it now logs in as a seeded user. Migration-head assertions moved from 0007 to 0008 (new append-only migration; earlier migrations untouched).
+
+Limits: the three append-only and PII properties of queries (F195) and the audit rows are proven by pytest only (no HTTP surface). The last-active-admin rule (`LAST_ADMIN`) cannot be reached through the API by an active admin because self-modification is blocked first; it is tested at service level. Admin password reset and prospect user management are not part of this scope.
+
+## Addendum: sign-up, staff approval and review policy (AC-14, AC-15), 2026-10-01
+Triggered by a user observation: a customer who signed up and uploaded documents was approved with no human involved. That is the brief's AC-07 (auto-approve a clean LOW-risk case); screening did run, automatically, as the rule-based engine (AC-05). Two changes followed (spec: `specs/admin-management_spec.md`; contracts: `sprint-7-accounts.json`, `sprint-8-staff-signup-review-policy.json`; features F198-F214).
+
+| Check | Result |
+|---|---|
+| Backend full suite | 1452 passed on the full run; the 4 failures were migration-head assertions (0008 to 0009), updated and rerun (358 passed in that subset); `ruff`, `mypy`, import-linter clean |
+| Frontend | 154 vitest passed, 97.46% statements; `eslint` and `tsc` clean; mocked e2e 16 of 16 |
+| Live Playwright, auto policy (real backend) | 46 passed, 2 skipped by design (manual-policy file) |
+| Live Playwright, `REVIEW_POLICY=manual` backend | 2 of 2: clean application waits, officer approves, customer has an account |
+
+Decisions recorded: (1) Review policy is a setting. `auto` stays the default because the brief requires auto-approval and the 60 percent target; `manual` makes the compliance officer decide every case (reason `MANUAL_POLICY`). (2) Sign-up asks for an account type, but a staff role never grants access by itself: it is created inactive and pending, with no token, until an admin approves it. Granting self-selected admin rights at sign-up would defeat NFR-04. Migration 0009 rebuilds the append-only `decisions` table to allow the new reason and adds `users.pending`.
+
+Not done: case assignment to a named person (claiming a case). Cases are routed by queue (analyst workbench for documents and queries, officer queue for decisions), not assigned to individuals.
+
+### Addendum: open admin sign-up (AC-14.11), 2026-10-01
+Requested: an Admin sign-up should not wait for approval, while KYC analyst and compliance officer should. Built as the setting `ADMIN_SIGNUP` (`approval` default, `open`), because open admin sign-up lets anyone who reaches the page take full control; the user's local server runs with `open`. Evidence: backend `test_staff_approval_api.py` (5 new tests), 157 frontend tests (97.47% statements), mocked e2e 16 of 16, live suite 46 passed (5 skipped by design) on the default stack, and 5 of 5 on a stack started with `ADMIN_SIGNUP=open REVIEW_POLICY=manual` (`ui-zmanual`, `ui-zopen-admin`). Features F215-F218.
+
+### Addendum: staff can open uploaded documents (AC-16) and requirement re-audit, 2026-10-02
+Requested: when a KYC analyst or compliance officer opens a case they must see the documents the prospect uploaded. Built as `GET /api/v1/cases/{id}/documents/{doc}/file` (owner or any staff role, safe headers, audited by id only) plus View buttons and an earlier-versions table in the analyst case page and officer review panel (features F219-F224, `sprint-9-document-viewing.json`). The evidence payload now also lists replaced versions, flagged `superseded`.
+
+| Check | Result |
+|---|---|
+| Backend full suite with coverage | 1478 passed, 1 skipped (Windows symlink test), 97.98%; `ruff`, `mypy`, import-linter clean |
+| Frontend | 164 vitest passed, 97.41% statements; `eslint` and `tsc` clean |
+| Mocked e2e | 16 of 16 |
+| Live Playwright, default server | 50 passed, 5 skipped by design (they need other server settings) |
+| Live Playwright, `ADMIN_SIGNUP=open REVIEW_POLICY=manual` server | 5 of 5 |
+
+Requirement re-audit (`docs/requirements-checklist.md`): all 10 ACs and 8 NFRs MET; every spec criterion id (16 top-level, 137 detailed) is cited by a test. Twelve detailed ids had no test citing them and were fixed by tagging the tests that prove them and adding two small tests (AC-07.9 no network in the account stub, AC-03.9 staff documents table). Remaining PARTIAL items: history (2 early direct commits on `main`, thin red-green commit pattern), Playwright MCP use (agent tool names now match the project's `.mcp.json` server, but the server did not connect in this session), and a passing remote CI run (nothing pushed since the workflow was added).
+
+Environment note: the long-running :3000 Vite dev server became stuck on an intermediate version of `DocumentViewButton.tsx` (served an empty module), which timed out every mocked e2e test; restarting the dev server fixed it. See the knowledge deposit.

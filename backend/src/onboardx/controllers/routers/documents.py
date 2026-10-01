@@ -1,8 +1,8 @@
-"""Document endpoints: upload (owner), list (owner or staff) and reject (kyc-analyst)."""
+"""Document endpoints: upload (owner), list and open the file (owner or staff), reject (analyst)."""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Response, UploadFile
 from fastapi.concurrency import run_in_threadpool
 
 from onboardx.controllers.dependencies.auth import (
@@ -61,6 +61,28 @@ def list_documents(
         raise ApiError(403, "FORBIDDEN", "Only staff may list superseded versions")
     views = services.documents.list_documents(case_id, include_superseded=include_superseded)
     return document_list_out(case_id, views)
+
+
+@router.get("/cases/{case_id}/documents/{document_id}/file")
+def open_document_file(
+    case_id: str,
+    document_id: str,
+    principal: Annotated[Principal, Depends(require_case_access)],
+    services: Annotated[Services, Depends(get_services)],
+) -> Response:
+    """The uploaded file itself, for the owner or any staff role (AC-16); audited, never cached."""
+    stored = services.document_files.open_file(
+        case_id=case_id, document_id=document_id, actor=principal.subject, role=str(principal.role)
+    )
+    return Response(
+        content=stored.content,
+        media_type=stored.content_type,
+        headers={
+            "Content-Disposition": f'inline; filename="{stored.download_name}"',
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 @router.post("/cases/{case_id}/documents/{document_id}/reject")

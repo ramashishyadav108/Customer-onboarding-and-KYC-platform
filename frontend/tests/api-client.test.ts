@@ -77,13 +77,13 @@ describe('api client', () => {
     expect(buildQuery()).toBe('');
   });
 
-  it('AC-10: loads all six report endpoints with the same filters', async () => {
+  it('AC-10: loads all seven report endpoints with the same filters', async () => {
     const empty = { items: [], stages: [], buckets: [], count: 0, oldest_age_minutes: 0, auto_approved: 0, decided: 0, rate_bp: 0, target_bp: 6000, met: false };
     const { calls } = mockFetch(
-      Object.fromEntries(['tat', 'funnel', 'backlog', 'time-per-stage', 'rejection-reasons', 'auto-approval'].map((p) => [`GET /api/v1/admin/reports/${p}`, { body: empty }])),
+      Object.fromEntries(['tat', 'funnel', 'backlog', 'time-per-stage', 'rejection-reasons', 'auto-approval', 'dropped-leads'].map((p) => [`GET /api/v1/admin/reports/${p}`, { body: empty }])),
     );
     const r = await reportsApi.all({ product: 'NRE', from: '2026-09-01', to: '2026-09-30' });
-    expect(calls).toHaveLength(6);
+    expect(calls).toHaveLength(7);
     expect(calls.every((c) => c.url.includes('product=NRE') && c.url.includes('from=2026-09-01'))).toBe(true);
     expect(r.autoApproval.target_bp).toBe(6000);
   });

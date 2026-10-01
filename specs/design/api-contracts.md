@@ -62,7 +62,7 @@ Machine codes are stable; `message` is human text and never contains PII.
 | `DocRejectReasonCode` (analyst, DD-2 proposed list) | `DOC_ILLEGIBLE`, `DOC_EXPIRED`, `DOC_NAME_MISMATCH`, `DOC_WRONG_TYPE`, `DOC_OTHER` |
 | `RiskBand` | `LOW`, `MEDIUM`, `HIGH` |
 | `ScreeningReasonCode` | `AML_HIT`, `PEP_HIT` |
-| `ReviewReasonCode` (decision routing) | `AML_HIT`, `PEP_HIT`, `DOC_UNRECOGNISED`, `RISK_MEDIUM`, `RISK_HIGH` |
+| `ReviewReasonCode` (decision routing) | `AML_HIT`, `PEP_HIT`, `DOC_UNRECOGNISED`, `RISK_MEDIUM`, `RISK_HIGH`, `MANUAL_POLICY` (only when `REVIEW_POLICY=manual`) |
 | `OverrideDecision` | `APPROVE`, `REJECT` |
 | `OverrideReasonCode` | Approve: `FALSE_POSITIVE_CLEARED`, `RISK_ACCEPTED`, `DOCS_CONFIRMED`. Reject: `CONFIRMED_WATCHLIST_MATCH`, `DOCS_INSUFFICIENT`, `RISK_TOO_HIGH`, `POLICY_OTHER`. A reason code must match the decision direction, else 422 `UNKNOWN_REASON_CODE` (DD-3) |
 | `ReclassifyReasonCode` (DD-4 proposed) | `NEW_INFORMATION`, `SCORING_ERROR`, `MANUAL_ASSESSMENT` |

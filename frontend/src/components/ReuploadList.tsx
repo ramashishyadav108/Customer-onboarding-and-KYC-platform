@@ -8,7 +8,7 @@ export function ReuploadList({ detail, up }: { detail: CaseDetail; up: ReturnTyp
   const allowed = UPLOAD_ALLOWED_STATES.includes(detail.state);
   const results = Object.entries(up.feedback);
   return (
-    <div>
+    <div style={{ marginBottom: 16 }}>
       <ul className="items" aria-label="Action required">
         {detail.action_required.map((a) => {
           const label = ITEM_LABELS[a.item_code] ?? a.item_code;

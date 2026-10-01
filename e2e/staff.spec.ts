@@ -35,7 +35,7 @@ async function installCompliance(page: Page, sink: { override?: unknown }) {
 }
 
 test.describe('compliance officer', () => {
-  test('AC-08: reviews a MANUAL_REVIEW case and overrides with a reason code', async ({ page }) => {
+  test('AC-08.7: reviews a MANUAL_REVIEW case and overrides with a reason code', async ({ page }) => {
     const sink: { override?: unknown } = {};
     await installCompliance(page, sink);
     await loginAs(page, 'officer1');

@@ -2796,7 +2796,8 @@
           "PEP_HIT",
           "DOC_UNRECOGNISED",
           "RISK_MEDIUM",
-          "RISK_HIGH"
+          "RISK_HIGH",
+          "MANUAL_POLICY"
         ]
       },
       "OverrideReasonCode": {

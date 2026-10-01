@@ -4,6 +4,7 @@ export const API_BASE = '/api/v1';
 
 export const ROUTES = {
   login: '/login',
+  signup: '/signup',
   forbidden: '/forbidden',
   register: '/portal/register',
   profile: '/portal/profile',
@@ -15,6 +16,8 @@ export const ROUTES = {
   dashboard: '/admin/dashboard',
   ruleSets: '/admin/rule-sets',
   watchlist: '/admin/watchlist',
+  users: '/admin/users',
+  checklists: '/admin/checklists',
 } as const;
 
 export const ROLE_HOME: Record<Role, string> = {
@@ -23,6 +26,11 @@ export const ROLE_HOME: Record<Role, string> = {
   'compliance-officer': ROUTES.reviewQueue,
   admin: ROUTES.dashboard,
 };
+
+// Where a role lands after sign-in; a prospect account without a case starts the application.
+export function homeFor(role: Role, caseId: string | null): string {
+  return role === 'prospect' && caseId === null ? ROUTES.register : ROLE_HOME[role];
+}
 
 export const PRODUCTS: Product[] = ['Savings', 'Current', 'NRE'];
 
@@ -94,6 +102,7 @@ export const REASON_TEXT: Record<string, string> = {
   RISK_MEDIUM: 'Medium risk band',
   RISK_HIGH: 'High risk band',
   AUTO_APPROVED: 'Automatically approved',
+  MANUAL_POLICY: 'Bank policy: a compliance officer approves every application',
   ...Object.fromEntries(
     [...DOC_REJECT_REASONS, ...OVERRIDE_REASONS.APPROVE, ...OVERRIDE_REASONS.REJECT, ...RECLASSIFY_REASONS].map((r) => [
       r.value,
@@ -105,3 +114,18 @@ export const REASON_TEXT: Record<string, string> = {
 export const UPLOAD_ALLOWED_STATES: CaseState[] = ['INITIATED', 'DOCS_SUBMITTED', 'MANUAL_REVIEW'];
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_UPLOAD_EXT = ['pdf', 'jpg', 'jpeg', 'png'];
+
+export const STAFF_ROLE_OPTIONS: ReasonOption[] = [
+  { value: 'kyc-analyst', label: 'KYC analyst' },
+  { value: 'compliance-officer', label: 'Compliance officer' },
+  { value: 'admin', label: 'Admin' },
+];
+
+export const DOC_CLASS_HINT = 'PAN, AADHAAR, PASSPORT, UTILITY_BILL, PHOTOGRAPH, GST_CERTIFICATE, VISA';
+
+export const SIGNUP_ACCOUNT_TYPES: ReasonOption[] = [
+  { value: 'prospect', label: 'Customer (applying for an account)' },
+  { value: 'kyc-analyst', label: 'KYC analyst (bank staff)' },
+  { value: 'compliance-officer', label: 'Compliance officer (bank staff)' },
+  { value: 'admin', label: 'Admin (bank staff)' },
+];

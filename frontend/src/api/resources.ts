@@ -1,6 +1,9 @@
-import { request } from './client';
+import { request, requestBlob } from './client';
 import type {
   CaseDetail,
+  CaseQuery,
+  SignupOptions,
+  SignupResponse,
   CaseList,
   CaseListQuery,
   DocumentView,
@@ -22,14 +25,18 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     request<LoginResponse>('/auth/login', { method: 'POST', body: { username, password }, auth: false }),
+  signupOptions: () => request<SignupOptions>('/auth/signup-options', { auth: false }),
+  signup: (username: string, password: string, role: string) =>
+    request<SignupResponse>('/auth/signup', { method: 'POST', body: { username, password, role }, auth: false }),
 };
 
 export const leadsApi = {
-  create: (lead: LeadRequest, idempotencyKey?: string) =>
+  // `withAuth` sends the bearer token so a signed-in prospect account owns the case (AC-14.3).
+  create: (lead: LeadRequest, idempotencyKey?: string, withAuth = false) =>
     request<LeadResponse>('/leads', {
       method: 'POST',
       body: lead,
-      auth: false,
+      auth: withAuth,
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     }),
 };
@@ -44,6 +51,7 @@ export const casesApi = {
 };
 
 export const documentsApi = {
+  file: (caseId: string, documentId: string) => requestBlob(`/cases/${caseId}/documents/${documentId}/file`),
   upload: (caseId: string, checklistItem: string, file: File) => {
     const form = new FormData();
     form.append('checklist_item', checklistItem);
@@ -74,4 +82,11 @@ export const reviewApi = {
 
 export const notificationsApi = {
   list: (caseId: string) => request<{ case_id: string; notifications: Notification[] }>(`/cases/${caseId}/notifications`),
+};
+
+export const queriesApi = {
+  list: (caseId: string) => request<{ items: CaseQuery[] }>(`/cases/${caseId}/queries`),
+  raise: (caseId: string, message: string) => request<CaseQuery>(`/cases/${caseId}/queries`, { method: 'POST', body: { message } }),
+  respond: (caseId: string, queryId: string, message: string) => request<CaseQuery>(`/cases/${caseId}/queries/${queryId}/responses`, { method: 'POST', body: { message } }),
+  close: (caseId: string, queryId: string) => request<CaseQuery>(`/cases/${caseId}/queries/${queryId}/close`, { method: 'POST' }),
 };

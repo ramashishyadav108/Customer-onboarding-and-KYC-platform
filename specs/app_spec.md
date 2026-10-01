@@ -21,7 +21,7 @@ OnboardX takes a bank prospect from lead to decision: lead capture, KYC document
 3. Stub classifier recognises seven classes (PAN, AADHAAR, PASSPORT, UTILITY_BILL from the brief, plus PHOTOGRAPH, GST_CERTIFICATE, VISA so Current and NRE checklists can be satisfied).
 4. Screening hits do not add a SCREENED->MANUAL_REVIEW edge: the hit is recorded at SCREENED, the case proceeds to CLASSIFIED, and the decision step routes it to MANUAL_REVIEW with AML_HIT or PEP_HIT. This keeps the lifecycle in AC-04 exact.
 5. A profile step (date of birth, annual income, occupation category, country code) is captured after lead creation because AC-06 needs these inputs and AC-01 only collects name, contact and product.
-6. Checklist editing in the admin console is out of scope for v1; checklists change by append-only migration. Rule sets and watchlist are admin-managed.
+6. Checklists, rule sets, watchlist, users and roles are admin-managed; checklist changes append a new immutable version (see `specs/admin-management_spec.md`, AC-11 to AC-13).
 
 ## 4. Lifecycle (AC-04)
 States: INITIATED, DOCS_SUBMITTED, SCREENED, CLASSIFIED, APPROVED, REJECTED, MANUAL_REVIEW.
@@ -40,10 +40,10 @@ Any other transition raises `InvalidOnboardingStateException` (API 409 `INVALID_
 ## 5. Roles
 | Role | Can |
 |---|---|
-| prospect | Register lead, edit own profile, upload and re-upload own documents, submit, view own status and notifications |
-| kyc-analyst | Read all cases and documents, reject documents with reason, trigger screen and classify |
+| prospect | Register lead, edit own profile, upload and re-upload own documents, submit, view own status and notifications, answer analyst queries on own case |
+| kyc-analyst | Read all cases and documents, reject documents with reason, trigger screen and classify, raise and close queries |
 | compliance-officer | Review queue, override MANUAL_REVIEW, reclassify with reason |
-| admin | Rule sets, watchlist, reports, read all cases |
+| admin | Checklists, users and roles, rule sets, watchlist, reports, read all cases |
 
 ## 6. Acceptance Criteria
 

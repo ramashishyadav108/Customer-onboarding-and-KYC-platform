@@ -15,8 +15,10 @@ from onboardx.controllers.dependencies.services import build_services
 from onboardx.controllers.error_handlers import register_error_handlers
 from onboardx.controllers.middleware import CorrelationMiddleware
 from onboardx.controllers.routers import (
+    admin_checklists,
     admin_reports,
     admin_rule_sets,
+    admin_users,
     admin_watchlist,
     auth,
     cases,
@@ -25,6 +27,7 @@ from onboardx.controllers.routers import (
     leads,
     pipeline,
     products,
+    queries,
     review,
 )
 from onboardx.domain.ports import Clock, NotificationSender
@@ -47,6 +50,9 @@ ROUTERS = (
     admin_rule_sets,
     admin_watchlist,
     admin_reports,
+    admin_users,
+    admin_checklists,
+    queries,
 )
 
 

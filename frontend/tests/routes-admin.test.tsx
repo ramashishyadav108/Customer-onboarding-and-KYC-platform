@@ -59,11 +59,11 @@ describe('App routing and shell', () => {
     expect(await screen.findByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('NFR-04: sign out returns a prospect to registration', async () => {
+  it('NFR-04: sign out returns a prospect to the sign-in page', async () => {
     mockFetch({ [`GET /api/v1/cases/${prospectSession.caseId}`]: makeCase(), [`GET /api/v1/cases/${prospectSession.caseId}/notifications`]: { items: [] } });
     renderRoutes('/portal/status', prospectSession);
     await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
-    expect(await screen.findByRole('button', { name: 'Start application' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
   });
 });
 

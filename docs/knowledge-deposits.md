@@ -12,3 +12,33 @@ Recurring mistakes encoded back into rules, hooks and skills.
 | Assuming a tool (`uv`) exists | `docs/debugging-log.md`: check the environment before choosing commands |
 | Dev proxy using `localhost` (resolves to IPv6 `::1` on Node 18) while the API binds IPv4 | `frontend/vite.config.ts` targets `127.0.0.1` |
 | Trusting client-declared upload type (Content-Type / extension) | Magic-byte validation in `domain/documents.py` (`validate_content`) + tests `test_upload_content_validation.py`, `test_upload_signatures.py` (docs/fix-loops/001) |
+
+## Staff tokens are checked against the user store
+
+- **Mistake:** a signed staff token was trusted for its whole lifetime, so a deactivated or demoted user kept their old authority, and a test minted a staff token for a user that did not exist.
+- **Rule now:** `AuthService.verify_token` resolves staff authority from the stored user (active, current role) on every request (AC-11.4, AC-11.5). Tests must log in as a seeded user instead of forging staff tokens; `test_role_matrix.py` covers every route for all four roles.
+
+## In-memory SQLite needs serialised units of work
+
+- **Mistake:** concurrent reads on the shared in-memory connection returned half-read rows (500 on the evidence endpoint).
+- **Rule now:** `make_uow_factory(serialize=True)` for in-memory engines, guarded by `tests/integration/test_in_memory_concurrency.py`.
+
+## A long-running backend serves the old code
+
+- **Mistake:** the frontend dev server hot-reloads but the FastAPI process does not, so new screens called routes the old backend did not have (404, shown as "Request could not be served").
+- **Rule now:** after any backend change restart the API (`python scripts/start_all.py` restarts both). If a new page shows that generic error, check `GET /openapi.json` for the route first. Use a file database (`sqlite:///./onboardx.db`) so a restart keeps data.
+
+## Never let a sign-up form pick a privileged role
+
+- **Mistake avoided:** a request to let users choose admin or compliance officer at sign-up would let anyone grant themselves staff access.
+- **Rule now:** the form can ask for an account type, but a staff role is stored inactive and pending, gets no token, and works only after an admin approves it (`AC-14.2`, `AC-14.9`); tests in `test_staff_approval_api.py` and `test_role_matrix.py` guard it.
+
+## Open admin sign-up is a demo switch, not a default
+
+- **Risk:** a public form that can create admins hands the whole platform to anyone who finds it.
+- **Rule now:** `ADMIN_SIGNUP` defaults to `approval`; `open` must be chosen explicitly per server, is announced by `GET /auth/signup-options` so the UI does not mislead, and the spec (AC-14.11) says never to use it in a deployed environment.
+
+## A long-running dev server can wedge on a rewritten file
+
+- **Mistake:** the :3000 Vite dev server kept serving an empty module after the file was rewritten twice in quick succession, so the whole app (and every mocked e2e test) timed out while a fresh server was fine.
+- **Rule now:** when a UI test run times out everywhere at once, compare one module fetched from the long-running server and from a freshly started one before suspecting the code, and restart the dev server (`python scripts/start_all.py`).

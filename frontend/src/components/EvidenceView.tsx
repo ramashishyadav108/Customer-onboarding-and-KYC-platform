@@ -2,6 +2,7 @@ import type { Evidence } from '@/types';
 import { ITEM_LABELS } from '@/config';
 import { formatDateTime } from '@/lib/format';
 import { DataTable } from './data';
+import { DocumentViewButton } from './DocumentViewButton';
 import { StatusChip, reasonLabel } from './ui';
 
 export function EvidenceView({ ev }: { ev: Evidence }) {
@@ -23,8 +24,22 @@ export function EvidenceView({ ev }: { ev: Evidence }) {
           { header: 'Reason', cell: (d) => d.reason_code ?? '-' },
           { header: 'Version', cell: (d) => d.version },
           { header: 'Uploaded', cell: (d) => formatDateTime(d.uploaded_at) },
+          { header: 'File', cell: (d) => <DocumentViewButton caseId={ev.case_id} documentId={d.document_id} label={`${ITEM_LABELS[d.checklist_item] ?? d.checklist_item} (version ${d.version})`} /> },
         ]}
       />
+      {ev.documents.some((d) => d.superseded) && (
+        <DataTable
+          caption="Earlier versions (replaced by a newer upload)"
+          rows={ev.documents.filter((d) => d.superseded)}
+          rowKey={(d) => d.document_id}
+          columns={[
+            { header: 'Item', cell: (d) => ITEM_LABELS[d.checklist_item] ?? d.checklist_item },
+            { header: 'Version', cell: (d) => d.version },
+            { header: 'Uploaded', cell: (d) => formatDateTime(d.uploaded_at) },
+            { header: 'File', cell: (d) => <DocumentViewButton caseId={ev.case_id} documentId={d.document_id} label={`${ITEM_LABELS[d.checklist_item] ?? d.checklist_item} (version ${d.version}, replaced)`} /> },
+          ]}
+        />
+      )}
       <h3>Screening</h3>
       {ev.screening ? (
         ev.screening.hits.length === 0 ? (

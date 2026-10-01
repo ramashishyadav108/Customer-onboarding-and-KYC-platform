@@ -15,6 +15,7 @@ const reports: Reports = {
   timePerStage: { stages: [{ from_state: 'INITIATED', to_state: 'DOCS_SUBMITTED', count: 40, avg_seconds: 900 }] },
   rejections: { items: [{ reason_code: 'RISK_TOO_HIGH', count: 5 }, { reason_code: 'DOCS_INSUFFICIENT', count: 2 }] },
   autoApproval: { auto_approved: 30, decided: 50, rate_bp: 6000, target_bp: 6000, met: true },
+  droppedLeads: { older_than_days: 7, total: 5, stages: [{ stage: 'INITIATED', count: 3 }, { stage: 'DOCS_SUBMITTED', count: 2 }] },
 };
 
 describe('StatusTimeline', () => {
@@ -48,11 +49,11 @@ describe('StatusTimeline', () => {
 });
 
 describe('report panels', () => {
-  it('AC-10: renders six panels each with an accessible table alternative', () => {
+  it('AC-10.10: renders seven panels each with an accessible table alternative', () => {
     render(<ReportPanels reports={reports} />);
-    expect(screen.getAllByRole('table')).toHaveLength(6);
-    expect(screen.getAllByRole('img')).toHaveLength(6);
-    for (const t of ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate']) {
+    expect(screen.getAllByRole('table')).toHaveLength(7);
+    expect(screen.getAllByRole('img')).toHaveLength(7);
+    for (const t of ['Turnaround time by product', 'Approval funnel', 'Manual-review backlog', 'Average time per stage', 'Top rejection reasons', 'Auto-approval rate', 'Dropped leads']) {
       expect(screen.getByRole('region', { name: t })).toBeInTheDocument();
     }
   });
@@ -68,6 +69,12 @@ describe('report panels', () => {
     render(<ReportPanels reports={reports} />);
     const row = within(screen.getByRole('table', { name: 'Approval funnel (table)' })).getByRole('row', { name: /Docs submitted/ });
     expect(row).toHaveTextContent('80.00%');
+  });
+  it('AC-10.11: dropped-leads panel lists inactive open cases per stage with a text summary (brief 6.2)', () => {
+    render(<ReportPanels reports={reports} />);
+    const table = screen.getByRole('table', { name: 'Dropped leads (table)' });
+    expect(within(table).getByRole('row', { name: /Docs submitted/ })).toHaveTextContent('2');
+    expect(screen.getByText(/5 open case\(s\) have had no activity for more than 7 days/)).toBeInTheDocument();
   });
   it('AC-10: auto-approval summary states target met', () => {
     render(<ReportPanels reports={reports} />);

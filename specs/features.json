@@ -2647,10 +2647,10 @@
     "category": "ui",
     "story": "E5-S4",
     "group": "L",
-    "description": "Dashboard shows all six report panels with API values",
+    "description": "Dashboard shows all seven report panels with API values",
     "steps": [
       "Seed data and open dashboard as admin",
-      "Assert six panels are present (the five AC-10 reports plus auto-approval rate)",
+      "Assert seven panels are present (the five AC-10 reports plus auto-approval rate and dropped leads)",
       "Assert displayed values equal the API responses"
     ],
     "passes": false,
@@ -2810,6 +2810,717 @@
       "Run happy path and manual-review path with known synthetic PAN, Aadhaar, contact, income and occupation",
       "Capture all log output",
       "Assert none of those values appear"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F178",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin lists users without any password or hash",
+    "steps": [
+      "GET /api/v1/admin/users as admin",
+      "Assert items have user_id, username, role, active, created_at only"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F179",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin creates a staff user who can then sign in",
+    "steps": [
+      "POST /api/v1/admin/users with valid body",
+      "Assert 201 and hash stored; log in as the new user"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F180",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Invalid new user and duplicate username are rejected",
+    "steps": [
+      "POST invalid usernames, weak password, prospect role",
+      "Assert 422 naming the field; duplicate gives 409 USERNAME_TAKEN"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F181",
+    "category": "functional",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admin changes a role and the change applies to issued tokens",
+    "steps": [
+      "PUT role for a user holding a token",
+      "Assert the old token acts with the new role"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F182",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Deactivated user cannot sign in and existing token stops working",
+    "steps": [
+      "POST deactivate",
+      "Assert login 401 generic and old token 401; reactivate restores"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F183",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Admins cannot modify themselves; last active admin is protected",
+    "steps": [
+      "Admin deactivates or demotes own account",
+      "Assert 409 SELF_MODIFICATION; service refuses LAST_ADMIN"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F184",
+    "category": "security",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "User management is audited without secrets and admin-only",
+    "steps": [
+      "Create, change role, deactivate, reactivate",
+      "Assert audit rows hold ids and roles only; non-admin roles get 403, anonymous 401"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F185",
+    "category": "ui",
+    "story": "E6-S1",
+    "group": "M",
+    "description": "Users page lists, creates, changes role, deactivates and hides own-row controls",
+    "steps": [
+      "Open Users as admin",
+      "Create a user, change role, deactivate and reactivate",
+      "Assert no controls on own row; axe has no serious violations"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F186",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Admin lists latest checklist version per product",
+    "steps": [
+      "GET /api/v1/admin/checklists",
+      "Assert Savings, Current, NRE with items and created_at"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F187",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Admin appends a new checklist version; old cases keep theirs",
+    "steps": [
+      "POST /api/v1/admin/checklists/Savings",
+      "Assert version 2; earlier case still version 1; new case version 2"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F188",
+    "category": "functional",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Invalid checklists are rejected and append nothing",
+    "steps": [
+      "POST empty, missing baseline, duplicate, unknown class or item",
+      "Assert 422 and no new template row; unknown product 404"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F189",
+    "category": "security",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Checklist changes are audited and admin-only",
+    "steps": [
+      "Publish a version",
+      "Assert CHECKLIST_VERSION_CREATED audit row; non-admin 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F190",
+    "category": "ui",
+    "story": "E6-S2",
+    "group": "M",
+    "description": "Checklists page edits items and publishes a new version",
+    "steps": [
+      "Open Checklists as admin",
+      "Untick mandatory photograph and assert validation error",
+      "Edit classes, publish, assert new prospects see them"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F191",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst raises a query on a case",
+    "steps": [
+      "POST /api/v1/cases/{id}/queries as analyst",
+      "Assert 201 OPEN; validation 422; terminal case 409 CASE_LOCKED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F192",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Owner and staff list queries; other prospects cannot",
+    "steps": [
+      "GET queries as owner, staff and another prospect",
+      "Assert 200, 200, 403 and oldest first"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F193",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Prospect answers a query and closed queries refuse answers",
+    "steps": [
+      "POST response as owner",
+      "Assert ANSWERED; closed query 409 QUERY_CLOSED; unknown query 404"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F194",
+    "category": "functional",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst closes a query once",
+    "steps": [
+      "POST close twice",
+      "Assert CLOSED then 409 QUERY_CLOSED"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F195",
+    "category": "security",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Query history is append-only and PII-safe",
+    "steps": [
+      "Raise, answer, close",
+      "Assert UPDATE/DELETE rejected; audit and logs hold ids, never message text"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F196",
+    "category": "security",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Raise and close are analyst-only; answering is prospect-only",
+    "steps": [
+      "Call each route as every role and anonymously",
+      "Assert 401 for anonymous and 403 outside the matrix"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F197",
+    "category": "ui",
+    "story": "E6-S3",
+    "group": "M",
+    "description": "Analyst raises and closes queries; prospect replies on the status page",
+    "steps": [
+      "Analyst raises a query on a case",
+      "Prospect sees it and replies",
+      "Analyst sees ANSWERED and closes; reply form disappears"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F198",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Prospect sign-up creates only a prospect account with a hashed password",
+    "steps": [
+      "POST /api/v1/auth/signup with valid credentials",
+      "Assert 201, role prospect, case_id null, hash stored, audit USER_SIGNED_UP"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F199",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Sign-up rejects invalid input and taken usernames including staff names",
+    "steps": [
+      "POST invalid usernames and passwords, then admin1",
+      "Assert 422 naming the field and 409 USERNAME_TAKEN"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F200",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "A role in the sign-up body cannot create staff",
+    "steps": [
+      "POST signup with role admin",
+      "Assert role prospect and 403 on every admin and staff route"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F201",
+    "category": "functional",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "A signed-in prospect registers a lead linked to the account; a second lead is refused",
+    "steps": [
+      "POST /api/v1/leads with the account token",
+      "Assert case linked, token case-bound; second lead 409 CASE_EXISTS; anonymous leads still work"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F202",
+    "category": "functional",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Login returns the linked case and a token bound to it",
+    "steps": [
+      "Log in as the prospect account before and after registering",
+      "Assert case_id null then the case id; other cases 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F203",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Prospect-account tokens die with the account and forged ones are rejected",
+    "steps": [
+      "Deactivate the account; use a forged prospect token for an unknown user",
+      "Assert login and token 401; anonymous case tokens unaffected"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F204",
+    "category": "ui",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Sign-up and unified sign-in pages redirect by role",
+    "steps": [
+      "Open /signup and /login",
+      "Assert validation, taken-username message, links, demo accounts in dev, redirect per role"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F205",
+    "category": "ui",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Customer, compliance officer and admin journey works end to end with RBAC",
+    "steps": [
+      "Customer signs up, applies, reaches manual review",
+      "Officer signs in, approves; customer signs in and sees the account",
+      "Customer blocked from staff pages; admin lists the account without controls; deactivation ends the session"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F206",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A requested staff role at sign-up is pending approval with no token",
+    "steps": [
+      "POST /api/v1/auth/signup with role compliance-officer",
+      "Assert status PENDING_APPROVAL, no token, account inactive and pending; unknown role is 422"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F207",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A pending account gets a clear message and no access",
+    "steps": [
+      "Log in with the correct password",
+      "Assert 403 ACCOUNT_PENDING; wrong password stays generic 401; pending admin counts as no admin"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F208",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin approves or rejects staff requests; audited and admin-only",
+    "steps": [
+      "POST approve (optionally with another staff role) and reject",
+      "Assert activation, USER_APPROVED/USER_REJECTED audit, 409 NOT_PENDING otherwise, 403 for non-admins"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F209",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Sign-up page asks the account type and staff requests show a confirmation",
+    "steps": [
+      "Open /signup and choose Compliance officer",
+      "Assert the approval note, the Request account button and the confirmation instead of a session"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F210",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin approves a pending request in the Users page and the requester can then sign in",
+    "steps": [
+      "Request an account, see the pending message at sign-in",
+      "Admin approves in Users; the requester reaches the review queue"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F211",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "REVIEW_POLICY=auto keeps AC-07 auto-approval by default",
+    "steps": [
+      "Decide a clean LOW-risk case with the default policy",
+      "Assert APPROVED with AUTO_APPROVED and an account"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F212",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "REVIEW_POLICY=manual routes every clean case to a compliance officer",
+    "steps": [
+      "Submit a clean LOW-risk case on a manual-policy backend",
+      "Assert MANUAL_REVIEW with MANUAL_POLICY, no account, queue entry; specific reasons keep precedence"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F213",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "The officer decision completes a manual-policy case",
+    "steps": [
+      "Officer approves with DOCS_CONFIRMED",
+      "Assert APPROVED and a stubbed account; reject creates none; only the officer may decide"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F214",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Manual-policy journey: customer waits, officer approves, customer has an account",
+    "steps": [
+      "Customer applies with a clean profile and sees the compliance-review message",
+      "Officer sees MANUAL_POLICY in the queue and approves",
+      "Customer signs in and sees the account"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F215",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin sign-up needs approval by default (ADMIN_SIGNUP=approval)",
+    "steps": [
+      "GET /api/v1/auth/signup-options on a default server",
+      "POST signup with role admin",
+      "Assert admin_requires_approval true and a pending response with no token"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F216",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "ADMIN_SIGNUP=open creates an active admin at sign-up while analyst and officer still wait",
+    "steps": [
+      "POST signup with role admin on an open server",
+      "Assert ACTIVE, token and admin access; analyst and officer requests stay pending; unknown setting fails fast"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F217",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Sign-up page tells the truth about approval for each role and opens the dashboard for an open admin sign-up",
+    "steps": [
+      "Open /signup on an open server and pick Admin, KYC analyst, Compliance officer",
+      "Assert notes and button labels; admin lands on the dashboard"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F218",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A self-registered admin can approve pending analyst and officer requests",
+    "steps": [
+      "Sign up as admin, sign in again",
+      "Approve analyst and officer requests in Users; the officer reaches the review queue"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F219",
+    "category": "functional",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Owner and every staff role can open an uploaded file with the right type and safe headers",
+    "steps": [
+      "GET /api/v1/cases/{id}/documents/{doc}/file as owner, analyst, officer and admin",
+      "Assert 200, exact bytes, stored content type, nosniff, no-store and a name without the uploaded file name"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F220",
+    "category": "security",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Other customers, anonymous callers and unknown documents are refused",
+    "steps": [
+      "Request a file as another prospect, with no token, with an unknown id and with another case id",
+      "Assert 403, 401 and 404"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F221",
+    "category": "security",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Every file view is audited by id only and never logged by name",
+    "steps": [
+      "Open a document as staff and owner",
+      "Assert DOCUMENT_VIEWED rows with document_id and version only; no file name in audit or logs; document records unchanged"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F222",
+    "category": "functional",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Replaced versions are listed in the evidence and stay openable by staff",
+    "steps": [
+      "Re-upload a document",
+      "Assert evidence lists both versions with superseded flags and both files open"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F223",
+    "category": "ui",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Analyst case page and officer review panel show a View button per document and an earlier-versions table",
+    "steps": [
+      "Open a case as analyst and as officer",
+      "Assert View buttons; clicking fetches the file with the token and opens a new tab; errors show next to the button"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F224",
+    "category": "ui",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Live: analyst and officer open the customer documents and the bytes match what was uploaded",
+    "steps": [
+      "Seed a case with documents; analyst opens ID and address proof; officer opens documents of a review case",
+      "Assert the fetched blob contains the uploaded content and type; another customer gets 403"
     ],
     "passes": false,
     "last_evaluated": null,

@@ -297,6 +297,12 @@ export interface AutoApprovalReport {
   met: boolean;
 }
 
+export interface DroppedLeadsReport {
+  older_than_days: number;
+  total: number;
+  stages: { stage: string; count: number }[];
+}
+
 export interface Reports {
   tat: TatReport;
   funnel: FunnelReport;
@@ -304,4 +310,7 @@ export interface Reports {
   timePerStage: TimePerStageReport;
   rejections: RejectionReasonsReport;
   autoApproval: AutoApprovalReport;
+  droppedLeads: DroppedLeadsReport;
 }
+
+export * from './management';

@@ -1,0 +1,166 @@
+{
+  "group": "M",
+  "stories": [
+    "E6-S5"
+  ],
+  "features": [
+    "F206",
+    "F207",
+    "F208",
+    "F209",
+    "F210",
+    "F211",
+    "F212",
+    "F213",
+    "F214",
+    "F215",
+    "F216",
+    "F217",
+    "F218"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S8-API-01",
+        "method": "POST",
+        "path": "/api/v1/auth/signup",
+        "expected_status": 201,
+        "description": "F206 A requested staff role at sign-up is pending approval with no token: body {username, password, role:'compliance-officer'}; status PENDING_APPROVAL and access_token null. Evidence: backend/tests/integration/test_staff_approval_api.py, test_review_policy.py, test_signup_api.py and e2e/live/ui-signup.live.ts, ui-zmanual.live.ts (manual-policy backend)."
+      },
+      {
+        "id": "S8-API-02",
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "expected_status": 403,
+        "description": "F207 A pending account gets a clear message and no access: correct password of a pending account; code ACCOUNT_PENDING. Evidence: backend/tests/integration/test_staff_approval_api.py, test_review_policy.py, test_signup_api.py and e2e/live/ui-signup.live.ts, ui-zmanual.live.ts (manual-policy backend)."
+      },
+      {
+        "id": "S8-API-03",
+        "method": "POST",
+        "path": "/api/v1/admin/users/{user_id}/approve",
+        "expected_status": 200,
+        "description": "F208 Admin approves or rejects staff requests; audited and admin-only: admin token on a pending account; non-admin 403; a non-pending account 409 NOT_PENDING. Evidence: backend/tests/integration/test_staff_approval_api.py, test_review_policy.py, test_signup_api.py and e2e/live/ui-signup.live.ts, ui-zmanual.live.ts (manual-policy backend)."
+      },
+      {
+        "id": "S8-API-04",
+        "method": "GET",
+        "path": "/api/v1/review-queue",
+        "expected_status": 200,
+        "description": "F211 REVIEW_POLICY=auto keeps AC-07 auto-approval by default: officer token on a REVIEW_POLICY=manual backend after a clean case is submitted; item reason_code MANUAL_POLICY. Evidence: backend/tests/integration/test_staff_approval_api.py, test_review_policy.py, test_signup_api.py and e2e/live/ui-signup.live.ts, ui-zmanual.live.ts (manual-policy backend)."
+      },
+      {
+        "id": "S8-API-05",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "expected_status": 200,
+        "description": "F212 REVIEW_POLICY=manual routes every clean case to a compliance officer: officer token, body {decision:'APPROVE', reason_code:'DOCS_CONFIRMED'}; state APPROVED with an account number. Evidence: backend/tests/integration/test_staff_approval_api.py, test_review_policy.py, test_signup_api.py and e2e/live/ui-signup.live.ts, ui-zmanual.live.ts (manual-policy backend)."
+      },
+      {
+        "id": "S8-API-06",
+        "method": "POST",
+        "path": "/api/v1/auth/signup",
+        "expected_status": 201,
+        "description": "F216 ADMIN_SIGNUP=open creates an active admin at sign-up while analyst and officer still wait: body role admin on an ADMIN_SIGNUP=open server returns status ACTIVE, role admin and a token that works on GET /api/v1/admin/users; the same body on a default server returns PENDING_APPROVAL with no token. Evidence: backend/tests/integration/test_staff_approval_api.py (AC-14.11) and e2e/live/ui-zopen-admin.live.ts on a backend started with ADMIN_SIGNUP=open."
+      },
+      {
+        "id": "S8-API-07",
+        "method": "GET",
+        "path": "/api/v1/auth/signup-options",
+        "expected_status": 200,
+        "description": "F215 public; body {admin_requires_approval, staff_requires_approval}: admin_requires_approval is true by default and false with ADMIN_SIGNUP=open. Evidence: backend/tests/integration/test_staff_approval_api.py (AC-14.11) and e2e/live/ui-zopen-admin.live.ts on a backend started with ADMIN_SIGNUP=open."
+      }
+    ],
+    "playwright_checks": [
+      {
+        "id": "UI-F209",
+        "description": "Sign-up page asks the account type and staff requests show a confirmation",
+        "url": "/signup",
+        "steps": [
+          {
+            "action": "Open /signup and choose Compliance officer"
+          },
+          {
+            "action": "Assert the approval note, the Request account button and the confirmation instead of a session"
+          },
+          {
+            "action": "automated in e2e/live/ui-signup.live.ts or ui-zmanual.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F210",
+        "description": "Admin approves a pending request in the Users page and the requester can then sign in",
+        "url": "/signup",
+        "steps": [
+          {
+            "action": "Request an account, see the pending message at sign-in"
+          },
+          {
+            "action": "Admin approves in Users; the requester reaches the review queue"
+          },
+          {
+            "action": "automated in e2e/live/ui-signup.live.ts or ui-zmanual.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F214",
+        "description": "Manual-policy journey: customer waits, officer approves, customer has an account",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Customer applies with a clean profile and sees the compliance-review message"
+          },
+          {
+            "action": "Officer sees MANUAL_POLICY in the queue and approves"
+          },
+          {
+            "action": "Customer signs in and sees the account"
+          },
+          {
+            "action": "automated in e2e/live/ui-signup.live.ts or ui-zmanual.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F217",
+        "description": "Sign-up page tells the truth about approval for each role and opens the dashboard for an open admin sign-up",
+        "url": "/signup",
+        "steps": [
+          {
+            "action": "Open /signup on an open server and pick Admin, KYC analyst, Compliance officer"
+          },
+          {
+            "action": "Assert notes and button labels; admin lands on the dashboard"
+          },
+          {
+            "action": "automated in e2e/live/ui-zopen-admin.live.ts",
+            "assertion": "passes against a live ADMIN_SIGNUP=open backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F218",
+        "description": "A self-registered admin can approve pending analyst and officer requests",
+        "url": "/signup",
+        "steps": [
+          {
+            "action": "Sign up as admin, sign in again"
+          },
+          {
+            "action": "Approve analyst and officer requests in Users; the officer reaches the review queue"
+          },
+          {
+            "action": "automated in e2e/live/ui-zopen-admin.live.ts",
+            "assertion": "passes against a live ADMIN_SIGNUP=open backend"
+          }
+        ]
+      }
+    ],
+    "design_checks": {},
+    "performance_checks": []
+  }
+}

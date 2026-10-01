@@ -9,7 +9,7 @@ async function noHorizontalScroll(page: import('@playwright/test').Page) {
 }
 
 test.describe('prospect portal at 375px', () => {
-  test('AC-01: registration form fits the viewport with touch-sized controls', async ({ page }) => {
+  test('AC-01.7: registration form fits the viewport with touch-sized controls', async ({ page }) => {
     await new ProspectMock().install(page);
     await page.goto('/portal/register');
     await noHorizontalScroll(page);

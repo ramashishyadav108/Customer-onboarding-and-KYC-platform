@@ -1,16 +1,21 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { PRODUCTS, ROUTES } from '@/config';
 import { Banner, FormField, SelectField } from '@/components/ui';
 import { useLeadRegistration } from '@/hooks/useProspect';
 import { validateLead } from '@/lib/validation';
+import { useAuth } from '@/state/AuthContext';
 
 export function LeadFormPage() {
   const navigate = useNavigate();
+  const { session } = useAuth();
   const { register, busy, error, fieldErrors } = useLeadRegistration();
   const [form, setForm] = useState({ name: '', contact: '', product: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const shown = { ...fieldErrors, ...errors };
+
+  // A signed-in prospect already has an application: resume it instead of starting another.
+  if (session?.role === 'prospect' && session.caseId) return <Navigate to={ROUTES.status} replace />;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,6 +30,11 @@ export function LeadFormPage() {
     <section className="card" aria-labelledby="h">
       <h2 id="h">Register your interest</h2>
       <p className="meta">Tell us who you are and which account you want. You will add your profile and documents next.</p>
+      {!session && (
+        <p className="meta">
+          Have an account? <Link to={ROUTES.login}>Sign in</Link> or <Link to={ROUTES.signup}>create an account</Link> to come back to your application later.
+        </p>
+      )}
       {error && <Banner kind="e">{error}</Banner>}
       <form onSubmit={onSubmit} noValidate>
         <FormField label="Full name" name="name" autoComplete="name" value={form.name} error={shown.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />

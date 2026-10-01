@@ -5,5 +5,7 @@
   "0004_seed_checklists_v1.py": "cdf9ef72377fd74e742f02fd002e3a885700b6c86b838b21ecf46833b23cf32b",
   "0005_seed_classification_rules_v1.py": "83d8161673e7e4a1143f0c04686a539aef6d593817e32b8c7e97f134c8e0e684",
   "0006_seed_rule_set_v1.py": "1c7af292bfa073b7bb5d2b7b925a98dc68ab85fce64d31637fa65ba665505e0d",
-  "0007_seed_watchlist_v1.py": "5d527c38ab550e3b0079a05682f4985371a1fe27ff7a8cb4ba6ea7c7bd8ac1cf"
+  "0007_seed_watchlist_v1.py": "5d527c38ab550e3b0079a05682f4985371a1fe27ff7a8cb4ba6ea7c7bd8ac1cf",
+  "0008_admin_users_checklists_queries.py": "f19adeac98ba128cc087bd4ece2ea3a5267cd8e935255c93312426dd3b4f07aa",
+  "0009_review_policy_and_pending_users.py": "8154f4c484f51ba32e8484d346441bb1c3c9efad1c5b058c7660714364c45a58"
 }

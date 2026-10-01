@@ -23,7 +23,7 @@ afterEach(() => {
 const CASE_URL = `GET /api/v1/cases/${prospectSession.caseId}`;
 
 describe('LeadFormPage', () => {
-  it('AC-01: shows field errors and creates nothing when the form is invalid', async () => {
+  it('AC-01.7: shows field errors and creates nothing when the form is invalid', async () => {
     const { calls } = mockFetch({});
     renderApp(<LeadFormPage />);
     await userEvent.click(screen.getByRole('button', { name: 'Start application' }));
@@ -224,7 +224,7 @@ const evidence: Evidence = {
 };
 
 describe('review workflow', () => {
-  it('AC-08: disables the decision button until a reason code is selected and filters reasons by direction', async () => {
+  it('AC-08.7: disables the decision button until a reason code is selected and filters reasons by direction', async () => {
     mockFetch({ [`GET /api/v1/cases/${evidence.case_id}/evidence`]: evidence });
     renderApp(<ReviewPanel caseId={evidence.case_id} onDone={() => undefined} />, { session: officerSession });
     const approve = await screen.findByRole('button', { name: 'Approve case' });
@@ -298,11 +298,11 @@ describe('workbench and admin pages', () => {
 
   it('AC-10: dashboard refreshes all panels when the product filter changes', async () => {
     const empty = { items: [], stages: [], buckets: [], count: 0, oldest_age_minutes: 0, auto_approved: 0, decided: 0, rate_bp: 0, target_bp: 6000, met: false };
-    const { calls } = mockFetch(Object.fromEntries(['tat', 'funnel', 'backlog', 'time-per-stage', 'rejection-reasons', 'auto-approval'].map((p) => [`GET /api/v1/admin/reports/${p}`, { body: empty }])));
+    const { calls } = mockFetch(Object.fromEntries(['tat', 'funnel', 'backlog', 'time-per-stage', 'rejection-reasons', 'auto-approval', 'dropped-leads'].map((p) => [`GET /api/v1/admin/reports/${p}`, { body: empty }])));
     renderApp(<DashboardPage />, { session: { token: 't', role: 'admin', caseId: null } });
-    expect(await screen.findAllByRole('region')).toHaveLength(6);
+    expect(await screen.findAllByRole('region')).toHaveLength(7);
     await userEvent.selectOptions(screen.getByLabelText('Product'), 'NRE');
-    await waitFor(() => expect(calls.filter((c) => c.url.includes('product=NRE'))).toHaveLength(6));
+    await waitFor(() => expect(calls.filter((c) => c.url.includes('product=NRE'))).toHaveLength(7));
   });
 
   it('AC-05: watchlist add validates the name and deactivates entries', async () => {

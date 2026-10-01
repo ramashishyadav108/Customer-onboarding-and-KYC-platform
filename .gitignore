@@ -20,3 +20,6 @@ uploads/
 .test_run.log
 frontend/.vite
 .eval*
+
+# Local SQLite databases created by scripts/start_all.py
+*.db

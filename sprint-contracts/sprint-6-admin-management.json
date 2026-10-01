@@ -1,0 +1,210 @@
+{
+  "group": "M",
+  "stories": [
+    "E6-S1",
+    "E6-S2",
+    "E6-S3"
+  ],
+  "features": [
+    "F178",
+    "F179",
+    "F180",
+    "F181",
+    "F182",
+    "F183",
+    "F184",
+    "F185",
+    "F186",
+    "F187",
+    "F188",
+    "F189",
+    "F190",
+    "F191",
+    "F192",
+    "F193",
+    "F194",
+    "F195",
+    "F196",
+    "F197"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S6-API-01",
+        "method": "GET",
+        "path": "/api/v1/admin/users",
+        "expected_status": 200,
+        "description": "F178 Admin lists users without any password or hash: admin token; items hold user_id, username, role, active, created_at and no hash. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-02",
+        "method": "POST",
+        "path": "/api/v1/admin/users",
+        "expected_status": 201,
+        "description": "F179 Admin creates a staff user who can then sign in: admin token; body {username:'analyst.two', password:'synthetic-pass-123', role:'kyc-analyst'}; then that user logs in. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-03",
+        "method": "POST",
+        "path": "/api/v1/admin/users",
+        "expected_status": 422,
+        "description": "F180 Invalid new user and duplicate username are rejected: admin token; body with username 'ab' and role 'prospect' names the offending fields; a repeat of an existing username is 409 USERNAME_TAKEN. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-04",
+        "method": "PUT",
+        "path": "/api/v1/admin/users/{user_id}/role",
+        "expected_status": 200,
+        "description": "F181 Admin changes a role and the change applies to issued tokens: admin token; body {role:'compliance-officer'}; an already issued token of that user then acts with the new role. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-05",
+        "method": "POST",
+        "path": "/api/v1/admin/users/{user_id}/deactivate",
+        "expected_status": 200,
+        "description": "F182 Deactivated user cannot sign in and existing token stops working: admin token; afterwards that user's login and old token both return 401; reactivate restores. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-06",
+        "method": "POST",
+        "path": "/api/v1/admin/users/{own_user_id}/deactivate",
+        "expected_status": 409,
+        "description": "F183 Admins cannot modify themselves; last active admin is protected: admin token of the same user; error code SELF_MODIFICATION. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-07",
+        "method": "GET",
+        "path": "/api/v1/admin/users",
+        "expected_status": 403,
+        "description": "F184 User management is audited without secrets and admin-only: analyst token; prospect and officer tokens also 403; no token 401; audit rows hold ids only. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-08",
+        "method": "GET",
+        "path": "/api/v1/admin/checklists",
+        "expected_status": 200,
+        "description": "F186 Admin lists latest checklist version per product: admin token; Savings, Current and NRE with items and created_at. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-09",
+        "method": "POST",
+        "path": "/api/v1/admin/checklists/Savings",
+        "expected_status": 201,
+        "description": "F187 Admin appends a new checklist version; old cases keep theirs: admin token; body with ID_PROOF, ADDRESS_PROOF, PHOTOGRAPH mandatory; version becomes 2; a case created earlier keeps version 1. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-10",
+        "method": "POST",
+        "path": "/api/v1/admin/checklists/Savings",
+        "expected_status": 422,
+        "description": "F188 Invalid checklists are rejected and append nothing: admin token; body missing PHOTOGRAPH (or with an unknown class) returns VALIDATION_ERROR and appends no version. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-11",
+        "method": "GET",
+        "path": "/api/v1/admin/checklists",
+        "expected_status": 403,
+        "description": "F189 Checklist changes are audited and admin-only: officer token; prospect and analyst also 403; no token 401; CHECKLIST_VERSION_CREATED audited on publish. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-12",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/queries",
+        "expected_status": 201,
+        "description": "F191 Analyst raises a query on a case: analyst token; body {message}; status OPEN; on an APPROVED case 409 CASE_LOCKED; empty or 501-char message 422. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-13",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/queries",
+        "expected_status": 403,
+        "description": "F192 Owner and staff list queries; other prospects cannot: token of a different prospect; the owner and any staff role get 200; oldest first. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-14",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/queries/{query_id}/responses",
+        "expected_status": 409,
+        "description": "F193 Prospect answers a query and closed queries refuse answers: owner token on a closed query; code QUERY_CLOSED; on an open query 201 and status ANSWERED; unknown query 404. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-15",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/queries/{query_id}/close",
+        "expected_status": 409,
+        "description": "F194 Analyst closes a query once: analyst token, second close; code QUERY_CLOSED; first close 200 and status CLOSED. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      },
+      {
+        "id": "S6-API-16",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/queries",
+        "expected_status": 403,
+        "description": "F196 Raise and close are analyst-only; answering is prospect-only: prospect, officer and admin tokens; no token 401; answering with a staff token is 403. Evidence: backend pytest (test_admin_users_api.py, test_admin_checklists_api.py, test_queries_api.py, test_role_matrix.py) and e2e/live/ui-management.live.ts. Base URL http://127.0.0.1:8010; staff logins analyst1, officer1, admin1 (demo-<user>-pass)."
+      }
+    ],
+    "playwright_checks": [
+      {
+        "id": "UI-F185",
+        "description": "Users page lists, creates, changes role, deactivates and hides own-row controls",
+        "url": "/admin/users",
+        "steps": [
+          {
+            "action": "Open Users as admin"
+          },
+          {
+            "action": "Create a user, change role, deactivate and reactivate"
+          },
+          {
+            "action": "Assert no controls on own row; axe has no serious violations"
+          },
+          {
+            "action": "automated in e2e/live/ui-management.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F190",
+        "description": "Checklists page edits items and publishes a new version",
+        "url": "/admin/checklists",
+        "steps": [
+          {
+            "action": "Open Checklists as admin"
+          },
+          {
+            "action": "Untick mandatory photograph and assert validation error"
+          },
+          {
+            "action": "Edit classes, publish, assert new prospects see them"
+          },
+          {
+            "action": "automated in e2e/live/ui-management.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F197",
+        "description": "Analyst raises and closes queries; prospect replies on the status page",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Analyst raises a query on a case"
+          },
+          {
+            "action": "Prospect sees it and replies"
+          },
+          {
+            "action": "Analyst sees ANSWERED and closes; reply form disappears"
+          },
+          {
+            "action": "automated in e2e/live/ui-management.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      }
+    ],
+    "design_checks": {},
+    "performance_checks": []
+  }
+}

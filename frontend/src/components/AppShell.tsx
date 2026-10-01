@@ -16,6 +16,8 @@ const NAV: Record<Role, { to: string; label: string }[]> = {
     { to: ROUTES.dashboard, label: 'Reports' },
     { to: ROUTES.ruleSets, label: 'Rule sets' },
     { to: ROUTES.watchlist, label: 'Watchlist' },
+    { to: ROUTES.users, label: 'Users' },
+    { to: ROUTES.checklists, label: 'Checklists' },
     { to: ROUTES.workbench, label: 'Cases' },
   ],
 };
@@ -37,7 +39,7 @@ export function AppShell({ title, wide }: { title: string; wide?: boolean }) {
               className="sec"
               onClick={() => {
                 signOut();
-                navigate(session.role === 'prospect' ? ROUTES.register : ROUTES.login);
+                navigate(ROUTES.login);
               }}
             >
               Sign out

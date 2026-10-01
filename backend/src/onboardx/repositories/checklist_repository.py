@@ -36,3 +36,35 @@ class ChecklistRepository:
             for r in ordered
         )
         return Checklist(product=product, version=version, items=items)
+
+    def created_at(self, product: Product, version: int) -> str | None:
+        return self._session.scalar(
+            select(ChecklistTemplateModel.created_at).where(
+                ChecklistTemplateModel.product == str(product),
+                ChecklistTemplateModel.version == version,
+            )
+        )
+
+    def add_version(
+        self,
+        product: Product,
+        version: int,
+        created_at: str,
+        items: list[tuple[str, bool, tuple[str, ...]]],
+    ) -> None:
+        """Append a new immutable checklist version (AC-12.2); earlier versions are untouched."""
+        self._session.add(
+            ChecklistTemplateModel(product=str(product), version=version, created_at=created_at)
+        )
+        self._session.flush()
+        for code, mandatory, classes in items:
+            self._session.add(
+                ChecklistItemModel(
+                    product=str(product),
+                    version=version,
+                    item_code=code,
+                    mandatory=mandatory,
+                    accepted_classes=list(classes),
+                )
+            )
+        self._session.flush()
