@@ -4,7 +4,8 @@
         [--admin-signup approval|open]
 
 Existing DATABASE_URL, JWT_SECRET and UPLOAD_DIR environment variables are respected; otherwise
-synthetic dev defaults are used. Ctrl-C stops both processes.
+synthetic dev defaults are used. REVIEW_POLICY and ADMIN_SIGNUP come from a flag, then the
+environment, then the git-ignored repo-root .env, then the safe defaults. Ctrl-C stops both processes.
 """
 
 import argparse
@@ -21,6 +22,24 @@ ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 FRONTEND = ROOT / "frontend"
 HEALTH_TIMEOUT_SECONDS = 60
+
+
+def read_dotenv(path: Path) -> dict[str, str]:
+    """KEY=VALUE lines of the repo-root .env (comments and blanks skipped); {} when absent."""
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for line in path.read_text(encoding="utf-8").splitlines():
+        text = line.strip()
+        if text and not text.startswith("#") and "=" in text:
+            key, _, value = text.partition("=")
+            values[key.strip()] = value.strip().strip("\"'")
+    return values
+
+
+def setting(name: str, dotenv: dict[str, str], default: str) -> str:
+    """Environment variable first, then the repo-root .env, then the safe default."""
+    return os.environ.get(name) or dotenv.get(name) or default
 
 
 def backend_python() -> str:
@@ -56,19 +75,20 @@ def stop(processes: list[subprocess.Popen[bytes]]) -> None:
 
 
 def main() -> int:
+    dotenv = read_dotenv(ROOT / ".env")
     parser = argparse.ArgumentParser(description="Start OnboardX backend and frontend")
     parser.add_argument("--backend-port", type=int, default=8000)
     parser.add_argument("--frontend-port", type=int, default=3000)
     parser.add_argument(
         "--review-policy",
         choices=["auto", "manual"],
-        default=os.environ.get("REVIEW_POLICY", "auto"),
+        default=setting("REVIEW_POLICY", dotenv, "auto"),
         help="auto: clean LOW-risk cases are approved automatically (AC-07); manual: a compliance officer approves every case",
     )
     parser.add_argument(
         "--admin-signup",
         choices=["approval", "open"],
-        default=os.environ.get("ADMIN_SIGNUP", "approval"),
+        default=setting("ADMIN_SIGNUP", dotenv, "approval"),
         help="approval: admin sign-ups wait for an admin; open: anyone can sign up as admin (local demos only)",
     )
     args = parser.parse_args()
