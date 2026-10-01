@@ -1,6 +1,6 @@
 """Single-command local run: start the backend (migrations + seed data) and the frontend dev server.
 
-    python scripts/start_all.py [--backend-port 8000] [--frontend-port 3000]
+    python scripts/start_all.py [--backend-port 8000] [--frontend-port 3000] [--review-policy auto|manual]
 
 Existing DATABASE_URL, JWT_SECRET and UPLOAD_DIR environment variables are respected; otherwise
 synthetic dev defaults are used. Ctrl-C stops both processes.
@@ -58,6 +58,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Start OnboardX backend and frontend")
     parser.add_argument("--backend-port", type=int, default=8000)
     parser.add_argument("--frontend-port", type=int, default=3000)
+    parser.add_argument(
+        "--review-policy",
+        choices=["auto", "manual"],
+        default=os.environ.get("REVIEW_POLICY", "auto"),
+        help="auto: clean LOW-risk cases are approved automatically (AC-07); manual: a compliance officer approves every case",
+    )
     args = parser.parse_args()
 
     npm = shutil.which("npm")
@@ -74,6 +80,7 @@ def main() -> int:
         "JWT_SECRET": os.environ.get("JWT_SECRET", "dev-only-not-a-secret-change-me-0123456789"),
         "UPLOAD_DIR": os.environ.get("UPLOAD_DIR", str(ROOT / "uploads")),
         "BACKEND_PORT": str(args.backend_port),
+        "REVIEW_POLICY": args.review_policy,
     }
     backend_url = f"http://127.0.0.1:{args.backend_port}"
     processes: list[subprocess.Popen[bytes]] = []

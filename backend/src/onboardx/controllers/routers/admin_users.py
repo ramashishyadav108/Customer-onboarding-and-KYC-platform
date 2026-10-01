@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from onboardx.controllers.dependencies.auth import Principal, require_role
 from onboardx.controllers.dependencies.services import Services, get_services
 from onboardx.controllers.schemas.management import (
+    ApproveIn,
     RoleIn,
     UserIn,
     UserListOut,
@@ -48,3 +49,17 @@ def deactivate_user(user_id: str, admin: AdminOnly, services: Svc) -> UserOut:
 @router.post("/{user_id}/reactivate")
 def reactivate_user(user_id: str, admin: AdminOnly, services: Svc) -> UserOut:
     return user_out(services.user_admin.reactivate(user_id=user_id, actor=admin.subject))
+
+
+@router.post("/{user_id}/approve")
+def approve_user(
+    user_id: str, admin: AdminOnly, services: Svc, body: ApproveIn | None = None
+) -> UserOut:
+    """Approve a staff sign-up request, optionally with a different staff role."""
+    role = body.role if body is not None else None
+    return user_out(services.user_admin.approve(user_id=user_id, role=role, actor=admin.subject))
+
+
+@router.post("/{user_id}/reject")
+def reject_user(user_id: str, admin: AdminOnly, services: Svc) -> UserOut:
+    return user_out(services.user_admin.reject(user_id=user_id, actor=admin.subject))

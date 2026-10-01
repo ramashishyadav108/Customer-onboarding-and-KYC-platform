@@ -15,3 +15,4 @@ class UserModel(Base):
     case_id: Mapped[str | None]
     created_at: Mapped[str]
     active: Mapped[int] = mapped_column(default=1)
+    pending: Mapped[int] = mapped_column(default=0)

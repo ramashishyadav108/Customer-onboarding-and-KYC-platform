@@ -49,17 +49,73 @@ test('sign-up validates input and rejects taken staff usernames', async ({ page 
   await expect(page.getByText('The passwords do not match.')).toBeVisible();
 });
 
-test('a role in the sign-up request cannot create staff', async () => {
+test('a staff role in the sign-up request is pending approval and grants nothing', async () => {
   const res = await fetch(`${API}/auth/signup`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ username: 'sneaky.user', password: PASSWORD, role: 'admin' }),
   });
   expect(res.status).toBe(201);
-  const body = (await res.json()) as { role: string; access_token: string };
-  expect(body.role).toBe('prospect');
-  const admin = await fetch(`${API}/admin/users`, { headers: { Authorization: `Bearer ${body.access_token}` } });
-  expect(admin.status).toBe(403);
+  const body = (await res.json()) as { status: string; role: string; access_token: string | null };
+  expect(body.status).toBe('PENDING_APPROVAL');
+  expect(body.access_token).toBeNull();
+  const signIn = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: 'sneaky.user', password: PASSWORD }),
+  });
+  expect(signIn.status).toBe(403);
+  expect(((await signIn.json()) as { error: { code: string } }).error.code).toBe('ACCOUNT_PENDING');
+});
+
+test('the sign-up page asks for the account type; a compliance officer request needs admin approval', async ({ browser }) => {
+  const requester = await (await browser.newContext()).newPage();
+  await requester.goto('/signup');
+  await expect(requester.getByLabel('I am a')).toBeVisible();
+  await requester.getByLabel('I am a').selectOption('compliance-officer');
+  await expect(requester.getByRole('note')).toContainText('must be approved by an administrator');
+  await requester.getByLabel('Username').fill('officer.two');
+  await requester.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  await requester.getByLabel('Confirm password').fill(PASSWORD);
+  await requester.getByRole('button', { name: 'Request account' }).click();
+  await expect(requester.getByRole('heading', { name: 'Request received' })).toBeVisible();
+  await expectNoSeriousAxe(requester);
+
+  await requester.goto('/login');
+  await requester.getByLabel('Username').fill('officer.two');
+  await requester.getByLabel('Password').fill(PASSWORD);
+  await requester.getByRole('button', { name: 'Sign in' }).click();
+  await expect(requester.getByRole('alert')).toContainText(/waiting for administrator approval/i);
+
+  const adminPage = await (await browser.newContext()).newPage();
+  await login(adminPage, 'admin1', 'demo-admin1-pass');
+  await adminPage.goto('/admin/users');
+  const row = adminPage.getByRole('row', { name: /officer\.two/ });
+  await expect(row).toContainText('Pending approval');
+  await row.getByRole('button', { name: 'Approve officer.two' }).click();
+  await expect(adminPage.getByText('officer.two approved as Compliance officer.')).toBeVisible();
+
+  await requester.getByRole('button', { name: 'Sign in' }).click();
+  await expect(requester.getByRole('heading', { name: 'Manual review queue' })).toBeVisible();
+});
+
+test('a rejected staff request stays unable to sign in', async ({ page }) => {
+  const res = await fetch(`${API}/auth/signup`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: 'rejected.analyst', password: PASSWORD, role: 'kyc-analyst' }),
+  });
+  expect(res.status).toBe(201);
+  await login(page, 'admin1', 'demo-admin1-pass');
+  await page.goto('/admin/users');
+  await page.getByRole('button', { name: 'Reject rejected.analyst' }).click();
+  await expect(page.getByText('Request from rejected.analyst rejected.')).toBeVisible();
+  const signIn = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: 'rejected.analyst', password: PASSWORD }),
+  });
+  expect(signIn.status).toBe(401);
 });
 
 test('customer signs up, applies and reaches manual review', async ({ page }) => {

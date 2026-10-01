@@ -46,10 +46,20 @@ def _review_reason(
 
 
 def decide(
-    band: RiskBand, hits: Iterable[Mapping[str, str]], document_statuses: Iterable[str]
+    band: RiskBand,
+    hits: Iterable[Mapping[str, str]],
+    document_statuses: Iterable[str],
+    *,
+    manual_policy: bool = False,
 ) -> DecisionOutcome:
-    """APPROVED/AUTO_APPROVED only if LOW, no hit and every current document VERIFIED."""
+    """APPROVED/AUTO_APPROVED only if LOW, no hit and every current document VERIFIED.
+
+    With ``manual_policy`` a clean case is routed to a compliance officer (MANUAL_POLICY) instead;
+    every specific review reason keeps its precedence (AC-15).
+    """
     review = _review_reason(band, hits, document_statuses)
+    if review is None and manual_policy:
+        review = DecisionReason.MANUAL_POLICY
     if review is None:
         return DecisionOutcome(CaseState.APPROVED, DecisionReason.AUTO_APPROVED)
     return DecisionOutcome(CaseState.MANUAL_REVIEW, review)

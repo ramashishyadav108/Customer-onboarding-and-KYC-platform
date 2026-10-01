@@ -102,6 +102,7 @@ export const REASON_TEXT: Record<string, string> = {
   RISK_MEDIUM: 'Medium risk band',
   RISK_HIGH: 'High risk band',
   AUTO_APPROVED: 'Automatically approved',
+  MANUAL_POLICY: 'Bank policy: a compliance officer approves every application',
   ...Object.fromEntries(
     [...DOC_REJECT_REASONS, ...OVERRIDE_REASONS.APPROVE, ...OVERRIDE_REASONS.REJECT, ...RECLASSIFY_REASONS].map((r) => [
       r.value,
@@ -121,3 +122,10 @@ export const STAFF_ROLE_OPTIONS: ReasonOption[] = [
 ];
 
 export const DOC_CLASS_HINT = 'PAN, AADHAAR, PASSPORT, UTILITY_BILL, PHOTOGRAPH, GST_CERTIFICATE, VISA';
+
+export const SIGNUP_ACCOUNT_TYPES: ReasonOption[] = [
+  { value: 'prospect', label: 'Customer (applying for an account)' },
+  { value: 'kyc-analyst', label: 'KYC analyst (bank staff)' },
+  { value: 'compliance-officer', label: 'Compliance officer (bank staff)' },
+  { value: 'admin', label: 'Admin (bank staff)' },
+];

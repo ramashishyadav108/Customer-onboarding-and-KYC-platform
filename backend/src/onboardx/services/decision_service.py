@@ -29,12 +29,14 @@ class DecisionService:
         audit: AuditService,
         onboarding: OnboardingService,
         accounts: AccountService,
+        manual_policy: bool = False,
     ) -> None:
         self._uow_factory = uow_factory
         self._clock = clock
         self._audit = audit
         self._onboarding = onboarding
         self._accounts = accounts
+        self._manual_policy = manual_policy
 
     def decide(self, *, case_id: str, actor: str, role: str) -> DecisionResult:
         """Decide a CLASSIFIED case (idempotent: a later call returns the original decision)."""
@@ -63,7 +65,12 @@ class DecisionService:
             raise NotFoundError("risk_assessment")
         screening = uow.screenings.latest_result(case_id)
         statuses = [d.status for d in uow.documents.list_views(case_id)]
-        outcome = decide(RiskBand(assessment.band), screening.hits if screening else (), statuses)
+        outcome = decide(
+            RiskBand(assessment.band),
+            screening.hits if screening else (),
+            statuses,
+            manual_policy=self._manual_policy,
+        )
         decision = Decision(
             str(uuid.uuid4()),
             case_id,

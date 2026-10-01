@@ -7,7 +7,7 @@ import jwt
 
 from onboardx.domain.entities import STAFF_ROLES
 from onboardx.domain.enums import Role
-from onboardx.domain.errors import AuthenticationError
+from onboardx.domain.errors import AccountPendingError, AuthenticationError
 from onboardx.domain.ports import Clock
 from onboardx.repositories.unit_of_work import UnitOfWorkFactory
 from onboardx.services.passwords import hash_password, verify_password
@@ -64,7 +64,11 @@ class AuthService:
             user = uow.users.get_by_username(username)
         stored = user.password_hash if user is not None else _dummy_hash()
         valid = verify_password(password, stored)
-        if user is None or not valid or not user.active:
+        if user is None or not valid:
+            raise AuthenticationError("Invalid credentials")
+        if user.pending:
+            raise AccountPendingError  # only after the password proved who is asking
+        if not user.active:
             raise AuthenticationError("Invalid credentials")
         issued = self.issue_token(user.username, user.role, user.case_id)
         return LoginResult(issued.access_token, user.role, issued.expires_in, user.case_id)

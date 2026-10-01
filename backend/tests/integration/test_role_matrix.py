@@ -45,6 +45,8 @@ ROUTES: list[tuple[str, str, dict[str, str] | None, set[str]]] = [
     ("PUT", "/api/v1/admin/users/x/role", {}, ADMIN),
     ("POST", "/api/v1/admin/users/x/deactivate", None, ADMIN),
     ("POST", "/api/v1/admin/users/x/reactivate", None, ADMIN),
+    ("POST", "/api/v1/admin/users/x/approve", None, ADMIN),
+    ("POST", "/api/v1/admin/users/x/reject", None, ADMIN),
     ("GET", "/api/v1/admin/checklists", None, ADMIN),
     ("POST", "/api/v1/admin/checklists/Savings", {}, ADMIN),
     ("GET", "/api/v1/cases/{c}/queries", None, STAFF),

@@ -3239,5 +3239,141 @@
     "last_evaluated": "2026-10-01T17:14:15.000000Z",
     "failure_reason": null,
     "failure_layer": null
+  },
+  {
+    "id": "F206",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A requested staff role at sign-up is pending approval with no token",
+    "steps": [
+      "POST /api/v1/auth/signup with role compliance-officer",
+      "Assert status PENDING_APPROVAL, no token, account inactive and pending; unknown role is 422"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F207",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "A pending account gets a clear message and no access",
+    "steps": [
+      "Log in with the correct password",
+      "Assert 403 ACCOUNT_PENDING; wrong password stays generic 401; pending admin counts as no admin"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F208",
+    "category": "security",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin approves or rejects staff requests; audited and admin-only",
+    "steps": [
+      "POST approve (optionally with another staff role) and reject",
+      "Assert activation, USER_APPROVED/USER_REJECTED audit, 409 NOT_PENDING otherwise, 403 for non-admins"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F209",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Sign-up page asks the account type and staff requests show a confirmation",
+    "steps": [
+      "Open /signup and choose Compliance officer",
+      "Assert the approval note, the Request account button and the confirmation instead of a session"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F210",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Admin approves a pending request in the Users page and the requester can then sign in",
+    "steps": [
+      "Request an account, see the pending message at sign-in",
+      "Admin approves in Users; the requester reaches the review queue"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F211",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "REVIEW_POLICY=auto keeps AC-07 auto-approval by default",
+    "steps": [
+      "Decide a clean LOW-risk case with the default policy",
+      "Assert APPROVED with AUTO_APPROVED and an account"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F212",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "REVIEW_POLICY=manual routes every clean case to a compliance officer",
+    "steps": [
+      "Submit a clean LOW-risk case on a manual-policy backend",
+      "Assert MANUAL_REVIEW with MANUAL_POLICY, no account, queue entry; specific reasons keep precedence"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F213",
+    "category": "functional",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "The officer decision completes a manual-policy case",
+    "steps": [
+      "Officer approves with DOCS_CONFIRMED",
+      "Assert APPROVED and a stubbed account; reject creates none; only the officer may decide"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F214",
+    "category": "ui",
+    "story": "E6-S5",
+    "group": "M",
+    "description": "Manual-policy journey: customer waits, officer approves, customer has an account",
+    "steps": [
+      "Customer applies with a clean profile and sees the compliance-review message",
+      "Officer sees MANUAL_POLICY in the queue and approves",
+      "Customer signs in and sees the account"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T17:39:46.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
   }
 ]

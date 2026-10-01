@@ -76,7 +76,9 @@ export function useUsers() {
   const changeRole = useCallback((id: string, role: StaffRole) => wrap(() => usersApi.changeRole(id, role)), [wrap]);
   const deactivate = useCallback((id: string) => wrap(() => usersApi.deactivate(id)), [wrap]);
   const reactivate = useCallback((id: string) => wrap(() => usersApi.reactivate(id)), [wrap]);
-  return { list, create, changeRole, deactivate, reactivate, busy: action.busy, error: action.error, clear: action.clear };
+  const approve = useCallback((id: string, role?: StaffRole) => wrap(() => usersApi.approve(id, role)), [wrap]);
+  const reject = useCallback((id: string) => wrap(() => usersApi.reject(id)), [wrap]);
+  return { list, create, changeRole, deactivate, reactivate, approve, reject, busy: action.busy, error: action.error, clear: action.clear };
 }
 
 export function useChecklists() {

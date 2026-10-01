@@ -50,3 +50,17 @@ Scope added after the brief was re-read: admin user and role management, admin c
 Behaviour change to note: staff tokens are now honoured only for an existing, active user and carry that user's stored role (AC-11.4, AC-11.5). One existing test minted a staff token for a user that did not exist; it now logs in as a seeded user. Migration-head assertions moved from 0007 to 0008 (new append-only migration; earlier migrations untouched).
 
 Limits: the three append-only and PII properties of queries (F195) and the audit rows are proven by pytest only (no HTTP surface). The last-active-admin rule (`LAST_ADMIN`) cannot be reached through the API by an active admin because self-modification is blocked first; it is tested at service level. Admin password reset and prospect user management are not part of this scope.
+
+## Addendum: sign-up, staff approval and review policy (AC-14, AC-15), 2026-10-01
+Triggered by a user observation: a customer who signed up and uploaded documents was approved with no human involved. That is the brief's AC-07 (auto-approve a clean LOW-risk case); screening did run, automatically, as the rule-based engine (AC-05). Two changes followed (spec: `specs/admin-management_spec.md`; contracts: `sprint-7-accounts.json`, `sprint-8-staff-signup-review-policy.json`; features F198-F214).
+
+| Check | Result |
+|---|---|
+| Backend full suite | 1452 passed on the full run; the 4 failures were migration-head assertions (0008 to 0009), updated and rerun (358 passed in that subset); `ruff`, `mypy`, import-linter clean |
+| Frontend | 154 vitest passed, 97.46% statements; `eslint` and `tsc` clean; mocked e2e 16 of 16 |
+| Live Playwright, auto policy (real backend) | 46 passed, 2 skipped by design (manual-policy file) |
+| Live Playwright, `REVIEW_POLICY=manual` backend | 2 of 2: clean application waits, officer approves, customer has an account |
+
+Decisions recorded: (1) Review policy is a setting. `auto` stays the default because the brief requires auto-approval and the 60 percent target; `manual` makes the compliance officer decide every case (reason `MANUAL_POLICY`). (2) Sign-up asks for an account type, but a staff role never grants access by itself: it is created inactive and pending, with no token, until an admin approves it. Granting self-selected admin rights at sign-up would defeat NFR-04. Migration 0009 rebuilds the append-only `decisions` table to allow the new reason and adds `users.pending`.
+
+Not done: case assignment to a named person (claiming a case). Cases are routed by queue (analyst workbench for documents and queries, officer queue for decisions), not assigned to individuals.

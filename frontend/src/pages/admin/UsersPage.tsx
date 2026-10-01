@@ -70,13 +70,25 @@ export function UsersPage() {
           rowKey={(u) => u.user_id}
           columns={[
             { header: 'Username', cell: (u) => u.username },
-            { header: 'Role', cell: (u) => (u.username === me ? ROLE_LABEL[u.role] : <RoleCell user={u} busy={users.busy} onChange={(role) => act(() => users.changeRole(u.user_id, role), `Role for ${u.username} changed.`)} />) },
-            { header: 'Status', cell: (u) => (u.active ? 'Active' : 'Deactivated') },
+            { header: 'Role', cell: (u) => (u.username === me || u.status === 'PENDING' ? ROLE_LABEL[u.role] : <RoleCell user={u} busy={users.busy} onChange={(role) => act(() => users.changeRole(u.user_id, role), `Role for ${u.username} changed.`)} />) },
+            { header: 'Status', cell: (u) => (u.status === 'PENDING' ? 'Pending approval' : u.status === 'ACTIVE' ? 'Active' : 'Deactivated') },
             { header: 'Created', cell: (u) => formatDateTime(u.created_at) },
             {
               header: 'Action',
               cell: (u) => {
                 if (u.username === me || u.role === 'prospect') return '-';
+                if (u.status === 'PENDING') {
+                  return (
+                    <span className="row">
+                      <button type="button" disabled={users.busy} onClick={() => act(() => users.approve(u.user_id), `${u.username} approved as ${ROLE_LABEL[u.role]}.`)}>
+                        Approve {u.username}
+                      </button>
+                      <button type="button" className="sec" disabled={users.busy} onClick={() => act(() => users.reject(u.user_id), `Request from ${u.username} rejected.`)}>
+                        Reject {u.username}
+                      </button>
+                    </span>
+                  );
+                }
                 return u.active ? (
                   <button type="button" className="sec" disabled={users.busy} onClick={() => act(() => users.deactivate(u.user_id), `${u.username} deactivated.`)}>
                     Deactivate {u.username}

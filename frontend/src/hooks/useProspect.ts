@@ -25,11 +25,11 @@ export function useSignup() {
   const action = useAction();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const signup = useCallback(
-    async (username: string, password: string) => {
+    async (username: string, password: string, role: string) => {
       setFieldErrors({});
       const res = await action.run(async () => {
         try {
-          return await authApi.signup(username, password);
+          return await authApi.signup(username, password, role);
         } catch (e) {
           if (e instanceof ApiError && e.code === 'VALIDATION_ERROR') {
             const fields = (e.details.fields ?? []) as { field: string; message: string }[];
@@ -39,7 +39,7 @@ export function useSignup() {
           throw e;
         }
       });
-      if (res) signIn({ token: res.access_token, role: res.role, caseId: res.case_id });
+      if (res && res.status === 'ACTIVE' && res.access_token) signIn({ token: res.access_token, role: res.role, caseId: res.case_id });
       return res;
     },
     [action, signIn],

@@ -19,7 +19,19 @@ class LoginResponse(BaseModel):
 
 
 class SignupRequest(BaseModel):
-    """Only credentials: any other field (such as a role) is ignored, never read."""
+    """Credentials plus the requested account type; a staff role stays pending until approved."""
 
     username: str = Field(max_length=100)
     password: str = Field(max_length=200)
+    role: str | None = None
+
+
+class SignupResponse(BaseModel):
+    """ACTIVE with a token for customers; PENDING_APPROVAL (no token) for requested staff roles."""
+
+    status: str
+    access_token: str | None
+    token_type: str = "bearer"  # noqa: S105 - token scheme name, not a secret
+    role: Role
+    expires_in: int | None
+    case_id: str | None

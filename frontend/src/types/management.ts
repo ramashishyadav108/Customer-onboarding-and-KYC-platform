@@ -8,6 +8,16 @@ export interface ManagedUser {
   role: Role;
   active: boolean;
   created_at: string;
+  status: 'ACTIVE' | 'PENDING' | 'DEACTIVATED';
+}
+
+export interface SignupResponse {
+  status: 'ACTIVE' | 'PENDING_APPROVAL';
+  access_token: string | null;
+  token_type: 'bearer';
+  role: Role;
+  expires_in: number | null;
+  case_id: string | null;
 }
 
 export interface NewUser {

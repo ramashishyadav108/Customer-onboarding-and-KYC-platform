@@ -59,6 +59,16 @@ def parse_staff_role(
     return None
 
 
+def parse_signup_role(role: str | None) -> Role:
+    """Sign-up account type: prospect (default) or a staff role that needs admin approval."""
+    if role is None:
+        return Role.PROSPECT
+    allowed = {str(r) for r in Role}
+    if role in allowed:
+        return Role(role)
+    raise ValidationError.single("role", "role must be one of " + ", ".join(sorted(allowed)))
+
+
 def validate_message(message: str) -> str:
     """Query and response text: 1 to 500 characters after trimming."""
     text = message.strip()

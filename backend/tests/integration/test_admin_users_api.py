@@ -37,7 +37,7 @@ def test_ac11_1_list_shows_users_without_secrets(client: TestClient) -> None:
     items = response.json()["items"]
     assert {u["username"] for u in items} >= {"prospect1", "analyst1", "officer1", "admin1"}
     for user in items:
-        assert set(user) == {"user_id", "username", "role", "active", "created_at"}
+        assert set(user) == {"user_id", "username", "role", "active", "created_at", "status"}
     assert "pbkdf2" not in response.text
 
 

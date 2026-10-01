@@ -76,21 +76,33 @@ def test_ac14_1_taken_usernames_are_409_including_seeded_staff(
 
 @pytest.mark.nfr("NFR-04")
 @pytest.mark.ac("AC-14.2")
-def test_ac14_2_a_role_in_the_body_is_ignored_and_the_token_has_no_staff_access(
-    client: TestClient, engine: Engine
+@pytest.mark.parametrize("role", ["kyc-analyst", "compliance-officer", "admin"])
+def test_ac14_2_a_requested_staff_role_is_pending_with_no_token_and_no_access(
+    client: TestClient, engine: Engine, role: str
 ) -> None:
-    response = signup(client, role="admin", is_admin=True)
-    assert response.status_code == 201
-    assert response.json()["role"] == "prospect"
-    headers = bearer(response.json()["access_token"])
-    for path in (
-        "/api/v1/admin/users",
-        "/api/v1/admin/checklists",
-        "/api/v1/cases",
-        "/api/v1/review-queue",
-    ):
-        assert client.get(path, headers=headers).status_code == 403, path
-    assert rows(engine, "SELECT role FROM users WHERE username='meera.nair'")[0][0] == "prospect"
+    response = signup(client, role=role)
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["status"] == "PENDING_APPROVAL" and body["role"] == role
+    assert body["access_token"] is None
+    stored = rows(engine, "SELECT role, active, pending FROM users WHERE username='meera.nair'")
+    assert tuple(stored[0]) == (role, 0, 1)
+
+
+@pytest.mark.ac("AC-14.2")
+def test_ac14_2_prospect_is_the_default_role_and_can_be_explicit(client: TestClient) -> None:
+    default = signup(client).json()
+    assert default["status"] == "ACTIVE" and default["role"] == "prospect"
+    explicit = signup(client, "second.user", role="prospect").json()
+    assert explicit["status"] == "ACTIVE" and explicit["access_token"]
+
+
+@pytest.mark.ac("AC-14.2")
+@pytest.mark.parametrize("role", ["root", "", "ADMIN", 5])
+def test_ac14_2_an_unknown_role_is_422(client: TestClient, role: object) -> None:
+    response = client.post(SIGNUP, json={"username": "ok.user", "password": PASSWORD, "role": role})
+    assert response.status_code == 422
+    assert "role" in {f["field"] for f in response.json()["error"]["details"]["fields"]}
 
 
 @pytest.mark.ac("AC-14.3")

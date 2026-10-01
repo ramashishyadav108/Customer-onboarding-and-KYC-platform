@@ -17,6 +17,7 @@ def _to_user(row: UserModel) -> User:
         row.case_id,
         bool(row.active),
         row.created_at,
+        bool(row.pending),
     )
 
 
@@ -47,6 +48,7 @@ class UserRepository:
                 case_id=user.case_id,
                 created_at=user.created_at,
                 active=int(user.active),
+                pending=int(user.pending),
             )
         )
         self._session.flush()
@@ -57,6 +59,20 @@ class UserRepository:
 
     def set_active(self, user_id: str, active: bool) -> None:
         statement = update(UserModel).where(UserModel.user_id == user_id).values(active=int(active))
+        self._session.execute(statement)
+
+    def approve(self, user_id: str, role: Role) -> None:
+        """Activate a pending staff account with the (possibly adjusted) role."""
+        statement = (
+            update(UserModel)
+            .where(UserModel.user_id == user_id)
+            .values(active=1, pending=0, role=str(role))
+        )
+        self._session.execute(statement)
+
+    def close_request(self, user_id: str) -> None:
+        """Reject a pending request: it stays inactive and is no longer pending."""
+        statement = update(UserModel).where(UserModel.user_id == user_id).values(pending=0)
         self._session.execute(statement)
 
     def set_case(self, user_id: str, case_id: str) -> None:

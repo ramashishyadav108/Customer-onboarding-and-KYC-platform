@@ -17,6 +17,7 @@ class User:
     case_id: str | None
     active: bool = True
     created_at: str = ""
+    pending: bool = False
 
 
 @dataclass(frozen=True)

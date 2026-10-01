@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { LoginPage } from '@/pages/staff/LoginPage';
@@ -36,6 +36,8 @@ function renderAt(path: string, session: Session | null = null) {
 }
 
 const loginBody = (role: string, caseId: string | null) => ({ access_token: `${role}-jwt`, token_type: 'bearer', role, expires_in: 1800, case_id: caseId });
+const signupBody = (role: string) => ({ status: 'ACTIVE', ...loginBody(role, null) });
+const pendingBody = (role: string) => ({ status: 'PENDING_APPROVAL', access_token: null, token_type: 'bearer', role, expires_in: null, case_id: null });
 
 async function signInAs(username: string) {
   await userEvent.type(screen.getByLabelText('Username'), username);
@@ -103,15 +105,52 @@ describe('SignupPage', () => {
   });
 
   it('AC-14.1: creates the account, signs in and continues to registration', async () => {
-    const { calls } = mockFetch({ 'POST /api/v1/auth/signup': { status: 201, body: loginBody('prospect', null) } });
+    const { calls } = mockFetch({ 'POST /api/v1/auth/signup': { status: 201, body: signupBody('prospect') } });
     renderAt('/signup');
     await userEvent.type(screen.getByLabelText('Username'), 'meera.nair');
     await userEvent.type(screen.getByLabelText('Password'), 'synthetic-pass-123');
     await userEvent.type(screen.getByLabelText('Confirm password'), 'synthetic-pass-123');
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('register screen')).toBeInTheDocument();
-    expect(calls[0].body).toEqual({ username: 'meera.nair', password: 'synthetic-pass-123' });
+    expect(calls[0].body).toEqual({ username: 'meera.nair', password: 'synthetic-pass-123', role: 'prospect' });
     expect(getAccessToken()).toBe('prospect-jwt');
+  });
+
+  it('AC-14.10: asks for the account type and explains that staff accounts need approval', async () => {
+    renderAt('/signup');
+    const type = screen.getByLabelText('I am a');
+    expect(within(type).getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Customer (applying for an account)',
+      'KYC analyst (bank staff)',
+      'Compliance officer (bank staff)',
+      'Admin (bank staff)',
+    ]);
+    expect(screen.getByRole('button', { name: 'Create account' })).toBeInTheDocument();
+    await userEvent.selectOptions(type, 'compliance-officer');
+    expect(screen.getByRole('note')).toHaveTextContent('must be approved by an administrator');
+    expect(screen.getByRole('button', { name: 'Request account' })).toBeInTheDocument();
+  });
+
+  it('AC-14.2: a staff request shows a confirmation and never signs in', async () => {
+    const { calls } = mockFetch({ 'POST /api/v1/auth/signup': { status: 201, body: pendingBody('compliance-officer') } });
+    renderAt('/signup');
+    await userEvent.selectOptions(screen.getByLabelText('I am a'), 'compliance-officer');
+    await userEvent.type(screen.getByLabelText('Username'), 'officer.two');
+    await userEvent.type(screen.getByLabelText('Password'), 'synthetic-pass-123');
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'synthetic-pass-123');
+    await userEvent.click(screen.getByRole('button', { name: 'Request account' }));
+    expect(await screen.findByRole('heading', { name: 'Request received' })).toBeInTheDocument();
+    expect(screen.getByText(/cannot sign in until an administrator approves/)).toBeInTheDocument();
+    expect(calls[0].body).toEqual({ username: 'officer.two', password: 'synthetic-pass-123', role: 'compliance-officer' });
+    expect(getAccessToken()).toBeNull();
+    expect(screen.queryByText('register screen')).not.toBeInTheDocument();
+  });
+
+  it('AC-14.8: the sign-in page shows the pending-approval message', async () => {
+    mockFetch({ 'POST /api/v1/auth/login': { status: 403, body: { error: { code: 'ACCOUNT_PENDING', message: 'Your account is waiting for administrator approval', details: {} } } } });
+    renderAt('/login');
+    await signInAs('officer.two');
+    expect(await screen.findByRole('alert')).toHaveTextContent('waiting for administrator approval');
   });
 
   it('AC-14.1: shows a taken username inline', async () => {

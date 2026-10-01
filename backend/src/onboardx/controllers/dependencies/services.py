@@ -72,7 +72,14 @@ def build_services(
     screening = ScreeningService(uow_factory, clock, audit, onboarding)
     risk = RiskService(uow_factory, clock, audit, onboarding)
     accounts = AccountService(clock, audit)
-    decisions = DecisionService(uow_factory, clock, audit, onboarding, accounts)
+    decisions = DecisionService(
+        uow_factory,
+        clock,
+        audit,
+        onboarding,
+        accounts,
+        manual_policy=settings.review_policy == "manual",
+    )
     pipeline = PipelineService(uow_factory, screening, risk, decisions)
     store = LocalFileStore(settings.upload_dir)
     return Services(

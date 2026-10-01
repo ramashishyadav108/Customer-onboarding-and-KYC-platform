@@ -5,7 +5,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from onboardx.controllers.dependencies.services import Services, get_services
-from onboardx.controllers.schemas.auth import LoginRequest, LoginResponse, SignupRequest
+from onboardx.controllers.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    SignupRequest,
+    SignupResponse,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -26,10 +31,11 @@ def login(
 @router.post("/signup", status_code=201)
 def signup(
     body: SignupRequest, services: Annotated[Services, Depends(get_services)]
-) -> LoginResponse:
-    """Create a prospect account (never a staff role) and sign it in."""
-    result = services.signup.signup(username=body.username, password=body.password)
-    return LoginResponse(
+) -> SignupResponse:
+    """Create an account: a customer is signed in; a staff request waits for an admin."""
+    result = services.signup.signup(username=body.username, password=body.password, role=body.role)
+    return SignupResponse(
+        status=result.status,
         access_token=result.access_token,
         role=result.role,
         expires_in=result.expires_in,

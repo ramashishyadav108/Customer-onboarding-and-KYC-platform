@@ -173,6 +173,7 @@ class UserView:
     role: str
     active: bool
     created_at: str
+    status: str = "ACTIVE"
 
 
 @dataclass(frozen=True)

@@ -17,12 +17,17 @@ class RoleIn(BaseModel):
     role: str
 
 
+class ApproveIn(BaseModel):
+    role: str | None = None
+
+
 class UserOut(BaseModel):
     user_id: str
     username: str
     role: str
     active: bool
     created_at: str
+    status: str
 
 
 class UserListOut(BaseModel):

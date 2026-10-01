@@ -216,3 +216,17 @@ class CaseExistsError(DomainError):
 
     def __init__(self) -> None:
         super().__init__("This account already has an application")
+
+
+class AccountPendingError(DomainError):
+    code = "ACCOUNT_PENDING"
+
+    def __init__(self) -> None:
+        super().__init__("Your account is waiting for administrator approval")
+
+
+class NotPendingError(DomainError):
+    code = "NOT_PENDING"
+
+    def __init__(self) -> None:
+        super().__init__("This account has no pending approval request")

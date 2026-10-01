@@ -59,6 +59,8 @@ export const usersApi = {
   changeRole: (userId: string, role: StaffRole) => request<ManagedUser>(`/admin/users/${userId}/role`, { method: 'PUT', body: { role } }),
   deactivate: (userId: string) => request<ManagedUser>(`/admin/users/${userId}/deactivate`, { method: 'POST' }),
   reactivate: (userId: string) => request<ManagedUser>(`/admin/users/${userId}/reactivate`, { method: 'POST' }),
+  approve: (userId: string, role?: StaffRole) => request<ManagedUser>(`/admin/users/${userId}/approve`, { method: 'POST', body: role ? { role } : undefined }),
+  reject: (userId: string) => request<ManagedUser>(`/admin/users/${userId}/reject`, { method: 'POST' }),
 };
 
 export const checklistsApi = {

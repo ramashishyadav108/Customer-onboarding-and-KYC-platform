@@ -27,3 +27,8 @@ Recurring mistakes encoded back into rules, hooks and skills.
 
 - **Mistake:** the frontend dev server hot-reloads but the FastAPI process does not, so new screens called routes the old backend did not have (404, shown as "Request could not be served").
 - **Rule now:** after any backend change restart the API (`python scripts/start_all.py` restarts both). If a new page shows that generic error, check `GET /openapi.json` for the route first. Use a file database (`sqlite:///./onboardx.db`) so a restart keeps data.
+
+## Never let a sign-up form pick a privileged role
+
+- **Mistake avoided:** a request to let users choose admin or compliance officer at sign-up would let anyone grant themselves staff access.
+- **Rule now:** the form can ask for an account type, but a staff role is stored inactive and pending, gets no token, and works only after an admin approves it (`AC-14.2`, `AC-14.9`); tests in `test_staff_approval_api.py` and `test_role_matrix.py` guard it.

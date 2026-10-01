@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     )
     upload_dir: Path = Field(default=Path("../uploads"), validation_alias="UPLOAD_DIR")
     auto_advance_on_submit: bool = Field(default=True, validation_alias="AUTO_ADVANCE_ON_SUBMIT")
+    # auto: clean LOW-risk cases are approved automatically (AC-07); manual: a compliance officer
+    # decides every case (AC-15).
+    review_policy: Literal["auto", "manual"] = Field(
+        default="auto", validation_alias="REVIEW_POLICY"
+    )
 
 
 def load_settings() -> Settings:

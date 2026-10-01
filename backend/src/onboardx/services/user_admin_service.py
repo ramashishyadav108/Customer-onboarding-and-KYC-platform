@@ -1,4 +1,4 @@
-"""Admin user and role management (AC-11): audited, never exposes hashes (NFR-03, NFR-04)."""
+"""Admin user and role management (AC-11, AC-14.9): audited, never exposes hashes."""
 
 import uuid
 
@@ -8,6 +8,7 @@ from onboardx.domain.enums import AuditEvent, Role
 from onboardx.domain.errors import (
     LastAdminError,
     NotFoundError,
+    NotPendingError,
     SelfModificationError,
     UsernameTakenError,
 )
@@ -19,8 +20,16 @@ from onboardx.services.audit_service import AuditService
 from onboardx.services.passwords import hash_password
 
 
+def _status(user: User) -> str:
+    if user.pending:
+        return "PENDING"
+    return "ACTIVE" if user.active else "DEACTIVATED"
+
+
 def _view(user: User) -> UserView:
-    return UserView(user.user_id, user.username, str(user.role), user.active, user.created_at)
+    return UserView(
+        user.user_id, user.username, str(user.role), user.active, user.created_at, _status(user)
+    )
 
 
 class UserAdminService:
@@ -63,9 +72,7 @@ class UserAdminService:
             payload = {"from_role": str(user.role), "to_role": str(parsed)}
             self._record(uow, AuditEvent.USER_ROLE_CHANGED, actor, user_id, payload)
             uow.commit()
-        return _view(
-            User(user.user_id, user.username, "", parsed, None, user.active, user.created_at)
-        )
+        return self._reload(user_id)
 
     def deactivate(self, *, user_id: str, actor: str) -> UserView:
         with self._uow_factory() as uow:
@@ -75,7 +82,7 @@ class UserAdminService:
             uow.users.set_active(user_id, False)
             self._record(uow, AuditEvent.USER_DEACTIVATED, actor, user_id, {"role": str(user.role)})
             uow.commit()
-        return _view(User(user.user_id, user.username, "", user.role, None, False, user.created_at))
+        return self._reload(user_id)
 
     def reactivate(self, *, user_id: str, actor: str) -> UserView:
         with self._uow_factory() as uow:
@@ -83,7 +90,43 @@ class UserAdminService:
             uow.users.set_active(user_id, True)
             self._record(uow, AuditEvent.USER_REACTIVATED, actor, user_id, {"role": str(user.role)})
             uow.commit()
-        return _view(User(user.user_id, user.username, "", user.role, None, True, user.created_at))
+        return self._reload(user_id)
+
+    def approve(self, *, user_id: str, role: str | None, actor: str) -> UserView:
+        """Activate a staff sign-up request, optionally with a different staff role (AC-14.9)."""
+        chosen = None if role is None else parse_staff_role(role, "role")
+        with self._uow_factory() as uow:
+            user = self._pending(uow, user_id)
+            final = chosen or user.role
+            uow.users.approve(user_id, final)
+            payload = {"requested_role": str(user.role), "role": str(final)}
+            self._record(uow, AuditEvent.USER_APPROVED, actor, user_id, payload)
+            uow.commit()
+        return self._reload(user_id)
+
+    def reject(self, *, user_id: str, actor: str) -> UserView:
+        """Close a staff sign-up request; the account stays inactive (AC-14.9)."""
+        with self._uow_factory() as uow:
+            user = self._pending(uow, user_id)
+            uow.users.close_request(user_id)
+            self._record(uow, AuditEvent.USER_REJECTED, actor, user_id, {"role": str(user.role)})
+            uow.commit()
+        return self._reload(user_id)
+
+    def _reload(self, user_id: str) -> UserView:
+        with self._uow_factory() as uow:
+            user = uow.users.get(user_id)
+        if user is None:
+            raise NotFoundError("user")
+        return _view(user)
+
+    def _pending(self, uow: UnitOfWork, user_id: str) -> User:
+        user = uow.users.get(user_id)
+        if user is None:
+            raise NotFoundError("user")
+        if not user.pending:
+            raise NotPendingError
+        return user
 
     def _target(self, uow: UnitOfWork, user_id: str, actor: str) -> User:
         """Load the target; an admin may not modify their own account."""

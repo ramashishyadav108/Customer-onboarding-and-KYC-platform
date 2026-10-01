@@ -21,8 +21,8 @@ const jwt = (sub: string) => `h.${Buffer.from(JSON.stringify({ sub })).toString(
 const adminSession: Session = { token: jwt('admin1'), role: 'admin', caseId: null };
 const CASE_ID = prospectSession.caseId as string;
 
-const user = (over: Partial<ManagedUser>): ManagedUser => ({ user_id: 'u1', username: 'analyst1', role: 'kyc-analyst', active: true, created_at: '2026-10-01T00:00:00Z', ...over });
-const USERS = [user({ user_id: 'u0', username: 'admin1', role: 'admin' }), user({}), user({ user_id: 'u2', username: 'old.officer', role: 'compliance-officer', active: false })];
+const user = (over: Partial<ManagedUser>): ManagedUser => ({ user_id: 'u1', username: 'analyst1', role: 'kyc-analyst', active: true, status: 'ACTIVE', created_at: '2026-10-01T00:00:00Z', ...over });
+const USERS = [user({ user_id: 'u0', username: 'admin1', role: 'admin' }), user({}), user({ user_id: 'u2', username: 'old.officer', role: 'compliance-officer', active: false, status: 'DEACTIVATED' })];
 
 describe('token helper', () => {
   it('NFR-04: reads the subject claim and tolerates malformed tokens', () => {
@@ -118,6 +118,23 @@ describe('UsersPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reactivate old.officer' }));
     expect(await screen.findByText('old.officer reactivated.')).toBeInTheDocument();
     expect(calls.find((c) => c.key.endsWith('/u1/role'))?.body).toEqual({ role: 'admin' });
+  });
+
+  it('AC-14.9: pending staff requests show Approve and Reject and are approved or rejected', async () => {
+    const pending = user({ user_id: 'p1', username: 'officer.two', role: 'compliance-officer', active: false, status: 'PENDING' });
+    const { calls } = mockFetch({
+      'GET /api/v1/admin/users': { items: [...USERS, pending] },
+      'POST /api/v1/admin/users/p1/approve': { ...pending, active: true, status: 'ACTIVE' },
+      'POST /api/v1/admin/users/p1/reject': { ...pending, status: 'DEACTIVATED' },
+    });
+    renderApp(<UsersPage />, { session: adminSession });
+    expect(await screen.findByText('Pending approval')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Role for officer.two')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Approve officer.two' }));
+    expect(await screen.findByText('officer.two approved as Compliance officer.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Reject officer.two' }));
+    expect(await screen.findByText('Request from officer.two rejected.')).toBeInTheDocument();
+    expect(calls.some((c) => c.key === 'POST /api/v1/admin/users/p1/approve')).toBe(true);
   });
 
   it('AC-11: prospect rows are listed without controls', async () => {

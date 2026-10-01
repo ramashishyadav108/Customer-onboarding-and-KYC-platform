@@ -2,6 +2,7 @@ import { request } from './client';
 import type {
   CaseDetail,
   CaseQuery,
+  SignupResponse,
   CaseList,
   CaseListQuery,
   DocumentView,
@@ -23,8 +24,8 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     request<LoginResponse>('/auth/login', { method: 'POST', body: { username, password }, auth: false }),
-  signup: (username: string, password: string) =>
-    request<LoginResponse>('/auth/signup', { method: 'POST', body: { username, password }, auth: false }),
+  signup: (username: string, password: string, role: string) =>
+    request<SignupResponse>('/auth/signup', { method: 'POST', body: { username, password, role }, auth: false }),
 };
 
 export const leadsApi = {
