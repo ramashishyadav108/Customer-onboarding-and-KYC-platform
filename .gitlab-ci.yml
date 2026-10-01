@@ -1,0 +1,76 @@
+# OnboardX CI: build + test (backend, frontend), architecture checks, and Claude Code review on merge requests.
+stages: [build, test, review]
+
+default:
+  interruptible: true
+
+backend:
+  stage: test
+  image: python:3.12
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    paths: [.cache/pip]
+  script:
+    - cd backend
+    - python -m venv .venv
+    - . .venv/bin/activate
+    - pip install -r requirements.lock
+    - pip install -e . --no-deps
+    - ruff check .
+    - lint-imports
+    - mypy src
+    - pytest -q --cov=onboardx --cov-report=xml --cov-report=term --cov-fail-under=80 --junitxml=report.xml
+  coverage: '/TOTAL.*\s+(\d+(?:\.\d+)?)%/'
+  artifacts:
+    when: always
+    paths: [backend/coverage.xml, backend/report.xml]
+    reports:
+      junit: backend/report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/coverage.xml
+
+frontend:
+  stage: test
+  image: node:20
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+    - npm run typecheck
+    - npm test
+    - npm run build
+  artifacts:
+    when: always
+    paths: [frontend/coverage/lcov.info]
+
+e2e:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.49.1-jammy
+  script:
+    - cd frontend && npm ci && cd ../e2e && npm ci
+    - npx playwright test
+  artifacts:
+    when: on_failure
+    paths: [e2e/test-results, e2e/playwright-report]
+
+# Claude Code in CI: reviews the merge request diff against the specs and writes a report artifact.
+# Requires a masked CI/CD variable ANTHROPIC_API_KEY.
+claude-review:
+  stage: review
+  image: node:20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - npm install -g @anthropic-ai/claude-code
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - git diff "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"...HEAD > mr.diff
+    - >
+      claude -p "Review mr.diff against specs/*_spec.md and CLAUDE.md. Check layering, append-only rules,
+      integer-only scoring, no plaintext PII in logs, and AC-NN test tags. Output a markdown review."
+      --allowedTools "Read,Grep,Glob" > claude-review.md
+  artifacts:
+    paths: [claude-review.md]
+    when: always
+  allow_failure: true
