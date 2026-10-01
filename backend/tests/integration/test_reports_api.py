@@ -318,6 +318,7 @@ def test_ac10_7_invalid_filters_are_422_and_name_the_parameter(
 
 
 @pytest.mark.ac("AC-10")
+@pytest.mark.ac("AC-10.11")
 def test_ac10_dropped_lead_analysis_counts_idle_open_cases_by_stage(
     client: TestClient, seeded: dict[str, str]
 ) -> None:

@@ -65,6 +65,7 @@ def test_ac15_2_specific_reasons_keep_precedence_over_the_policy_reason(
 
 
 @pytest.mark.ac("AC-15.3")
+@pytest.mark.ac("AC-15.5")
 def test_ac15_3_manual_policy_end_to_end_officer_approves_and_account_appears(
     manual_client: TestClient,
 ) -> None:

@@ -15,6 +15,7 @@ from onboardx.services.case_view_service import CaseViewService
 from onboardx.services.checklist_admin_service import ChecklistAdminService
 from onboardx.services.checklist_service import ChecklistService
 from onboardx.services.decision_service import DecisionService
+from onboardx.services.document_file_service import DocumentFileService
 from onboardx.services.document_service import DocumentService
 from onboardx.services.evidence_service import EvidenceService
 from onboardx.services.lead_service import LeadService
@@ -56,6 +57,7 @@ class Services:
     checklist_admin: ChecklistAdminService
     queries: QueryService
     signup: SignupService
+    document_files: DocumentFileService
 
 
 @dataclass(frozen=True)
@@ -139,6 +141,7 @@ def build_services(
         rule_sets=RuleSetService(uow_factory, clock, audit),
         onboarding=onboarding,
         documents=DocumentService(uow_factory, clock, audit, store, notifications),
+        document_files=DocumentFileService(uow_factory, audit, store),
         submission=SubmissionService(
             uow_factory, audit, onboarding, pipeline, auto_advance=settings.auto_advance_on_submit
         ),

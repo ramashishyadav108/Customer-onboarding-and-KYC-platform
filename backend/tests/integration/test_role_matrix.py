@@ -50,6 +50,7 @@ ROUTES: list[tuple[str, str, dict[str, str] | None, set[str]]] = [
     ("GET", "/api/v1/admin/checklists", None, ADMIN),
     ("POST", "/api/v1/admin/checklists/Savings", {}, ADMIN),
     ("GET", "/api/v1/cases/{c}/queries", None, STAFF),
+    ("GET", "/api/v1/cases/{c}/documents/x/file", None, STAFF),
     ("POST", "/api/v1/cases/{c}/queries", {}, ANALYST),
     ("POST", "/api/v1/cases/{c}/queries/x/close", None, ANALYST),
     ("POST", "/api/v1/cases/{c}/queries/x/responses", {"message": "x"}, set()),

@@ -37,3 +37,8 @@ Recurring mistakes encoded back into rules, hooks and skills.
 
 - **Risk:** a public form that can create admins hands the whole platform to anyone who finds it.
 - **Rule now:** `ADMIN_SIGNUP` defaults to `approval`; `open` must be chosen explicitly per server, is announced by `GET /auth/signup-options` so the UI does not mislead, and the spec (AC-14.11) says never to use it in a deployed environment.
+
+## A long-running dev server can wedge on a rewritten file
+
+- **Mistake:** the :3000 Vite dev server kept serving an empty module after the file was rewritten twice in quick succession, so the whole app (and every mocked e2e test) timed out while a fresh server was fine.
+- **Rule now:** when a UI test run times out everywhere at once, compare one module fetched from the long-running server and from a freshly started one before suspecting the code, and restart the dev server (`python scripts/start_all.py`).

@@ -13,6 +13,7 @@ All files validate against `.claude/skills/evaluation/references/contract-schema
 | `sprint-6-admin-management.json` | Retrospectively; evidence is pytest (`test_admin_users_api.py`, `test_admin_checklists_api.py`, `test_queries_api.py`, role matrix) and `e2e/live/ui-management.live.ts` | E6-S1..E6-S3 (AC-11 to AC-13) | F178-F197 |
 | `sprint-7-accounts.json` | Retrospectively; evidence is `test_signup_api.py` and `e2e/live/ui-signup.live.ts` | E6-S4 (AC-14) | F198-F205 |
 | `sprint-8-staff-signup-review-policy.json` | Retrospectively; evidence is `test_staff_approval_api.py`, `test_review_policy.py` and the live suites (`ui-signup`, `ui-zmanual` on a manual-policy backend) | E6-S5 (AC-14.8 to AC-15) | F206-F218 |
+| `sprint-9-document-viewing.json` | Retrospectively; evidence is `test_document_file_api.py` and `e2e/live/ui-zdocuments.live.ts` | E6-S6 (AC-16) | F219-F224 |
 
 ## Important caveat
 

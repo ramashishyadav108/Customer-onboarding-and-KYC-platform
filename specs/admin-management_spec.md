@@ -68,3 +68,14 @@ The brief's AC-07 (auto-approve a clean LOW-risk case) stays the default. A depl
 - AC-15.4 An unknown `REVIEW_POLICY` value stops start-up with a configuration error naming `REVIEW_POLICY`.
 - AC-15.5 Screening and risk classification still run automatically in both policies (they are rule-based, AC-05 and AC-06); the policy only decides who makes the final approval.
 - AC-14.11 Setting `ADMIN_SIGNUP` is `approval` (the default and the safe choice) or `open`. With `approval` an admin request is pending like every staff role. With `open`, an `admin` sign-up creates an **active** admin at once (201, `status` ACTIVE, `role` admin, token issued, audited as `USER_SIGNED_UP`); KYC analyst and compliance officer requests are still pending. `GET /api/v1/auth/signup-options` (public) returns `{admin_requires_approval, staff_requires_approval}` so the sign-up page can state the truth; while it loads the page assumes approval is required. An unknown `ADMIN_SIGNUP` value stops start-up with a configuration error naming `ADMIN_SIGNUP`. **Security note:** `open` lets anyone who can reach the sign-up page become an admin (approve staff, change rules and checklists, read every case); use it only for local demos, never in a deployed environment.
+
+### AC-16 Staff can open the documents a customer uploaded
+Today a case shows document metadata only (class, status, hash). Reviewers must be able to see the actual file.
+- AC-16.1 `GET /api/v1/cases/{case_id}/documents/{document_id}/file` returns the stored bytes with the stored content type (PDF, JPEG or PNG) to the owning prospect or any staff role (kyc-analyst, compliance-officer, admin). Headers: `Content-Disposition: inline` with a name built from the checklist item and version (never the uploaded file name), `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`.
+- AC-16.2 Images keep their content type and a matching extension in the download name.
+- AC-16.3 Another prospect (case-bound token for a different case) gets 403; no token is 401.
+- AC-16.4 A document id that does not exist, or belongs to another case, is 404 (no information about other cases leaks).
+- AC-16.5 Replaced (superseded) versions stay openable by staff, and the evidence payload lists them with `superseded: true`.
+- AC-16.6 Every view appends an audit entry `DOCUMENT_VIEWED` with `document_id` and `version` only (actor and role as usual); the file name and content never reach audit or logs (NFR-03). Viewing never changes document records (NFR-02).
+- AC-16.7 UI: the analyst case page and the compliance officer review panel show a View button for every current document and an "Earlier versions" table for replaced ones; View fetches the file with the bearer token and opens it in a new tab from a short-lived object URL; a failure shows the server message next to the button.
+

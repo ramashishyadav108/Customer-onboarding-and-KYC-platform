@@ -29,7 +29,7 @@ const reports = {
 };
 
 test.describe('admin console', () => {
-  test('AC-10: dashboard shows seven panels, each with an accessible table, and filters refresh them', async ({ page }) => {
+  test('AC-10.10: dashboard shows seven panels, each with an accessible table, and filters refresh them', async ({ page }) => {
     await installLogin(page);
     const seen: string[] = [];
     await page.route('**/api/v1/admin/reports/*', (route) => {

@@ -1,4 +1,4 @@
-import { request } from './client';
+import { request, requestBlob } from './client';
 import type {
   CaseDetail,
   CaseQuery,
@@ -51,6 +51,7 @@ export const casesApi = {
 };
 
 export const documentsApi = {
+  file: (caseId: string, documentId: string) => requestBlob(`/cases/${caseId}/documents/${documentId}/file`),
   upload: (caseId: string, checklistItem: string, file: File) => {
     const form = new FormData();
     form.append('checklist_item', checklistItem);

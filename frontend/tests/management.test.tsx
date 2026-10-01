@@ -57,7 +57,7 @@ describe('management validators', () => {
 });
 
 describe('UsersPage', () => {
-  it('AC-11: lists users and hides role and action controls on the admin’s own row', async () => {
+  it('AC-11.9: lists users and hides role and action controls on the admin’s own row', async () => {
     mockFetch({ 'GET /api/v1/admin/users': { items: USERS } });
     renderApp(<UsersPage />, { session: adminSession });
     expect(await screen.findByRole('cell', { name: 'analyst1' })).toBeInTheDocument();
@@ -157,7 +157,7 @@ const savings: ChecklistVersion = {
 };
 
 describe('ChecklistsPage', () => {
-  it('AC-12: shows the latest version per product and validates before publishing', async () => {
+  it('AC-12.7: shows the latest version per product and validates before publishing', async () => {
     const { calls } = mockFetch({ 'GET /api/v1/admin/checklists': { items: [savings] } });
     renderApp(<ChecklistsPage />, { session: adminSession });
     expect(await screen.findByRole('heading', { name: 'Savings checklist - version 1' })).toBeInTheDocument();
@@ -198,7 +198,7 @@ const query = (over: Partial<CaseQuery> = {}): CaseQuery => ({ query_id: 'q1', c
 const LIST = `GET /api/v1/cases/${CASE_ID}/queries`;
 
 describe('CaseQueries', () => {
-  it('AC-13: analyst raises a query and closes an open one', async () => {
+  it('AC-13.8: analyst raises a query and closes an open one', async () => {
     const { calls } = mockFetch({
       [LIST]: { items: [query()] },
       [`POST /api/v1/cases/${CASE_ID}/queries`]: { status: 201, body: query({ query_id: 'q2' }) },

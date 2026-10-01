@@ -3436,5 +3436,95 @@
     "last_evaluated": "2026-10-01T17:56:47.000000Z",
     "failure_reason": null,
     "failure_layer": null
+  },
+  {
+    "id": "F219",
+    "category": "functional",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Owner and every staff role can open an uploaded file with the right type and safe headers",
+    "steps": [
+      "GET /api/v1/cases/{id}/documents/{doc}/file as owner, analyst, officer and admin",
+      "Assert 200, exact bytes, stored content type, nosniff, no-store and a name without the uploaded file name"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F220",
+    "category": "security",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Other customers, anonymous callers and unknown documents are refused",
+    "steps": [
+      "Request a file as another prospect, with no token, with an unknown id and with another case id",
+      "Assert 403, 401 and 404"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F221",
+    "category": "security",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Every file view is audited by id only and never logged by name",
+    "steps": [
+      "Open a document as staff and owner",
+      "Assert DOCUMENT_VIEWED rows with document_id and version only; no file name in audit or logs; document records unchanged"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F222",
+    "category": "functional",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Replaced versions are listed in the evidence and stay openable by staff",
+    "steps": [
+      "Re-upload a document",
+      "Assert evidence lists both versions with superseded flags and both files open"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F223",
+    "category": "ui",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Analyst case page and officer review panel show a View button per document and an earlier-versions table",
+    "steps": [
+      "Open a case as analyst and as officer",
+      "Assert View buttons; clicking fetches the file with the token and opens a new tab; errors show next to the button"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F224",
+    "category": "ui",
+    "story": "E6-S6",
+    "group": "M",
+    "description": "Live: analyst and officer open the customer documents and the bytes match what was uploaded",
+    "steps": [
+      "Seed a case with documents; analyst opens ID and address proof; officer opens documents of a review case",
+      "Assert the fetched blob contains the uploaded content and type; another customer gets 403"
+    ],
+    "passes": true,
+    "last_evaluated": "2026-10-01T19:03:23.000000Z",
+    "failure_reason": null,
+    "failure_layer": null
   }
 ]

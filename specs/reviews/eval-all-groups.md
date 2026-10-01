@@ -67,3 +67,18 @@ Not done: case assignment to a named person (claiming a case). Cases are routed 
 
 ### Addendum: open admin sign-up (AC-14.11), 2026-10-01
 Requested: an Admin sign-up should not wait for approval, while KYC analyst and compliance officer should. Built as the setting `ADMIN_SIGNUP` (`approval` default, `open`), because open admin sign-up lets anyone who reaches the page take full control; the user's local server runs with `open`. Evidence: backend `test_staff_approval_api.py` (5 new tests), 157 frontend tests (97.47% statements), mocked e2e 16 of 16, live suite 46 passed (5 skipped by design) on the default stack, and 5 of 5 on a stack started with `ADMIN_SIGNUP=open REVIEW_POLICY=manual` (`ui-zmanual`, `ui-zopen-admin`). Features F215-F218.
+
+### Addendum: staff can open uploaded documents (AC-16) and requirement re-audit, 2026-10-02
+Requested: when a KYC analyst or compliance officer opens a case they must see the documents the prospect uploaded. Built as `GET /api/v1/cases/{id}/documents/{doc}/file` (owner or any staff role, safe headers, audited by id only) plus View buttons and an earlier-versions table in the analyst case page and officer review panel (features F219-F224, `sprint-9-document-viewing.json`). The evidence payload now also lists replaced versions, flagged `superseded`.
+
+| Check | Result |
+|---|---|
+| Backend full suite with coverage | 1478 passed, 1 skipped (Windows symlink test), 97.98%; `ruff`, `mypy`, import-linter clean |
+| Frontend | 164 vitest passed, 97.41% statements; `eslint` and `tsc` clean |
+| Mocked e2e | 16 of 16 |
+| Live Playwright, default server | 50 passed, 5 skipped by design (they need other server settings) |
+| Live Playwright, `ADMIN_SIGNUP=open REVIEW_POLICY=manual` server | 5 of 5 |
+
+Requirement re-audit (`docs/requirements-checklist.md`): all 10 ACs and 8 NFRs MET; every spec criterion id (16 top-level, 137 detailed) is cited by a test. Twelve detailed ids had no test citing them and were fixed by tagging the tests that prove them and adding two small tests (AC-07.9 no network in the account stub, AC-03.9 staff documents table). Remaining PARTIAL items: history (2 early direct commits on `main`, thin red-green commit pattern), Playwright MCP use (agent tool names now match the project's `.mcp.json` server, but the server did not connect in this session), and a passing remote CI run (nothing pushed since the workflow was added).
+
+Environment note: the long-running :3000 Vite dev server became stuck on an intermediate version of `DocumentViewButton.tsx` (served an empty module), which timed out every mocked e2e test; restarting the dev server fixed it. See the knowledge deposit.

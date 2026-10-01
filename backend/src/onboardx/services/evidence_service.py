@@ -24,7 +24,7 @@ class EvidenceService:
                 case_id=case_id,
                 state=str(case.state),
                 product=str(case.product),
-                documents=tuple(uow.documents.list_views(case_id)),
+                documents=tuple(uow.documents.list_views(case_id, include_superseded=True)),
                 screening=uow.screenings.latest_result(case_id),
                 risk_assessment=uow.assessments.latest(case_id),
                 decision=decision,

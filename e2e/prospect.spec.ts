@@ -26,7 +26,7 @@ test.describe('prospect portal', () => {
     await mock.install(page);
   });
 
-  test('AC-01: registers a lead and lands on the profile step', async ({ page }) => {
+  test('AC-01.7: registers a lead and lands on the profile step', async ({ page }) => {
     await page.goto('/portal/register');
     await page.getByRole('button', { name: 'Start application' }).click();
     await expect(page.getByText('Enter your full name.')).toBeVisible();

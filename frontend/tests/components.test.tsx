@@ -49,7 +49,7 @@ describe('StatusTimeline', () => {
 });
 
 describe('report panels', () => {
-  it('AC-10: renders seven panels each with an accessible table alternative', () => {
+  it('AC-10.10: renders seven panels each with an accessible table alternative', () => {
     render(<ReportPanels reports={reports} />);
     expect(screen.getAllByRole('table')).toHaveLength(7);
     expect(screen.getAllByRole('img')).toHaveLength(7);
@@ -70,7 +70,7 @@ describe('report panels', () => {
     const row = within(screen.getByRole('table', { name: 'Approval funnel (table)' })).getByRole('row', { name: /Docs submitted/ });
     expect(row).toHaveTextContent('80.00%');
   });
-  it('AC-10: dropped-leads panel lists inactive open cases per stage with a text summary (brief 6.2)', () => {
+  it('AC-10.11: dropped-leads panel lists inactive open cases per stage with a text summary (brief 6.2)', () => {
     render(<ReportPanels reports={reports} />);
     const table = screen.getByRole('table', { name: 'Dropped leads (table)' });
     expect(within(table).getByRole('row', { name: /Docs submitted/ })).toHaveTextContent('2');

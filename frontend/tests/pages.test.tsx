@@ -23,7 +23,7 @@ afterEach(() => {
 const CASE_URL = `GET /api/v1/cases/${prospectSession.caseId}`;
 
 describe('LeadFormPage', () => {
-  it('AC-01: shows field errors and creates nothing when the form is invalid', async () => {
+  it('AC-01.7: shows field errors and creates nothing when the form is invalid', async () => {
     const { calls } = mockFetch({});
     renderApp(<LeadFormPage />);
     await userEvent.click(screen.getByRole('button', { name: 'Start application' }));
@@ -224,7 +224,7 @@ const evidence: Evidence = {
 };
 
 describe('review workflow', () => {
-  it('AC-08: disables the decision button until a reason code is selected and filters reasons by direction', async () => {
+  it('AC-08.7: disables the decision button until a reason code is selected and filters reasons by direction', async () => {
     mockFetch({ [`GET /api/v1/cases/${evidence.case_id}/evidence`]: evidence });
     renderApp(<ReviewPanel caseId={evidence.case_id} onDone={() => undefined} />, { session: officerSession });
     const approve = await screen.findByRole('button', { name: 'Approve case' });

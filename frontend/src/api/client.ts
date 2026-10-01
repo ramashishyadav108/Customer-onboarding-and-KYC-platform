@@ -99,6 +99,24 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
   return (await res.json()) as T;
 }
 
+// Fetches a binary response (an uploaded document) with the bearer token; errors use the API envelope.
+export async function requestBlob(path: string): Promise<Blob> {
+  const headers: Record<string, string> = { 'X-Correlation-ID': newCorrelationId() };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { headers });
+  } catch {
+    throw new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server. Check your connection and try again.', {}, headers['X-Correlation-ID']);
+  }
+  if (!res.ok) {
+    const err = await parseError(res, res.headers.get('X-Correlation-ID') ?? headers['X-Correlation-ID']);
+    if (res.status === 401 && unauthorizedHandler) unauthorizedHandler();
+    throw err;
+  }
+  return res.blob();
+}
+
 export function describeError(e: unknown): string {
   if (e instanceof ApiError) {
     const ref = e.correlationId ? ` (ref ${e.correlationId.slice(0, 8)})` : '';

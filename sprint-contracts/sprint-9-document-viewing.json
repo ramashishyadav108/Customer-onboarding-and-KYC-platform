@@ -1,0 +1,77 @@
+{
+  "group": "M",
+  "stories": [
+    "E6-S6"
+  ],
+  "features": [
+    "F219",
+    "F220",
+    "F221",
+    "F222",
+    "F223",
+    "F224"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S9-API-01",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/file",
+        "expected_status": 200,
+        "description": "F219 Owner and every staff role can open an uploaded file with the right type and safe headers: token of the owner and of analyst1, officer1 and admin1; body equals the uploaded bytes; Content-Type application/pdf; X-Content-Type-Options nosniff; Cache-Control no-store. Evidence: backend/tests/integration/test_document_file_api.py and e2e/live/ui-zdocuments.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S9-API-02",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/file",
+        "expected_status": 403,
+        "description": "F220 Other customers, anonymous callers and unknown documents are refused: token of a different customer; no token is 401; unknown document id or another case's document is 404. Evidence: backend/tests/integration/test_document_file_api.py and e2e/live/ui-zdocuments.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S9-API-03",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "expected_status": 200,
+        "description": "F222 Replaced versions are listed in the evidence and stay openable by staff: analyst token after a re-upload; documents contains both versions and the replaced one has superseded true. Evidence: backend/tests/integration/test_document_file_api.py and e2e/live/ui-zdocuments.live.ts. Base URL http://127.0.0.1:8010."
+      }
+    ],
+    "playwright_checks": [
+      {
+        "id": "UI-F223",
+        "description": "Analyst case page and officer review panel show a View button per document and an earlier-versions table",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Open a case as analyst and as officer"
+          },
+          {
+            "action": "Assert View buttons; clicking fetches the file with the token and opens a new tab; errors show next to the button"
+          },
+          {
+            "action": "automated in e2e/live/ui-zdocuments.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F224",
+        "description": "Live: analyst and officer open the customer documents and the bytes match what was uploaded",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Seed a case with documents; analyst opens ID and address proof; officer opens documents of a review case"
+          },
+          {
+            "action": "Assert the fetched blob contains the uploaded content and type; another customer gets 403"
+          },
+          {
+            "action": "automated in e2e/live/ui-zdocuments.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      }
+    ],
+    "design_checks": {},
+    "performance_checks": []
+  }
+}
