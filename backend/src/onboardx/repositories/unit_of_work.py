@@ -18,6 +18,7 @@ from onboardx.repositories.document_repository import DocumentRepository
 from onboardx.repositories.idempotency_repository import IdempotencyRepository
 from onboardx.repositories.notification_repository import NotificationRepository
 from onboardx.repositories.profile_repository import ProfileRepository
+from onboardx.repositories.query_repository import QueryRepository
 from onboardx.repositories.report_queries import ReportQueries
 from onboardx.repositories.review_repository import ReviewRepository
 from onboardx.repositories.rule_set_repository import RuleSetRepository
@@ -73,6 +74,7 @@ class UnitOfWork:
         self.notifications = NotificationRepository(session)
         self.review = ReviewRepository(session)
         self.watchlist = WatchlistRepository(session)
+        self.queries = QueryRepository(session)
         self.reports = ReportQueries(session)
         return self
 

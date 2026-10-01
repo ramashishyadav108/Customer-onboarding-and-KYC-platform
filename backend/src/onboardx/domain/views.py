@@ -164,3 +164,46 @@ class EvidenceView:
     review_reason_code: str | None
     account_number_masked: str | None
     history: tuple[StateHistoryEntry, ...]
+
+
+@dataclass(frozen=True)
+class UserView:
+    user_id: str
+    username: str
+    role: str
+    active: bool
+    created_at: str
+
+
+@dataclass(frozen=True)
+class ChecklistItemSpec:
+    item_code: str
+    mandatory: bool
+    accepted_classes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ChecklistVersionView:
+    product: str
+    version: int
+    created_at: str
+    items: tuple[ChecklistItemSpec, ...]
+
+
+@dataclass(frozen=True)
+class QueryResponseView:
+    response_id: str
+    author: str
+    message: str
+    created_at: str
+
+
+@dataclass(frozen=True)
+class QueryView:
+    query_id: str
+    case_id: str
+    raised_by: str
+    message: str
+    status: str
+    created_at: str
+    responses: tuple[QueryResponseView, ...]

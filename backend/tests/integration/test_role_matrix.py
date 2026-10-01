@@ -10,6 +10,7 @@ ROLES = ("prospect1", "analyst1", "officer1", "admin1")
 STAFF = {"analyst1", "officer1", "admin1"}
 STEPPERS = {"analyst1", "admin1"}
 OFFICER = {"officer1"}
+ANALYST = {"analyst1"}
 ADMIN = {"admin1"}
 
 # (method, path with {c} for the case id, json body, roles that pass the role check)
@@ -39,6 +40,17 @@ ROUTES: list[tuple[str, str, dict[str, str] | None, set[str]]] = [
     ("GET", "/api/v1/admin/reports/rejection-reasons", None, ADMIN),
     ("GET", "/api/v1/admin/reports/auto-approval", None, ADMIN),
     ("GET", "/api/v1/admin/reports/dropped-leads", None, ADMIN),
+    ("GET", "/api/v1/admin/users", None, ADMIN),
+    ("POST", "/api/v1/admin/users", {}, ADMIN),
+    ("PUT", "/api/v1/admin/users/x/role", {}, ADMIN),
+    ("POST", "/api/v1/admin/users/x/deactivate", None, ADMIN),
+    ("POST", "/api/v1/admin/users/x/reactivate", None, ADMIN),
+    ("GET", "/api/v1/admin/checklists", None, ADMIN),
+    ("POST", "/api/v1/admin/checklists/Savings", {}, ADMIN),
+    ("GET", "/api/v1/cases/{c}/queries", None, STAFF),
+    ("POST", "/api/v1/cases/{c}/queries", {}, ANALYST),
+    ("POST", "/api/v1/cases/{c}/queries/x/close", None, ANALYST),
+    ("POST", "/api/v1/cases/{c}/queries/x/responses", {"message": "x"}, set()),
 ]
 
 

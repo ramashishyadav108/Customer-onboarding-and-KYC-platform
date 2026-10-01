@@ -195,10 +195,10 @@ def test_ac02_failed_commit_removes_the_stored_file(
 
 @pytest.mark.nfr("NFR-05")
 def test_nfr05_no_schema_change_was_needed_for_the_pipeline(engine: Any) -> None:
-    """Migrations 0001-0007 already carry every pipeline table; none were added."""
+    """0001-0007 carry every pipeline table; 0008 only adds user activation and query tables."""
     with engine.connect() as conn:
         versions = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-    assert versions == "0007"
+    assert versions == "0008"
 
 
 @pytest.mark.ac("AC-02")

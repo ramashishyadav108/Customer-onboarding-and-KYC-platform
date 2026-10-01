@@ -15,6 +15,8 @@ class User:
     password_hash: str
     role: Role
     case_id: str | None
+    active: bool = True
+    created_at: str = ""
 
 
 @dataclass(frozen=True)

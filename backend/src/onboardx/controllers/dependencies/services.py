@@ -12,6 +12,7 @@ from onboardx.services.account_service import AccountService
 from onboardx.services.audit_service import AuditService
 from onboardx.services.auth_service import AuthService
 from onboardx.services.case_view_service import CaseViewService
+from onboardx.services.checklist_admin_service import ChecklistAdminService
 from onboardx.services.checklist_service import ChecklistService
 from onboardx.services.decision_service import DecisionService
 from onboardx.services.document_service import DocumentService
@@ -21,11 +22,13 @@ from onboardx.services.notification_service import NotificationService, StubNoti
 from onboardx.services.onboarding_service import OnboardingService
 from onboardx.services.override_service import OverrideService
 from onboardx.services.pipeline_service import PipelineService
+from onboardx.services.query_service import QueryService
 from onboardx.services.report_service import ReportService
 from onboardx.services.risk_service import RiskService
 from onboardx.services.rule_set_service import RuleSetService
 from onboardx.services.screening_service import ScreeningService
 from onboardx.services.submission_service import SubmissionService
+from onboardx.services.user_admin_service import UserAdminService
 from onboardx.services.watchlist_service import WatchlistService
 
 
@@ -48,6 +51,9 @@ class Services:
     evidence: EvidenceService
     watchlist: WatchlistService
     reports: ReportService
+    user_admin: UserAdminService
+    checklist_admin: ChecklistAdminService
+    queries: QueryService
 
 
 def build_services(
@@ -87,6 +93,9 @@ def build_services(
         evidence=EvidenceService(uow_factory),
         watchlist=WatchlistService(uow_factory, clock, audit),
         reports=ReportService(uow_factory, clock),
+        user_admin=UserAdminService(uow_factory, clock, audit),
+        checklist_admin=ChecklistAdminService(uow_factory, clock, audit),
+        queries=QueryService(uow_factory, clock, audit),
     )
 
 

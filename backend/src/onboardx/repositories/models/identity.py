@@ -1,4 +1,4 @@
-"""User model (seeded by migration 0003)."""
+"""User model (seeded by migration 0003; `active` added by 0008)."""
 
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,3 +14,4 @@ class UserModel(Base):
     role: Mapped[str]
     case_id: Mapped[str | None]
     created_at: Mapped[str]
+    active: Mapped[int] = mapped_column(default=1)

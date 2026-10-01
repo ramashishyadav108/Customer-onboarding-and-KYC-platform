@@ -180,3 +180,32 @@ class AlreadyDeactivatedError(DomainError):
 
     def __init__(self, entry_id: str) -> None:
         super().__init__("Watchlist entry is already deactivated", {"entry_id": entry_id})
+
+
+class UsernameTakenError(DomainError):
+    code = "USERNAME_TAKEN"
+
+    def __init__(self) -> None:
+        super().__init__("Username is already in use", {"field": "username"})
+
+
+class SelfModificationError(DomainError):
+    code = "SELF_MODIFICATION"
+
+    def __init__(self) -> None:
+        super().__init__("Admins cannot change or deactivate their own account")
+
+
+class LastAdminError(DomainError):
+    code = "LAST_ADMIN"
+
+    def __init__(self) -> None:
+        super().__init__("The last active admin cannot be deactivated or demoted")
+
+
+class QueryClosedError(DomainError):
+    code = "QUERY_CLOSED"
+
+    def __init__(self, query_id: str) -> None:
+        self.query_id = query_id
+        super().__init__("Query is closed", {"query_id": query_id})

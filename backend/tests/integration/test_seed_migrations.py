@@ -23,14 +23,14 @@ def rows(engine: Engine, sql: str) -> list[Any]:
 
 
 @pytest.mark.nfr("NFR-05")
-def test_nfr05_single_linear_history_ends_at_0007() -> None:
-    """NFR-05: seven migrations, one head, in the documented order."""
+def test_nfr05_single_linear_history_ends_at_0008() -> None:
+    """NFR-05: eight migrations, one head, in the documented order."""
     config = Config(str(ALEMBIC_INI))
     config.set_main_option("script_location", str(MIGRATIONS_DIR))
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["0007"]
+    assert script.get_heads() == ["0008"]
     revisions = [r.revision for r in script.walk_revisions()]
-    assert revisions == ["0007", "0006", "0005", "0004", "0003", "0002", "0001"]
+    assert revisions == ["0008", "0007", "0006", "0005", "0004", "0003", "0002", "0001"]
 
 
 @pytest.mark.nfr("NFR-05")
@@ -45,6 +45,7 @@ def test_nfr05_migration_files_are_named_as_documented() -> None:
         "0005_seed_classification_rules_v1.py",
         "0006_seed_rule_set_v1.py",
         "0007_seed_watchlist_v1.py",
+        "0008_admin_users_checklists_queries.py",
     ]
 
 
@@ -152,6 +153,6 @@ def test_nfr05_upgrade_from_empty_database_creates_seeded_schema(tmp_path: Path)
         with eng.connect() as conn:
             version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             users = conn.execute(text("SELECT COUNT(*) FROM users")).scalar_one()
-        assert (version, users) == ("0007", 4)
+        assert (version, users) == ("0008", 4)
     finally:
         eng.dispose()
