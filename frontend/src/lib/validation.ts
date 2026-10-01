@@ -96,3 +96,10 @@ export function validateChecklistDraft(rows: ChecklistDraftRow[]): string | null
   const empty = rows.find((r) => r.included && r.classes.split(',').every((c) => !c.trim()));
   return empty ? `${empty.item_code.replace(/_/g, ' ').toLowerCase()} needs at least one accepted class.` : null;
 }
+
+export function validateSignup(input: { username: string; password: string; confirm: string }): FieldErrors {
+  const errors = validateNewUser({ username: input.username, password: input.password, role: 'prospect' });
+  delete errors.role;
+  if (!errors.password && input.confirm !== input.password) errors.confirm = 'The passwords do not match.';
+  return errors;
+}

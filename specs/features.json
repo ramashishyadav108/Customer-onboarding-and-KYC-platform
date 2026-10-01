@@ -3118,5 +3118,126 @@
     "last_evaluated": null,
     "failure_reason": null,
     "failure_layer": null
+  },
+  {
+    "id": "F198",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Prospect sign-up creates only a prospect account with a hashed password",
+    "steps": [
+      "POST /api/v1/auth/signup with valid credentials",
+      "Assert 201, role prospect, case_id null, hash stored, audit USER_SIGNED_UP"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F199",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Sign-up rejects invalid input and taken usernames including staff names",
+    "steps": [
+      "POST invalid usernames and passwords, then admin1",
+      "Assert 422 naming the field and 409 USERNAME_TAKEN"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F200",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "A role in the sign-up body cannot create staff",
+    "steps": [
+      "POST signup with role admin",
+      "Assert role prospect and 403 on every admin and staff route"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F201",
+    "category": "functional",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "A signed-in prospect registers a lead linked to the account; a second lead is refused",
+    "steps": [
+      "POST /api/v1/leads with the account token",
+      "Assert case linked, token case-bound; second lead 409 CASE_EXISTS; anonymous leads still work"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F202",
+    "category": "functional",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Login returns the linked case and a token bound to it",
+    "steps": [
+      "Log in as the prospect account before and after registering",
+      "Assert case_id null then the case id; other cases 403"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F203",
+    "category": "security",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Prospect-account tokens die with the account and forged ones are rejected",
+    "steps": [
+      "Deactivate the account; use a forged prospect token for an unknown user",
+      "Assert login and token 401; anonymous case tokens unaffected"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F204",
+    "category": "ui",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Sign-up and unified sign-in pages redirect by role",
+    "steps": [
+      "Open /signup and /login",
+      "Assert validation, taken-username message, links, demo accounts in dev, redirect per role"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
+  },
+  {
+    "id": "F205",
+    "category": "ui",
+    "story": "E6-S4",
+    "group": "M",
+    "description": "Customer, compliance officer and admin journey works end to end with RBAC",
+    "steps": [
+      "Customer signs up, applies, reaches manual review",
+      "Officer signs in, approves; customer signs in and sees the account",
+      "Customer blocked from staff pages; admin lists the account without controls; deactivation ends the session"
+    ],
+    "passes": false,
+    "last_evaluated": null,
+    "failure_reason": null,
+    "failure_layer": null
   }
 ]

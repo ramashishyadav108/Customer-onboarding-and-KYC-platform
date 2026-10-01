@@ -79,3 +79,11 @@ Status: MET, FIXED (was missing, implemented and verified), PARTIAL, NOT MET.
 | Admin: manage product document checklists | FIXED | `specs/admin-management_spec.md` AC-12: admin Checklists page and `/api/v1/admin/checklists` append a new immutable version (old cases keep theirs); pytest and live Playwright pass. Supersedes the earlier v1 exclusion in `app_spec.md`. |
 | Admin: user / role configuration | FIXED | AC-11: admin Users page and `/api/v1/admin/users` (create, change role, deactivate, reactivate); staff tokens honoured only for an active user with the stored role; audited; pytest and live Playwright pass |
 | Analyst: manage queries | FIXED | AC-13: analysts raise and close queries, the owning prospect replies on the status page; append-only, PII-safe; pytest and live Playwright pass |
+
+## Authentication and RBAC (added requirement)
+| Requirement | Status | Evidence |
+|---|---|---|
+| NFR-04 authentication boundary at the controller layer; four roles | MET | `controllers/dependencies/auth.py` only; `test_role_matrix.py` covers every route for all four roles and anonymous |
+| Login page | MET | unified `/login` for customers and staff, redirect by role |
+| Sign-up page | FIXED | `/signup` and `POST /api/v1/auth/signup` create prospect accounts only (AC-14); staff accounts come from the admin Users page (AC-11) |
+| Role-based access in the UI | MET | route guards (`RequireRole`), 403 page, live Playwright journey customer -> officer -> customer |

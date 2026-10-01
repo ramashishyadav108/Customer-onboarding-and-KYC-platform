@@ -13,6 +13,7 @@ from onboardx.repositories.unit_of_work import UnitOfWorkFactory
 from onboardx.services.passwords import hash_password, verify_password
 
 ALGORITHM = "HS256"
+ANONYMOUS_PREFIX = "prospect:"  # usernames cannot contain ":", so account subjects never collide
 DEFAULT_TTL_SECONDS = 1800
 
 
@@ -95,6 +96,8 @@ class AuthService:
         subject = str(claims["sub"])
         if role in STAFF_ROLES:
             role = self._current_staff_role(subject)
+        elif not subject.startswith(ANONYMOUS_PREFIX):
+            self._require_active_prospect(subject)
         return TokenClaims(subject, role, None if case_id is None else str(case_id), expires_at)
 
     def _current_staff_role(self, username: str) -> Role:
@@ -107,3 +110,10 @@ class AuthService:
         if user is None or not user.active or user.role not in STAFF_ROLES:
             raise AuthenticationError("Account is not active")
         return user.role
+
+    def _require_active_prospect(self, username: str) -> None:
+        """Prospect-account tokens die with the account; anonymous case tokens are not bound."""
+        with self._uow_factory() as uow:
+            user = uow.users.get_by_username(username)
+        if user is None or not user.active or user.role is not Role.PROSPECT:
+            raise AuthenticationError("Account is not active")

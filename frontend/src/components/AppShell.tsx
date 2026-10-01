@@ -39,7 +39,7 @@ export function AppShell({ title, wide }: { title: string; wide?: boolean }) {
               className="sec"
               onClick={() => {
                 signOut();
-                navigate(session.role === 'prospect' ? ROUTES.register : ROUTES.login);
+                navigate(ROUTES.login);
               }}
             >
               Sign out

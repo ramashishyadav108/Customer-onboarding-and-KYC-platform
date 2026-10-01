@@ -17,7 +17,7 @@ With Python 3.12, Node.js 18+ and the backend dependencies installed (`pip insta
 python scripts/start_all.py
 ```
 
-It applies every migration (schema plus seed data: product checklists, risk rule set v1, watchlist, demo users), starts the API on `http://127.0.0.1:8000` and the web app on `http://localhost:3000`, and stops both on Ctrl-C. Use `--backend-port` and `--frontend-port` to change ports. Staff logins are `analyst1`, `officer1`, `admin1` with password `demo-<username>-pass`; prospects register at `/portal/register`. The detailed manual steps follow.
+It applies every migration (schema plus seed data: product checklists, risk rule set v1, watchlist, demo users), starts the API on `http://127.0.0.1:8000` and the web app on `http://localhost:3000`, and stops both on Ctrl-C. Use `--backend-port` and `--frontend-port` to change ports. Everyone signs in at `/login`: customers create an account at `/signup` (or apply without one at `/portal/register`), and bank staff use the seeded demo accounts (`analyst1`, `officer1`, `admin1`, password `demo-<username>-pass`; the compliance officer is `officer1`) or accounts an admin creates on the Users page. Each role lands on its own page. The detailed manual steps follow.
 
 ## Prerequisites
 

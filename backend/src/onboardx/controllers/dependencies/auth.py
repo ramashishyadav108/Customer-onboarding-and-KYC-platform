@@ -37,6 +37,16 @@ def current_principal(
     return Principal(claims.subject, claims.role, claims.case_id)
 
 
+def optional_principal(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+    services: Annotated[Services, Depends(get_services)],
+) -> Principal | None:
+    """Public routes that behave differently when a valid token is sent; a bad token is 401."""
+    if credentials is None:
+        return None
+    return current_principal(credentials, services)
+
+
 def require_role(*roles: Role) -> Callable[..., Principal]:
     """Dependency factory: 403 unless the caller has one of ``roles`` (any role if empty)."""
     allowed = frozenset(roles)

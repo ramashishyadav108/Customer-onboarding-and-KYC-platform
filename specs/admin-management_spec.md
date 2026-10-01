@@ -1,4 +1,4 @@
-# Admin management and analyst queries (spec)
+# Accounts, admin management and analyst queries (spec)
 
 Extends `specs/app_spec.md` section 5 (roles). Source: capstone brief section 6.2 (Admin console: checklists, classification rules, watchlist, users and roles; KYC analyst: manage queries) and NFR-04. All data synthetic. This spec supersedes the v1 note in app_spec section 3 item 6 that excluded checklist editing.
 
@@ -46,3 +46,13 @@ Extends `specs/app_spec.md` section 5 (roles). Source: capstone brief section 6.
 - AC-13.6 Raise, answer and close each append an audit entry (`QUERY_RAISED`, `QUERY_ANSWERED`, `QUERY_CLOSED`) holding `query_id` only. Message text is never written to logs or audit (NFR-03).
 - AC-13.7 Role matrix: raise and close are analyst only (401 without token; 403 for prospect, compliance-officer, admin); answering is prospect only.
 - AC-13.8 UI: the analyst case page lists queries and lets the analyst raise and close them; the prospect status page shows open queries with a reply form; both with accessible labels and errors.
+
+### AC-14 Prospect sign-up, sign-in and account-linked cases
+Staff accounts are created only by an admin (AC-11.2). Self sign-up can only ever create a **prospect** account; no request field can choose a role.
+- AC-14.1 `POST /api/v1/auth/signup` (public) takes `username` (3 to 50 chars of a-z, 0-9, dot, underscore, hyphen) and `password` (10 to 128 chars), creates an active user with role prospect and no case, and returns 201 with `access_token`, `token_type`, `role` prospect, `expires_in` and `case_id` null. Invalid input is 422 `VALIDATION_ERROR` naming the fields; a taken username (including seeded staff names) is 409 `USERNAME_TAKEN`. The password is stored only as a salted PBKDF2 hash.
+- AC-14.2 Any `role` or other extra field in the sign-up body is ignored: the new account is always a prospect, and its token gets 403 on every staff and admin route.
+- AC-14.3 A signed-in prospect account without a case registers a lead with `POST /api/v1/leads` and its bearer token: the case is linked to the account and the response token is bound to that case. A second lead from the same account is 409 `CASE_EXISTS`. Registering with no token still works exactly as before (anonymous lead, case-bound token).
+- AC-14.4 `POST /api/v1/auth/login` for a prospect account returns `case_id` (null until a lead exists) and a token bound to that case; it can read and change only that case (403 on any other).
+- AC-14.5 Prospect-account tokens stop working when the account is deactivated (401), like staff tokens (AC-11.4); anonymous case tokens (`prospect:<case_id>` subject) are unaffected.
+- AC-14.6 Sign-up appends an audit entry `USER_SIGNED_UP` holding `user_id` and role only.
+- AC-14.7 UI: a public `/signup` page (username, password, confirm password with inline errors) and a unified `/login` page for prospects and staff with links between them. After sign-in the app redirects by role: prospect without a case to registration, prospect with a case to status, analyst to the workbench, compliance officer to the review queue, admin to the dashboard. Development builds show the synthetic demo staff accounts on the sign-in page; production builds do not.

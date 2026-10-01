@@ -16,3 +16,10 @@ class LoginResponse(BaseModel):
     role: Role
     expires_in: int
     case_id: str | None
+
+
+class SignupRequest(BaseModel):
+    """Only credentials: any other field (such as a role) is ignored, never read."""
+
+    username: str = Field(max_length=100)
+    password: str = Field(max_length=200)

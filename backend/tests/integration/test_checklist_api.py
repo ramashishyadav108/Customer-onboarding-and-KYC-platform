@@ -4,8 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
-from api_helpers import bearer, create_lead, lead_headers, staff_headers
-from helpers import make_token
+from api_helpers import create_lead, lead_headers, staff_headers
 
 ID = ["PAN", "AADHAAR", "PASSPORT"]
 ADDR = ["AADHAAR", "PASSPORT", "UTILITY_BILL"]
@@ -71,9 +70,14 @@ def test_ac02_2_checklist_requires_authentication(client: TestClient) -> None:
 @pytest.mark.ac("AC-02")
 @pytest.mark.parametrize("role", ["prospect", "kyc-analyst", "compliance-officer", "admin"])
 def test_ac02_2_any_authenticated_role_can_read_a_checklist(client: TestClient, role: str) -> None:
-    """E1-S5 AC4: all four roles may read the checklist (staff via a real login, NFR-04)."""
-    users = {"kyc-analyst": "analyst1", "compliance-officer": "officer1", "admin": "admin1"}
-    headers = bearer(make_token(role)) if role == "prospect" else staff_headers(client, users[role])
+    """E1-S5 AC4: all four roles may read the checklist (real logins, NFR-04)."""
+    users = {
+        "prospect": "prospect1",
+        "kyc-analyst": "analyst1",
+        "compliance-officer": "officer1",
+        "admin": "admin1",
+    }
+    headers = staff_headers(client, users[role])
     assert client.get("/api/v1/products/Current/checklist", headers=headers).status_code == 200
 
 

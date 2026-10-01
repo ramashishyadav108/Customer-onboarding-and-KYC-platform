@@ -22,3 +22,8 @@ Recurring mistakes encoded back into rules, hooks and skills.
 
 - **Mistake:** concurrent reads on the shared in-memory connection returned half-read rows (500 on the evidence endpoint).
 - **Rule now:** `make_uow_factory(serialize=True)` for in-memory engines, guarded by `tests/integration/test_in_memory_concurrency.py`.
+
+## A long-running backend serves the old code
+
+- **Mistake:** the frontend dev server hot-reloads but the FastAPI process does not, so new screens called routes the old backend did not have (404, shown as "Request could not be served").
+- **Rule now:** after any backend change restart the API (`python scripts/start_all.py` restarts both). If a new page shows that generic error, check `GET /openapi.json` for the route first. Use a file database (`sqlite:///./onboardx.db`) so a restart keeps data.

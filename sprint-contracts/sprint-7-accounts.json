@@ -1,0 +1,103 @@
+{
+  "group": "M",
+  "stories": [
+    "E6-S4"
+  ],
+  "features": [
+    "F198",
+    "F199",
+    "F200",
+    "F201",
+    "F202",
+    "F203",
+    "F204",
+    "F205"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S7-API-01",
+        "method": "POST",
+        "path": "/api/v1/auth/signup",
+        "expected_status": 201,
+        "description": "F198 Prospect sign-up creates only a prospect account with a hashed password: body {username:'meera.nair', password:'synthetic-pass-123'}; role prospect, case_id null. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S7-API-02",
+        "method": "POST",
+        "path": "/api/v1/auth/signup",
+        "expected_status": 409,
+        "description": "F199 Sign-up rejects invalid input and taken usernames including staff names: username admin1 (or any existing name); invalid input is 422 naming the field. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S7-API-03",
+        "method": "POST",
+        "path": "/api/v1/auth/signup",
+        "expected_status": 201,
+        "description": "F200 A role in the sign-up body cannot create staff: body also carries role admin; response role is prospect and GET /api/v1/admin/users with that token is 403. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S7-API-04",
+        "method": "POST",
+        "path": "/api/v1/leads",
+        "expected_status": 409,
+        "description": "F201 A signed-in prospect registers a lead linked to the account; a second lead is refused: account token that already has a case; the first lead from the account is 201 and links the case. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S7-API-05",
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "expected_status": 200,
+        "description": "F202 Login returns the linked case and a token bound to it: prospect account; case_id null before a lead and the linked case id after; another case is 403. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      },
+      {
+        "id": "S7-API-06",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}",
+        "expected_status": 401,
+        "description": "F203 Prospect-account tokens die with the account and forged ones are rejected: token of a deactivated prospect account or a forged prospect token for an unknown user. Evidence: backend/tests/integration/test_signup_api.py and e2e/live/ui-signup.live.ts. Base URL http://127.0.0.1:8010."
+      }
+    ],
+    "playwright_checks": [
+      {
+        "id": "UI-F204",
+        "description": "Sign-up and unified sign-in pages redirect by role",
+        "url": "/signup",
+        "steps": [
+          {
+            "action": "Open /signup and /login"
+          },
+          {
+            "action": "Assert validation, taken-username message, links, demo accounts in dev, redirect per role"
+          },
+          {
+            "action": "automated in e2e/live/ui-signup.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F205",
+        "description": "Customer, compliance officer and admin journey works end to end with RBAC",
+        "url": "/login",
+        "steps": [
+          {
+            "action": "Customer signs up, applies, reaches manual review"
+          },
+          {
+            "action": "Officer signs in, approves; customer signs in and sees the account"
+          },
+          {
+            "action": "Customer blocked from staff pages; admin lists the account without controls; deactivation ends the session"
+          },
+          {
+            "action": "automated in e2e/live/ui-signup.live.ts",
+            "assertion": "passes against the live backend"
+          }
+        ]
+      }
+    ],
+    "design_checks": {},
+    "performance_checks": []
+  }
+}

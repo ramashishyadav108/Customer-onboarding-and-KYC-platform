@@ -27,6 +27,7 @@ from onboardx.services.report_service import ReportService
 from onboardx.services.risk_service import RiskService
 from onboardx.services.rule_set_service import RuleSetService
 from onboardx.services.screening_service import ScreeningService
+from onboardx.services.signup_service import SignupService
 from onboardx.services.submission_service import SubmissionService
 from onboardx.services.user_admin_service import UserAdminService
 from onboardx.services.watchlist_service import WatchlistService
@@ -54,6 +55,7 @@ class Services:
     user_admin: UserAdminService
     checklist_admin: ChecklistAdminService
     queries: QueryService
+    signup: SignupService
 
 
 def build_services(
@@ -96,6 +98,7 @@ def build_services(
         user_admin=UserAdminService(uow_factory, clock, audit),
         checklist_admin=ChecklistAdminService(uow_factory, clock, audit),
         queries=QueryService(uow_factory, clock, audit),
+        signup=SignupService(uow_factory, clock, audit, auth),
     )
 
 

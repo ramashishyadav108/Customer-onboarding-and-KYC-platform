@@ -20,13 +20,25 @@ _KNOWN_ITEMS = {str(code) for code in CHECKLIST_ITEM_ORDER}
 _KNOWN_CLASSES = {str(c) for c in DocClass if c is not DocClass.UNRECOGNISED}
 
 
-def validate_new_user(username: str, password: str, role: str) -> Role:
-    """Return the staff role; collect every field problem into one ValidationError."""
+def _credential_problems(username: str, password: str) -> list[tuple[str, str]]:
     problems: list[tuple[str, str]] = []
     if not _USERNAME.match(username):
         problems.append(("username", "3 to 50 characters of a-z, 0-9, dot, underscore or hyphen"))
     if not PASSWORD_MIN <= len(password) <= PASSWORD_MAX:
         problems.append(("password", f"{PASSWORD_MIN} to {PASSWORD_MAX} characters"))
+    return problems
+
+
+def validate_credentials(username: str, password: str) -> None:
+    """Username and password rules shared by admin user creation and prospect sign-up."""
+    problems = _credential_problems(username, password)
+    if problems:
+        raise ValidationError(problems)
+
+
+def validate_new_user(username: str, password: str, role: str) -> Role:
+    """Return the staff role; collect every field problem into one ValidationError."""
+    problems = _credential_problems(username, password)
     parsed = parse_staff_role(role, "role", problems)
     if problems or parsed is None:
         raise ValidationError(problems)

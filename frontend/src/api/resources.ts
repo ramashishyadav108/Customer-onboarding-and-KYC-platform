@@ -23,14 +23,17 @@ import type {
 export const authApi = {
   login: (username: string, password: string) =>
     request<LoginResponse>('/auth/login', { method: 'POST', body: { username, password }, auth: false }),
+  signup: (username: string, password: string) =>
+    request<LoginResponse>('/auth/signup', { method: 'POST', body: { username, password }, auth: false }),
 };
 
 export const leadsApi = {
-  create: (lead: LeadRequest, idempotencyKey?: string) =>
+  // `withAuth` sends the bearer token so a signed-in prospect account owns the case (AC-14.3).
+  create: (lead: LeadRequest, idempotencyKey?: string, withAuth = false) =>
     request<LeadResponse>('/leads', {
       method: 'POST',
       body: lead,
-      auth: false,
+      auth: withAuth,
       headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
     }),
 };

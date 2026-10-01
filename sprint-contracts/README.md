@@ -11,6 +11,7 @@ All files validate against `.claude/skills/evaluation/references/contract-schema
 | `sprint-5-reports-admin.json` | Retrospectively, after implementation | E5-S1..E5-S5 (E5-S4 dashboard UI features F167-F171 excluded; E5-S5 proven via pytest/architecture checks) | F151-F166, F172-F177 |
 | `ui-groups-F-H-J-L.json` | Retrospectively, after implementation; executed by `e2e/live/ui-groups.live.ts` against a live backend (`playwright.live.config.ts`) | E2-S5, E3-S5, E4-S5, E5-S4 (UI) | F069-F074, F108-F113, F145-F150, F167-F171 |
 | `sprint-6-admin-management.json` | Retrospectively; evidence is pytest (`test_admin_users_api.py`, `test_admin_checklists_api.py`, `test_queries_api.py`, role matrix) and `e2e/live/ui-management.live.ts` | E6-S1..E6-S3 (AC-11 to AC-13) | F178-F197 |
+| `sprint-7-accounts.json` | Retrospectively; evidence is `test_signup_api.py` and `e2e/live/ui-signup.live.ts` | E6-S4 (AC-14) | F198-F205 |
 
 ## Important caveat
 

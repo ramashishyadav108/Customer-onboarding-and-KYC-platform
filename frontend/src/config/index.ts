@@ -4,6 +4,7 @@ export const API_BASE = '/api/v1';
 
 export const ROUTES = {
   login: '/login',
+  signup: '/signup',
   forbidden: '/forbidden',
   register: '/portal/register',
   profile: '/portal/profile',
@@ -25,6 +26,11 @@ export const ROLE_HOME: Record<Role, string> = {
   'compliance-officer': ROUTES.reviewQueue,
   admin: ROUTES.dashboard,
 };
+
+// Where a role lands after sign-in; a prospect account without a case starts the application.
+export function homeFor(role: Role, caseId: string | null): string {
+  return role === 'prospect' && caseId === null ? ROUTES.register : ROLE_HOME[role];
+}
 
 export const PRODUCTS: Product[] = ['Savings', 'Current', 'NRE'];
 

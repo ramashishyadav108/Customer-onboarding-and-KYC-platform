@@ -209,3 +209,10 @@ class QueryClosedError(DomainError):
     def __init__(self, query_id: str) -> None:
         self.query_id = query_id
         super().__init__("Query is closed", {"query_id": query_id})
+
+
+class CaseExistsError(DomainError):
+    code = "CASE_EXISTS"
+
+    def __init__(self) -> None:
+        super().__init__("This account already has an application")

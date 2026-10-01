@@ -11,6 +11,7 @@ from datetime import date
 from onboardx.domain.entities import Case, CaseProfile
 from onboardx.domain.enums import AuditEvent, CaseState, Product, Role
 from onboardx.domain.errors import (
+    CaseExistsError,
     CaseLockedError,
     NotFoundError,
     ProfileLockedError,
@@ -23,7 +24,7 @@ from onboardx.domain.validation import ensure_valid, validate_lead, validate_pro
 from onboardx.repositories.idempotency_repository import IdempotencyRecord
 from onboardx.repositories.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from onboardx.services.audit_service import AuditService
-from onboardx.services.auth_service import AuthService
+from onboardx.services.auth_service import ANONYMOUS_PREFIX, AuthService
 from onboardx.services.onboarding_service import OnboardingService
 
 logger = logging.getLogger("onboardx.leads")
@@ -58,20 +59,44 @@ class LeadService:
         self._key = fingerprint_key.encode()
 
     def register(
-        self, *, name: str, contact: str, product: str, idempotency_key: str | None = None
+        self,
+        *,
+        name: str,
+        contact: str,
+        product: str,
+        idempotency_key: str | None = None,
+        owner: str | None = None,
     ) -> LeadResult:
-        """Create a case in INITIATED (idempotent per Idempotency-Key) and a prospect token."""
+        """Create a case in INITIATED (idempotent per Idempotency-Key) and a prospect token.
+
+        With ``owner`` (a prospect account's username) the case is linked to that account and the
+        token is issued for the account (AC-14.3); without it the lead is anonymous as before.
+        """
         ensure_valid(validate_lead(name, contact, product))
         fingerprint = self._fingerprint(name.strip(), contact, product)
         with self._uow_factory() as uow:
             replayed = self._replay(uow, idempotency_key, fingerprint)
             if replayed is not None:
-                return self._result(replayed, created=False)
+                return self._result(replayed, created=False, owner=owner)
+            account = self._owner_without_case(uow, owner)
             case = self._create_case(uow, name.strip(), contact, Product(product))
             self._record_creation(uow, case, idempotency_key, fingerprint)
+            if account is not None:
+                uow.users.set_case(account, case.case_id)
             uow.commit()
         logger.info("lead created case_id=%s", case.case_id)
-        return self._result(case, created=True)
+        return self._result(case, created=True, owner=owner if account is not None else None)
+
+    def _owner_without_case(self, uow: UnitOfWork, owner: str | None) -> str | None:
+        """The owning account's id; 409 CASE_EXISTS when the account already has a case."""
+        if owner is None:
+            return None
+        user = uow.users.get_by_username(owner)
+        if user is None or not user.active or user.role is not Role.PROSPECT:
+            return None
+        if user.case_id is not None:
+            raise CaseExistsError
+        return user.user_id
 
     def update_profile(
         self,
@@ -187,8 +212,9 @@ class LeadService:
                 )
             )
 
-    def _result(self, case: Case, *, created: bool) -> LeadResult:
-        issued = self._auth.issue_token(f"prospect:{case.case_id}", Role.PROSPECT, case.case_id)
+    def _result(self, case: Case, *, created: bool, owner: str | None = None) -> LeadResult:
+        subject = owner or f"{ANONYMOUS_PREFIX}{case.case_id}"
+        issued = self._auth.issue_token(subject, Role.PROSPECT, case.case_id)
         return LeadResult(
             case.case_id, case.state, case.product, issued.access_token, issued.expires_in, created
         )

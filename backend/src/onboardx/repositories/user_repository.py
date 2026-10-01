@@ -59,6 +59,11 @@ class UserRepository:
         statement = update(UserModel).where(UserModel.user_id == user_id).values(active=int(active))
         self._session.execute(statement)
 
+    def set_case(self, user_id: str, case_id: str) -> None:
+        """Link a prospect account to its single case (AC-14.3)."""
+        statement = update(UserModel).where(UserModel.user_id == user_id).values(case_id=case_id)
+        self._session.execute(statement)
+
     def count_active_admins(self) -> int:
         query = (
             select(func.count())
