@@ -102,8 +102,8 @@ Every acceptance-criterion id in the specs is cited by a test: 16 of 16 top-leve
 ## 7.5 CI/CD
 | Requirement | Status | Evidence |
 |---|---|---|
-| CI file with build and test | MET | `.gitlab-ci.yml` (backend, frontend, e2e jobs); no separate GitHub build workflow, by choice |
-| Claude Code Action | MET | `.github/workflows/claude.yml` (`anthropics/claude-code-action@v1`), `claude-review` job in GitLab CI |
+| CI file with build and test | MET | `.gitlab-ci.yml` (backend, frontend, e2e jobs). By choice it creates no pipeline on push or merge request; run it on purpose with `RUN_PIPELINE=true`. |
+| Claude Code Action | MET | `.github/workflows/claude.yml` (`anthropics/claude-code-action@v1`, manual trigger only by choice), `claude-review` job in GitLab CI |
 | At least 3 PR-driven merges, zero direct commits to main | PARTIAL | 10 merge commits. `git log --first-parent --no-merges main` shows 2 direct commits (`chore: initial empty commit`, `chore: ignore vite cache`). Published history, not rewritten. |
 
 ## 8.1 Mandatory deliverables
