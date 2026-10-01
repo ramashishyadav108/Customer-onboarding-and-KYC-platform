@@ -28,7 +28,11 @@ from onboardx.controllers.routers import (
     review,
 )
 from onboardx.domain.ports import Clock, NotificationSender
-from onboardx.repositories.database import create_db_engine, create_session_factory
+from onboardx.repositories.database import (
+    create_db_engine,
+    create_session_factory,
+    is_in_memory,
+)
 from onboardx.repositories.unit_of_work import make_uow_factory
 
 ROUTERS = (
@@ -77,7 +81,7 @@ def create_app(
     app.state.session_factory = session_factory
     app.state.services = build_services(
         resolved,
-        make_uow_factory(session_factory),
+        make_uow_factory(session_factory, serialize=is_in_memory(str(db_engine.url))),
         clock or SystemClock(),
         secret,
         notification_sender,

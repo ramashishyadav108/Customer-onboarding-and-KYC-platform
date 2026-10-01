@@ -18,7 +18,10 @@ export function ReviewPanel({ caseId, onDone }: { caseId: string; onDone: (messa
   const submit = async () => {
     const res = await act.override({ decision, reason_code: reason, comment: comment.trim() || undefined });
     setConfirming(false);
-    if (res) onDone(`Case ${caseId.slice(0, 8)} ${res.state.toLowerCase()} with reason ${res.override.reason_code}. The override was recorded in the audit trail.`);
+    if (res) {
+      const account = res.account_number ? ` Account number: ${res.account_number}.` : '';
+      onDone(`Case ${caseId.slice(0, 8)} ${res.state.toLowerCase()} with reason ${res.override.reason_code}. The override was recorded in the audit trail.${account}`);
+    }
   };
 
   return (

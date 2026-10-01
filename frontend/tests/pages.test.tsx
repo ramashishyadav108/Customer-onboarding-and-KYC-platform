@@ -249,6 +249,7 @@ describe('review workflow', () => {
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(calls.find((c) => c.key.endsWith('/override'))?.body).toEqual({ decision: 'APPROVE', reason_code: 'FALSE_POSITIVE_CLEARED' });
     expect(onDone.mock.calls[0][0]).toMatch(/approved.*audit trail/);
+    expect(onDone.mock.calls[0][0]).toContain('Account number: SAV123456789012');
   });
 
   it('AC-08: shows a server error and keeps the panel open when the override fails', async () => {

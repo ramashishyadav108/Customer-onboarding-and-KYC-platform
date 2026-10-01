@@ -1,8 +1,9 @@
 """Unit of work: one transaction exposing every repository (services never see sessions)."""
 
+import threading
 from collections.abc import Callable
 from types import TracebackType
-from typing import Self
+from typing import Protocol, Self
 
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session, sessionmaker
@@ -26,14 +27,34 @@ from onboardx.repositories.user_repository import UserRepository
 from onboardx.repositories.watchlist_repository import WatchlistRepository
 
 
+class _Lock(Protocol):
+    def acquire(self) -> object: ...
+
+    def release(self) -> None: ...
+
+
 class UnitOfWork:
     """Context manager: commit explicitly; anything else (including errors) rolls back."""
 
-    def __init__(self, session_factory: sessionmaker[Session]) -> None:
+    def __init__(self, session_factory: sessionmaker[Session], lock: _Lock | None = None) -> None:
         self._session_factory = session_factory
+        self._lock = lock
         self._session: Session | None = None
 
     def __enter__(self) -> Self:
+        if self._lock is not None:
+            self._lock.acquire()
+        try:
+            return self._open()
+        except BaseException:
+            self._release()
+            raise
+
+    def _release(self) -> None:
+        if self._lock is not None:
+            self._lock.release()
+
+    def _open(self) -> Self:
         session = self._session_factory()
         self._session = session
         self.users = UserRepository(session)
@@ -69,6 +90,7 @@ class UnitOfWork:
         finally:
             session.close()
             self._session = None
+            self._release()
 
     def commit(self) -> None:
         if self._session is None:
@@ -86,8 +108,14 @@ class UnitOfWork:
 UnitOfWorkFactory = Callable[[], UnitOfWork]
 
 
-def make_uow_factory(session_factory: sessionmaker[Session]) -> UnitOfWorkFactory:
+def make_uow_factory(
+    session_factory: sessionmaker[Session], *, serialize: bool = False
+) -> UnitOfWorkFactory:
+    """`serialize` runs one unit of work at a time: needed when every session shares a single
+    SQLite connection (in-memory database), which is not safe for interleaved worker threads."""
+    lock = threading.RLock() if serialize else None
+
     def factory() -> UnitOfWork:
-        return UnitOfWork(session_factory)
+        return UnitOfWork(session_factory, lock)
 
     return factory
