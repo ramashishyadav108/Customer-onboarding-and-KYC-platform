@@ -112,6 +112,8 @@ export function pdf(name: string) {
 const STAFF_TOKENS: Record<string, string> = { officer1: 'compliance-officer', admin1: 'admin', analyst1: 'kyc-analyst' };
 
 export async function installLogin(page: Page) {
+  // Lowest-priority catch-all (later routes win): unmocked API calls fail locally instead of reaching a real backend on :8000.
+  await page.route('**/api/v1/**', (route) => err(route, 404, 'NOT_FOUND', 'Not mocked in this test'));
   await page.route('**/api/v1/auth/login', async (route) => {
     const { username } = route.request().postDataJSON() as { username: string };
     const role = STAFF_TOKENS[username];
