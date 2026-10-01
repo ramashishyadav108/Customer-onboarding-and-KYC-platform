@@ -51,7 +51,7 @@ Status: MET, FIXED (was missing, implemented and verified in this pass), PARTIAL
 |---|---|---|
 | CI file with build and test | FIXED | `.gitlab-ci.yml` existed; the GitHub remote had only a review workflow, so `.github/workflows/ci.yml` (backend, frontend, e2e) was added. The same commands pass locally; it has not run on GitHub yet. |
 | Claude Code Action in CI | MET | `.github/workflows/claude.yml` (`anthropics/claude-code-action@v1`), `claude-review` job in `.gitlab-ci.yml` |
-| At least 3 PR-driven merges, zero direct commits to main | PARTIAL | 11 merge commits. `git log --first-parent --no-merges main` shows 2 direct commits (`chore: initial empty commit`, `chore: ignore vite cache`). Published history, not rewritten. |
+| At least 3 PR-driven merges, zero direct commits to main | PARTIAL | 10 merge commits. `git log --first-parent --no-merges main` shows 2 direct commits (`chore: initial empty commit`, `chore: ignore vite cache`). Published history, not rewritten. |
 
 ## 8.1 Mandatory deliverables
 | Requirement | Status | Evidence |
