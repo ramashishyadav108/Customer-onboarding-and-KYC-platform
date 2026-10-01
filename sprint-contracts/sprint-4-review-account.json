@@ -1,0 +1,423 @@
+{
+  "group": "sprint-4-review-account",
+  "stories": [
+    "E4-S1",
+    "E4-S2",
+    "E4-S3",
+    "E4-S4"
+  ],
+  "features": [
+    "F114",
+    "F115",
+    "F116",
+    "F117",
+    "F118",
+    "F119",
+    "F120",
+    "F121",
+    "F122",
+    "F123",
+    "F124",
+    "F125",
+    "F126",
+    "F127",
+    "F128",
+    "F129",
+    "F130",
+    "F131",
+    "F132",
+    "F133",
+    "F134",
+    "F135",
+    "F136",
+    "F137",
+    "F138",
+    "F139",
+    "F140",
+    "F141",
+    "F142",
+    "F143",
+    "F144"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S4-API-01",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/decide",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "MANUAL_REVIEW"
+        },
+        "description": "E4-S1 / F115, F120: decide on the Test Person One case returns state MANUAL_REVIEW, decision.type AUTO, outcome MANUAL_REVIEW, reason_code AML_HIT, account_number null; repeating is idempotent (same decision_id). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-02",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/advance",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "APPROVED"
+        },
+        "description": "E4-S1 / F114, F121, F122: Case A (clean LOW, auto-approved on submit): advance returns state APPROVED, steps_run [], decision.reason_code AUTO_APPROVED, outcome APPROVED; idempotent. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-03",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/account",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "product": "Savings"
+        },
+        "description": "E4-S2 / F114, F123, F128: Case A prospect token gets product Savings and a masked account_number matching ^SAV\\*+\\d{4}$; a kyc-analyst token gets the full number matching ^SAV\\d{12}$. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-04",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/account",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 404,
+        "expected_body": {
+          "error": {
+            "code": "NOT_FOUND"
+          }
+        },
+        "description": "E4-S2 / F124: a case that is not APPROVED (rejected or MANUAL_REVIEW) has no account: 404 NOT_FOUND. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-05",
+        "method": "GET",
+        "path": "/api/v1/review-queue",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E4-S3 / F129: compliance-officer lists MANUAL_REVIEW cases oldest first: items[] with case_id, product, reason_code, age_minutes, entered_review_at; total integer. Cases B (AML_HIT), C (RISK_MEDIUM), D (RISK_HIGH) appear. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-06",
+        "method": "GET",
+        "path": "/api/v1/review-queue",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E4-S3 / F130: kyc-analyst token -> 403 FORBIDDEN, required_roles [compliance-officer]. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-07",
+        "method": "GET",
+        "path": "/api/v1/review-queue",
+        "expected_status": 401,
+        "expected_body": {
+          "error": {
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        "description": "E4-S3 / F130: no token -> 401 UNAUTHENTICATED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-08",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/evidence",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E4-S3 evidence: keys case_id, state, product, documents, screening, risk_assessment, decision, override, review_reason_code, account_number_masked, history; no plaintext contact. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-09",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "decision": "APPROVE",
+          "reason_code": "RISK_ACCEPTED"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E4-S3 / F133: kyc-analyst cannot override: 403 FORBIDDEN, required_roles [compliance-officer]. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-10",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "decision": "APPROVE"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E4-S3 / F132: missing reason_code -> 422 VALIDATION_ERROR. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-11",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "decision": "APPROVE",
+          "reason_code": "RISK_TOO_HIGH"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "UNKNOWN_REASON_CODE"
+          }
+        },
+        "description": "E4-S3 / F132: reason code not allowed for the action -> 422 UNKNOWN_REASON_CODE. APPROVE allows FALSE_POSITIVE_CLEARED, RISK_ACCEPTED, DOCS_CONFIRMED; REJECT allows CONFIRMED_WATCHLIST_MATCH, DOCS_INSUFFICIENT, RISK_TOO_HIGH, POLICY_OTHER (here APPROVE with RISK_TOO_HIGH). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-12",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "decision": "APPROVE",
+          "reason_code": "RISK_ACCEPTED",
+          "comment": "ok"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "APPROVED"
+        },
+        "description": "E4-S3 / F131, F135, F137: Case D (MANUAL_REVIEW RISK_HIGH) APPROVE with RISK_ACCEPTED -> state APPROVED, override.actor officer1, previous_state MANUAL_REVIEW, decision APPROVE, and a non-null account_number (NRE + 12 digits). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-13",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "decision": "REJECT",
+          "reason_code": "RISK_TOO_HIGH"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "INVALID_STATE"
+          }
+        },
+        "description": "E4-S3 / F134, F118: a second override on the now-APPROVED case (REJECT with RISK_TOO_HIGH) -> 409 INVALID_STATE; same for any non-MANUAL_REVIEW case. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-14",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/override",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "decision": "REJECT",
+          "reason_code": "RISK_TOO_HIGH"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "REJECTED"
+        },
+        "description": "E4-S3 / F131, F137: Case C (MANUAL_REVIEW RISK_MEDIUM) REJECT with RISK_TOO_HIGH -> state REJECTED, account_number null; GET /account then 404. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-15",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/reclassify",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "band": "LOW",
+          "reason_code": "MANUAL_ASSESSMENT"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E4-S3 / F138: kyc-analyst cannot reclassify: 403 FORBIDDEN. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-16",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/reclassify",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "band": "LOW",
+          "reason_code": "RISK_ACCEPTED"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "UNKNOWN_REASON_CODE"
+          }
+        },
+        "description": "E4-S3 / F138: reason_code outside NEW_INFORMATION, SCORING_ERROR, MANUAL_ASSESSMENT -> 422 UNKNOWN_REASON_CODE; band outside LOW, MEDIUM, HIGH -> 422 VALIDATION_ERROR. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-17",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/reclassify",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "band": "LOW",
+          "reason_code": "MANUAL_ASSESSMENT"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "band": "LOW",
+          "source": "OFFICER_RECLASSIFY"
+        },
+        "description": "E4-S3 / F138: officer reclassifies a MANUAL_REVIEW case to band LOW with MANUAL_ASSESSMENT -> 200, a NEW risk assessment row with band LOW, source OFFICER_RECLASSIFY, same integer score and breakdown (original RULE_ENGINE row retained; an override audit record is written, verified by pytest F138). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-18",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/reclassify",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "band": "HIGH",
+          "reason_code": "MANUAL_ASSESSMENT"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "CASE_LOCKED"
+          }
+        },
+        "description": "E4-S1 / F118: reclassify on an APPROVED case -> 409 CASE_LOCKED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-19",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "CASE_LOCKED"
+          }
+        },
+        "description": "E4-S1 / F118: upload to an APPROVED case -> 409 CASE_LOCKED (details.state APPROVED). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-20",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/reject",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "reason_code": "DOC_ILLEGIBLE"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "CASE_LOCKED"
+          }
+        },
+        "description": "E4-S1 / F118: analyst document reject on an APPROVED case -> 409 CASE_LOCKED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-21",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/notifications",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "description": "E4-S4 / F139, F141: owning prospect reads notifications newest first: after the Case D override the first item has event APPROVED, template notification.approved, followed by MANUAL_REVIEW, CLASSIFIED and earlier events; text is plain with no contact details (F143). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-22",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/notifications",
+        "headers": {
+          "Authorization": "Bearer <access_token of a DIFFERENT lead>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E4-S4 / F142: another prospect's token -> 403 FORBIDDEN 'Token is bound to a different case'. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S4-API-23",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/notifications",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "description": "E4-S4 / F140: after an analyst document reject (see S2-API-19) the prospect list contains a document-rejection notification for that case. (base URL http://127.0.0.1:8010)"
+      }
+    ],
+    "playwright_checks": [],
+    "design_checks": {},
+    "performance_checks": [
+      {
+        "endpoint": "/api/v1/review-queue",
+        "max_response_time_ms": 1000,
+        "method": "GET"
+      }
+    ],
+    "architecture_checks": {
+      "layering": {
+        "required": true,
+        "description": "One-way layering preserved (backend/tests/architecture): services do not import controllers; account stub performs no network I/O (F127)."
+      },
+      "typing": {
+        "required": true,
+        "description": "From backend/: `.venv/Scripts/python -m ruff check .`, `.venv/Scripts/python -m mypy src/` and `.venv/Scripts/python -m pytest` exit 0; no skipped or xfail test mapped to this sprint's features."
+      },
+      "migrations": {
+        "required": true,
+        "description": "Decision, override, account and notification rows are append-only (F119, F126, F136) enforced by DB triggers; pytest attempts raw UPDATE and DELETE on each table and expects failure. E4-S5 UI features F145-F150 are out of scope for this contract."
+      }
+    }
+  }
+}

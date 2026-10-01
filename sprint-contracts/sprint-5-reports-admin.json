@@ -1,0 +1,350 @@
+{
+  "group": "sprint-5-reports-admin",
+  "stories": [
+    "E5-S1",
+    "E5-S2",
+    "E5-S3",
+    "E5-S4",
+    "E5-S5"
+  ],
+  "features": [
+    "F151",
+    "F152",
+    "F153",
+    "F154",
+    "F155",
+    "F156",
+    "F157",
+    "F158",
+    "F159",
+    "F160",
+    "F161",
+    "F162",
+    "F163",
+    "F164",
+    "F165",
+    "F166",
+    "F172",
+    "F173",
+    "F174",
+    "F175",
+    "F176",
+    "F177"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S5-API-01",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/tat",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S1 / F151, F153, F154: items[] per product with count, avg_seconds, min_seconds, max_seconds (integers); open cases excluded; empty data -> items []. Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-02",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/funnel",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S2 / F157: stages INITIATED, DOCS_SUBMITTED, SCREENED, CLASSIFIED, MANUAL_REVIEW, APPROVED, REJECTED each with integer count and conversion_bp (basis points, integer). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-03",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/backlog",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S2 / F158: count, oldest_age_minutes and buckets under_60, 60_to_1440, over_1440 (integer counts). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-04",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/time-per-stage",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S1 / F152: stages[] with average time per stage from consecutive transitions (integers). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-05",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/rejection-reasons",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S2 / F159: items[] of reason_code and count ranked descending with deterministic tie-break. Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-06",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/auto-approval",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S2 / F160: auto_approved, decided, rate_bp (integer basis points), target_bp 6000, met boolean. Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-07",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/dropped-leads",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "description": "E5-S3 / F162: older_than_days 7 default, total, and stages[] INITIATED and DOCS_SUBMITTED with counts (cases stalled before screening). Admin token; payload has no PII (F166). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-08",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/tat",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /tat. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-09",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/funnel",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /funnel. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-10",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/backlog",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /backlog. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-11",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/time-per-stage",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /time-per-stage. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-12",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/rejection-reasons",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /rejection-reasons. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-13",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/auto-approval",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /auto-approval. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-14",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/dropped-leads",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E5-S3 / F163: compliance-officer (and kyc-analyst) token -> 403 FORBIDDEN, details.required_roles [admin] for /dropped-leads. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-15",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/funnel",
+        "expected_status": 401,
+        "expected_body": {
+          "error": {
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        "description": "E5-S3 / F163: no token -> 401 UNAUTHENTICATED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-16",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/tat?product=Foo",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E5-S3 / F164: product outside Savings, Current, NRE -> 422 VALIDATION_ERROR, field product. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-17",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/tat?from=2026-02-01&to=2026-01-01",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E5-S3 / F164: from after to -> 422 VALIDATION_ERROR ('from must not be after to'). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-18",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/funnel?from=notadate",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E5-S3 / F164: non ISO date -> 422 VALIDATION_ERROR ('must be an ISO date YYYY-MM-DD'). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-19",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/dropped-leads?older_than_days=0",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "VALIDATION_ERROR"
+          }
+        },
+        "description": "E5-S3 / F164: older_than_days below 1 -> 422 VALIDATION_ERROR (field older_than_days). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S5-API-20",
+        "method": "GET",
+        "path": "/api/v1/admin/reports/funnel?product=NRE&from=2026-01-01&to=2026-12-31",
+        "headers": {
+          "Authorization": "Bearer <admin1 token, password demo-admin1-pass>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "filters": {
+            "product": "NRE",
+            "from": "2026-01-01",
+            "to": "2026-12-31"
+          }
+        },
+        "description": "E5-S1/E5-S2 / F154, F161: valid filters accepted; response filters echo product NRE, from 2026-01-01, to 2026-12-31 and counts are restricted to NRE cases. (base URL http://127.0.0.1:8010)"
+      }
+    ],
+    "playwright_checks": [],
+    "design_checks": {},
+    "performance_checks": [
+      {
+        "endpoint": "/api/v1/admin/reports/tat",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      },
+      {
+        "endpoint": "/api/v1/admin/reports/funnel",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      },
+      {
+        "endpoint": "/api/v1/admin/reports/backlog",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      },
+      {
+        "endpoint": "/api/v1/admin/reports/time-per-stage",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      },
+      {
+        "endpoint": "/api/v1/admin/reports/rejection-reasons",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      },
+      {
+        "endpoint": "/api/v1/admin/reports/auto-approval",
+        "max_response_time_ms": 500,
+        "method": "GET"
+      }
+    ],
+    "architecture_checks": {
+      "layering": {
+        "required": true,
+        "description": "One-way layering preserved (backend/tests/architecture): backend/tests/architecture: no upward imports (F175)."
+      },
+      "typing": {
+        "required": true,
+        "description": "From backend/: `.venv/Scripts/python -m ruff check .`, `.venv/Scripts/python -m mypy src/` and `.venv/Scripts/python -m pytest` exit 0; no skipped or xfail test mapped to this sprint's features."
+      },
+      "folder_structure": {
+        "required": true,
+        "description": "E5-S5 / F172-F177 are proven by pytest, not HTTP: architecture tests for published-rule immutability (F172), approved-case immutability (F173), override audit for band reassignment (F174), no upward imports (F175), UPDATE and DELETE rejected on every append-only table (F176), end-to-end logs free of plaintext PII (F177). E5-S1 F155/F156 (50-case fixture, no float in metrics) and E5-S3 F165 (p95 under 500 ms on 1,000 cases) are also pytest checks. E5-S4 dashboard features F167-F171 are UI and out of scope for this contract."
+      }
+    }
+  }
+}

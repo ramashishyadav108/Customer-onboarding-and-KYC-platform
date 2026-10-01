@@ -1,0 +1,445 @@
+{
+  "group": "sprint-2-documents",
+  "stories": [
+    "E2-S1",
+    "E2-S2",
+    "E2-S3",
+    "E2-S4",
+    "E2-S5"
+  ],
+  "features": [
+    "F043",
+    "F044",
+    "F045",
+    "F046",
+    "F047",
+    "F048",
+    "F049",
+    "F050",
+    "F051",
+    "F052",
+    "F053",
+    "F054",
+    "F055",
+    "F056",
+    "F057",
+    "F058",
+    "F059",
+    "F060",
+    "F061",
+    "F062",
+    "F063",
+    "F064",
+    "F065",
+    "F066",
+    "F067",
+    "F068"
+  ],
+  "contract": {
+    "api_checks": [
+      {
+        "id": "S2-API-01",
+        "method": "POST",
+        "path": "/api/v1/leads",
+        "body": {
+          "name": "Test Person Alpha",
+          "contact": "9999999921",
+          "product": "Savings"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "state": "INITIATED",
+          "product": "Savings"
+        },
+        "description": "E2-S1 lead capture feeding the document flow: 201 with case_id, state INITIATED, product Savings, access_token. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-02",
+        "method": "PUT",
+        "path": "/api/v1/cases/{case_id}/profile",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "body": {
+          "date_of_birth": "1990-04-12",
+          "annual_income": 3000000,
+          "occupation_category": "SELF_EMPLOYED",
+          "country_code": "IN",
+          "state_code": "MH"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "INITIATED"
+        },
+        "description": "E2-S2 / F052 profile saved. Preconditions: create a fresh case with POST /api/v1/leads {name:'Test Person Alpha',contact:'9999999921',product:'Savings'} (201, returns case_id and access_token) and PUT /api/v1/cases/{case_id}/profile with the Case A profile; Authorization is that prospect token. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-03",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "MISSING_DOCUMENTS"
+          }
+        },
+        "description": "E2-S2 / F051: submit before any upload is blocked with MISSING_DOCUMENTS; evaluator asserts details.missing_items == [ID_PROOF, ADDRESS_PROOF, PHOTOGRAPH] and state stays INITIATED. Preconditions: create a fresh case with POST /api/v1/leads {name:'Test Person Alpha',contact:'9999999921',product:'Savings'} (201, returns case_id and access_token) and PUT /api/v1/cases/{case_id}/profile with the Case A profile; Authorization is that prospect token. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-04",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "checklist_item": "ID_PROOF",
+          "version": 1,
+          "doc_class": "PAN",
+          "status": "VERIFIED",
+          "confidence_bp": 9500,
+          "rule_version": 1
+        },
+        "description": "E2-S1 / F043, F055: multipart upload checklist_item=ID_PROOF, file pan_valid.pdf (application/pdf); body has document_id, version 1, doc_class PAN, status VERIFIED, confidence_bp 9500 (integer), rule_version 1. Preconditions: create a fresh case with POST /api/v1/leads {name:'Test Person Alpha',contact:'9999999921',product:'Savings'} (201, returns case_id and access_token) and PUT /api/v1/cases/{case_id}/profile with the Case A profile; Authorization is that prospect token. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-05",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "checklist_item": "ADDRESS_PROOF",
+          "doc_class": "UTILITY_BILL",
+          "status": "VERIFIED"
+        },
+        "description": "E2-S3 / F055: ADDRESS_PROOF with utility-bill_valid.pdf -> doc_class UTILITY_BILL, VERIFIED. Same case as S2-API-04. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-06",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "checklist_item": "PHOTOGRAPH",
+          "doc_class": "PHOTOGRAPH",
+          "status": "VERIFIED"
+        },
+        "description": "E2-S3 / F055, F056: PHOTOGRAPH with photograph_valid.jpg (image/jpeg) -> doc_class PHOTOGRAPH, VERIFIED. Other fixture names (Current/NRE): gst-certificate_valid.pdf -> GST_CERTIFICATE, visa_valid.pdf -> VISA, passport_valid.png -> PASSPORT, aadhaar_valid.jpg -> AADHAAR. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-07",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "description": "E2-S1 / F046: lists the current version per checklist item (superseded false, sha256 present, no file content). Same case. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-08",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "state": "DOCS_SUBMITTED",
+          "missing_items": []
+        },
+        "description": "E2-S2 / F050, F054: once profile and all three mandatory items are uploaded, submit returns 200 with missing_items [] and state DOCS_SUBMITTED (the pipeline then auto-advances; GET /api/v1/cases/{case_id} state is later than INITIATED). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-09",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "INVALID_STATE"
+          }
+        },
+        "description": "E2-S2 / F053: repeat submit after the case has advanced is rejected 409 INVALID_STATE (never a duplicate transition). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-10",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "MISSING_PROFILE"
+          }
+        },
+        "description": "E2-S2 / F052: a fresh case with all documents but NO profile is blocked with MISSING_PROFILE; details.missing_fields lists date_of_birth, annual_income, occupation_category, country_code. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-11",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "status": "FLAGGED",
+          "reason_code": "DOC_CLASS_MISMATCH"
+        },
+        "description": "E2-S3 / F058: ADDRESS_PROOF uploaded as pan_valid.pdf (class PAN not accepted by that item) -> doc_class PAN, status FLAGGED, reason_code DOC_CLASS_MISMATCH. Use a fresh INITIATED case. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-12",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "doc_class": "UNRECOGNISED",
+          "status": "FLAGGED",
+          "reason_code": "DOC_UNRECOGNISED",
+          "confidence_bp": 0
+        },
+        "description": "E2-S3 / F057: file name random.pdf -> doc_class UNRECOGNISED, status FLAGGED, reason_code DOC_UNRECOGNISED, confidence_bp 0. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-13",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 415,
+        "expected_body": {
+          "error": {
+            "code": "UNSUPPORTED_MEDIA_TYPE"
+          }
+        },
+        "description": "E2-S1 / F044: file x.exe (application/x-msdownload) rejected 415 UNSUPPORTED_MEDIA_TYPE; allowed pdf, jpg, png. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-14",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 413,
+        "expected_body": {
+          "error": {
+            "code": "FILE_TOO_LARGE"
+          }
+        },
+        "description": "E2-S1 / F044: a 6 MiB pdf is rejected 413 FILE_TOO_LARGE (max_bytes 5242880). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-15",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "UNKNOWN_CHECKLIST_ITEM"
+          }
+        },
+        "description": "E2-S1 / F045: checklist_item=BOGUS is rejected 422 UNKNOWN_CHECKLIST_ITEM. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-16",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "doc_class": "PAN"
+        },
+        "description": "E2-S1 / F047: a file name '../../etc/pan_valid.pdf' is sanitised, upload succeeds as class PAN and no path component is stored or echoed. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-17",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <access_token of a DIFFERENT lead>"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E2-S1 / F049: a token from a different prospect's lead cannot upload to this case: 403 FORBIDDEN 'Token is bound to a different case'. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-18",
+        "method": "GET",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "expected_status": 401,
+        "expected_body": {
+          "error": {
+            "code": "UNAUTHENTICATED"
+          }
+        },
+        "description": "E2-S1 / F049: no Authorization header -> 401 UNAUTHENTICATED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-19",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/reject",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "reason_code": "DOC_ILLEGIBLE",
+          "comment": "blurry"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "status": "REJECTED",
+          "reason_code": "DOC_ILLEGIBLE"
+        },
+        "description": "E2-S4 / F062: kyc-analyst rejects a document with reason DOC_ILLEGIBLE (comment optional); body status REJECTED, reason_code DOC_ILLEGIBLE; GET case then shows item status REJECTED (needs prospect action, F068). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-20",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/reject",
+        "headers": {
+          "Authorization": "Bearer <officer1 token, password demo-officer1-pass>"
+        },
+        "body": {
+          "reason_code": "DOC_ILLEGIBLE"
+        },
+        "expected_status": 403,
+        "expected_body": {
+          "error": {
+            "code": "FORBIDDEN"
+          }
+        },
+        "description": "E2-S4 / F063: compliance-officer token -> 403 FORBIDDEN, details.required_roles [kyc-analyst]. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-21",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents/{document_id}/reject",
+        "headers": {
+          "Authorization": "Bearer <analyst1 token from POST /api/v1/auth/login, password demo-analyst1-pass>"
+        },
+        "body": {
+          "reason_code": "NOPE"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "UNKNOWN_REASON_CODE"
+          }
+        },
+        "description": "E2-S4 / F062: reason_code outside the allowed list (DOC_ILLEGIBLE, DOC_EXPIRED, DOC_NAME_MISMATCH, DOC_WRONG_TYPE, DOC_OTHER) -> 422 UNKNOWN_REASON_CODE. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-22",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/submit",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 422,
+        "expected_body": {
+          "error": {
+            "code": "MISSING_DOCUMENTS"
+          }
+        },
+        "description": "E2-S2/E2-S4: after rejecting ADDRESS_PROOF, submit is blocked MISSING_DOCUMENTS with missing_items [ADDRESS_PROOF] (a rejected item counts as missing). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-23",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 201,
+        "expected_body": {
+          "checklist_item": "ADDRESS_PROOF",
+          "version": 2,
+          "status": "VERIFIED"
+        },
+        "description": "E2-S4 / F064, F065, F067: re-upload of ADDRESS_PROOF with utility-bill_valid.pdf creates version 2 (version 1 retained, superseded true in the list), re-classified VERIFIED, case state unchanged (INITIATED); submit then returns 200 (unblocked). (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-24",
+        "method": "POST",
+        "path": "/api/v1/cases/{case_id}/documents",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 409,
+        "expected_body": {
+          "error": {
+            "code": "CASE_LOCKED"
+          }
+        },
+        "description": "E2-S4 / F066: re-upload on an APPROVED (closed) case is rejected 409 CASE_LOCKED. (base URL http://127.0.0.1:8010)"
+      },
+      {
+        "id": "S2-API-25",
+        "method": "GET",
+        "path": "/api/v1/products/{product}/checklist",
+        "headers": {
+          "Authorization": "Bearer <prospect access_token from POST /api/v1/leads>"
+        },
+        "expected_status": 200,
+        "expected_body": {
+          "product": "Savings"
+        },
+        "description": "E2-S1 / F045: /api/v1/products/Savings/checklist with a valid token returns items ID_PROOF, ADDRESS_PROOF, PHOTOGRAPH all mandatory with accepted_classes (ID_PROOF: PAN, AADHAAR, PASSPORT). (base URL http://127.0.0.1:8010)"
+      }
+    ],
+    "playwright_checks": [],
+    "design_checks": {},
+    "performance_checks": [
+      {
+        "endpoint": "/api/v1/cases/{case_id}/documents",
+        "max_response_time_ms": 1000,
+        "method": "GET"
+      }
+    ],
+    "architecture_checks": {
+      "layering": {
+        "required": true,
+        "description": "One-way layering preserved (backend/tests/architecture): document classification services do not import controllers."
+      },
+      "typing": {
+        "required": true,
+        "description": "From backend/: `.venv/Scripts/python -m ruff check .`, `.venv/Scripts/python -m mypy src/` and `.venv/Scripts/python -m pytest` exit 0; no skipped or xfail test mapped to this sprint's features."
+      },
+      "migrations": {
+        "required": true,
+        "description": "Classification rules (F061) are seeded by a numbered alembic migration and versioned (rule_version 1); document classification results are append-only (F060, pytest DB-trigger tests). E2-S5 UI features F069-F074 are verified by the UI sprint, not here."
+      }
+    }
+  }
+}
