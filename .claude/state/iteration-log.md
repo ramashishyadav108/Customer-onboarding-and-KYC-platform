@@ -29,3 +29,8 @@
 - **Checks:** 4 API, 0 Playwright, 0 design passed
 - **Coverage:** not measured (--no-cov)
 - **Learned Rules Applied:** []
+
+## Sprints 2-5 (retrospective contracts) - Evaluator
+- **Date:** 2026-10-01
+- **Status:** PASS (attempt 1)
+- **Summary:** Live API on :8010: S2 25/25, S3 22/22, S4 23/23, S5 20/20 contract checks pass (plus extra probes). Targeted pytest 518/515/508/485 passed; ruff and mypy clean. Contracts authored retrospectively. Two evaluator-script assertion slips (S2-API-25, S5-API-03) re-adjudicated as PASS. UI features not live-verified (committed mocked e2e). 104 features set passes=true. See specs/reviews/eval-sprint-{2,3,4,5}.md.
