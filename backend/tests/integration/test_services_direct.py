@@ -14,7 +14,7 @@ from onboardx.domain.entities import CaseProfile
 from onboardx.domain.errors import InvalidOnboardingStateException, MissingProfileFieldError
 from onboardx.repositories.unit_of_work import UnitOfWorkFactory
 from onboardx.services.risk_service import inputs_from_profile
-from pipeline_helpers import rows
+from pipeline_helpers import PDF_BYTES, rows
 
 
 def case_in_state(engine: Any, state: str) -> str:
@@ -165,7 +165,7 @@ def test_ac02_upload_retries_then_gives_up_on_persistent_conflicts(
             checklist_item="ID_PROOF",
             filename="pan_1.pdf",
             content_type="application/pdf",
-            content=b"x",
+            content=PDF_BYTES,
         )
     assert len(calls) == 3
 
@@ -188,7 +188,7 @@ def test_ac02_failed_commit_removes_the_stored_file(
             checklist_item="ID_PROOF",
             filename="pan_1.pdf",
             content_type="application/pdf",
-            content=b"x",
+            content=PDF_BYTES,
         )
     assert [p for p in upload_dir.rglob("*") if p.is_file()] == []
 

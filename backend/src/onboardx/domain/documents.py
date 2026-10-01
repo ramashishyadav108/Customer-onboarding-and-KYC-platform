@@ -16,6 +16,11 @@ _EXTENSIONS = {
     "image/jpeg": frozenset({"jpg", "jpeg"}),
     "image/png": frozenset({"png"}),
 }
+_SIGNATURES = {
+    "application/pdf": b"%PDF-",
+    "image/jpeg": bytes.fromhex("ffd8ff"),
+    "image/png": bytes.fromhex("89504e470d0a1a0a"),
+}
 _UNSAFE = re.compile(r"[^A-Za-z0-9._ -]")
 _BLOCKING = frozenset({str(ItemStatus.MISSING), str(ItemStatus.REJECTED)})
 _ACTIONABLE = _BLOCKING | {str(ItemStatus.FLAGGED)}
@@ -49,6 +54,13 @@ def validate_upload(content_type: str | None, filename: str, size_bytes: int) ->
     if size_bytes < 1:
         raise ValidationError.single("file", "file must not be empty")
     return kind
+
+
+def validate_content(kind: str, content: bytes) -> None:
+    """Pure magic-byte check: the content must start with the signature of its declared type."""
+    signature = _SIGNATURES.get(kind)
+    if signature is None or not content.startswith(signature):
+        raise UnsupportedMediaTypeError
 
 
 def _item_view(item: ChecklistItem, doc: DocumentView | None) -> CaseItemView:
