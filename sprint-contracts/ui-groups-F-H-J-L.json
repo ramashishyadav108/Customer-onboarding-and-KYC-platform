@@ -1,0 +1,495 @@
+{
+  "group": "UI-F-H-J-L",
+  "stories": [
+    "E2-S5",
+    "E3-S5",
+    "E4-S5",
+    "E5-S4"
+  ],
+  "features": [
+    "F069",
+    "F070",
+    "F071",
+    "F072",
+    "F073",
+    "F074",
+    "F108",
+    "F109",
+    "F110",
+    "F111",
+    "F112",
+    "F113",
+    "F145",
+    "F146",
+    "F147",
+    "F148",
+    "F149",
+    "F150",
+    "F167",
+    "F168",
+    "F169",
+    "F170",
+    "F171"
+  ],
+  "contract": {
+    "api_checks": [],
+    "playwright_checks": [
+      {
+        "id": "UI-F069",
+        "description": "Lead form shows accessible inline errors and the case_id on success",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Open the lead page"
+          },
+          {
+            "action": "Submit empty form and assert inline errors linked via aria-describedby"
+          },
+          {
+            "action": "Submit valid data and assert case_id is displayed"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F069)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F070",
+        "description": "Checklist shows status chips and gates the Submit button",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Open upload page for a Savings case"
+          },
+          {
+            "action": "Assert three items show Missing and Submit is disabled"
+          },
+          {
+            "action": "Upload all three and assert chips update and Submit is enabled"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F070)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F071",
+        "description": "Status page supports in-place re-upload",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Open status page for a case with a FLAGGED item"
+          },
+          {
+            "action": "Use Re-upload with pan_valid.pdf"
+          },
+          {
+            "action": "Assert chip becomes Verified and case_id and state text are unchanged"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F071)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F072",
+        "description": "Portal is responsive at 360 px and 1280 px",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Set viewport to 360x800"
+          },
+          {
+            "action": "Visit each prospect page and assert document scrollWidth <= innerWidth"
+          },
+          {
+            "action": "Repeat at 1280x800"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F072)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F073",
+        "description": "Prospect pages pass axe-core with no serious or critical violations",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Run axe-core on lead, upload and status pages"
+          },
+          {
+            "action": "Assert zero serious and critical violations"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F073)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F074",
+        "description": "Prospect flow is fully keyboard operable",
+        "url": "/portal/register",
+        "steps": [
+          {
+            "action": "Complete lead registration and upload using only Tab, Enter and Space"
+          },
+          {
+            "action": "Assert the flow completes"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F074)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F108",
+        "description": "Workbench lists and filters cases",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Seed cases in different states and products"
+          },
+          {
+            "action": "Open workbench as kyc-analyst"
+          },
+          {
+            "action": "Filter by state SCREENED and product NRE"
+          },
+          {
+            "action": "Assert only matching rows"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F108)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F109",
+        "description": "Case detail shows documents, screening and risk evidence",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Open a classified case"
+          },
+          {
+            "action": "Assert document rows with status"
+          },
+          {
+            "action": "Assert screening section shows hits or none"
+          },
+          {
+            "action": "Assert score, band and rule version are displayed"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F109)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F110",
+        "description": "Reject-document action requires a reason",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Open case detail"
+          },
+          {
+            "action": "Assert Reject disabled"
+          },
+          {
+            "action": "Choose ILLEGIBLE and click Reject"
+          },
+          {
+            "action": "Assert row status REJECTED"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F110)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F111",
+        "description": "Published rule versions are read-only in the UI",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Open rules page as admin"
+          },
+          {
+            "action": "Assert v1 inputs are disabled"
+          },
+          {
+            "action": "Create draft and assert inputs are enabled"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F111)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F112",
+        "description": "Admin can add a watchlist entry in the UI",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Open watchlist page"
+          },
+          {
+            "action": "Add entry"
+          },
+          {
+            "action": "Assert it appears in the list"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F112)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F113",
+        "description": "Staff pages pass axe-core and keep contact masked",
+        "url": "/staff/workbench",
+        "steps": [
+          {
+            "action": "Run axe-core on workbench, case detail, rules and watchlist pages"
+          },
+          {
+            "action": "Assert zero serious and critical violations"
+          },
+          {
+            "action": "Assert displayed contact shows only its last 2 characters"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F113)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F145",
+        "description": "Review queue page lists cases oldest first",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Log in as compliance-officer"
+          },
+          {
+            "action": "Open review queue"
+          },
+          {
+            "action": "Assert rows ordered oldest first with reason code, product and age"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F145)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F146",
+        "description": "Other roles cannot open the review queue route",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Log in as kyc-analyst and open the route"
+          },
+          {
+            "action": "Assert redirect to a forbidden page"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F146)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F147",
+        "description": "Decision buttons require a reason code",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Open a case in the panel"
+          },
+          {
+            "action": "Assert Approve and Reject disabled"
+          },
+          {
+            "action": "Select a reason and assert both enabled"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F147)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F148",
+        "description": "Override removes the case and confirms account number",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Approve a case from the panel"
+          },
+          {
+            "action": "Assert success message shows account number"
+          },
+          {
+            "action": "Assert case no longer listed"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F148)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F149",
+        "description": "Portal shows notification history",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Drive a case through two transitions"
+          },
+          {
+            "action": "Open the prospect status page"
+          },
+          {
+            "action": "Assert notifications listed newest first"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F149)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F150",
+        "description": "Review UI meets accessibility checks",
+        "url": "/staff/review",
+        "steps": [
+          {
+            "action": "Open the decision dialog and assert focus moves into it"
+          },
+          {
+            "action": "Press Escape and assert focus returns to the trigger"
+          },
+          {
+            "action": "Run axe-core and assert zero serious and critical violations"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F150)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F167",
+        "description": "Dashboard shows all five report panels with API values",
+        "url": "/admin/dashboard",
+        "steps": [
+          {
+            "action": "Seed data and open dashboard as admin"
+          },
+          {
+            "action": "Assert five panels are present"
+          },
+          {
+            "action": "Assert displayed values equal the API responses"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F167)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F168",
+        "description": "Filters update all panels",
+        "url": "/admin/dashboard",
+        "steps": [
+          {
+            "action": "Select product NRE and a date range"
+          },
+          {
+            "action": "Assert each panel's request includes both filters and values refresh"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F168)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F169",
+        "description": "Charts have table and text alternatives",
+        "url": "/admin/dashboard",
+        "steps": [
+          {
+            "action": "Inspect each panel"
+          },
+          {
+            "action": "Assert a data table and summary text exist"
+          },
+          {
+            "action": "Assert series are distinguishable by label or pattern"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F169)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F170",
+        "description": "Empty state is shown when no data exists",
+        "url": "/admin/dashboard",
+        "steps": [
+          {
+            "action": "Open dashboard on an empty database"
+          },
+          {
+            "action": "Assert each panel shows an empty-state message"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F170)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      },
+      {
+        "id": "UI-F171",
+        "description": "Dashboard is accessible and admin-only",
+        "url": "/admin/dashboard",
+        "steps": [
+          {
+            "action": "Run axe-core at 1280 px and assert zero serious and critical"
+          },
+          {
+            "action": "Tab through all controls"
+          },
+          {
+            "action": "Open the route as kyc-analyst and assert redirect to forbidden"
+          },
+          {
+            "action": "automated by e2e/live/ui-groups.live.ts (title prefix F171)",
+            "assertion": "test passes against the live backend"
+          }
+        ]
+      }
+    ],
+    "design_checks": {},
+    "performance_checks": []
+  }
+}

@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/config';
 import { Banner, StatusChip } from '@/components/ui';
 import { StatusTimeline } from '@/components/data';
-import { useCase, useNotifications } from '@/hooks/useProspect';
+import { ReuploadList } from '@/components/ReuploadList';
+import { useCase, useChecklistUpload, useNotifications } from '@/hooks/useProspect';
 import { useAuth } from '@/state/AuthContext';
 
 export function StatusPage() {
@@ -10,6 +12,10 @@ export function StatusPage() {
   const caseId = session?.caseId ?? null;
   const c = useCase(caseId);
   const n = useNotifications(caseId);
+  const { reload: reloadCase } = c;
+  const { reload: reloadNotes } = n;
+  const refresh = useCallback(() => { reloadCase(); reloadNotes(); }, [reloadCase, reloadNotes]);
+  const up = useChecklistUpload(caseId ?? '', refresh);
 
   if (!caseId) {
     return (
@@ -37,10 +43,11 @@ export function StatusPage() {
           Action required on {d.action_required.length} document(s). <Link to={ROUTES.documents}>Go to documents</Link> to re-upload.
         </Banner>
       )}
+      {(d.action_required.length > 0 || Object.keys(up.feedback).length > 0) && <ReuploadList detail={d} up={up} />}
       {n.error && <Banner kind="e">{n.error}</Banner>}
       <StatusTimeline state={d.state} notifications={n.data ?? []} />
       <div className="row" style={{ marginTop: 12 }}>
-        <button type="button" className="sec" onClick={() => { c.reload(); n.reload(); }}>
+        <button type="button" className="sec" onClick={refresh}>
           Refresh status
         </button>
       </div>
